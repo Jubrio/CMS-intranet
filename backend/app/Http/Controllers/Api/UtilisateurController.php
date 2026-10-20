@@ -28,11 +28,12 @@ class UtilisateurController extends Controller
             }
         }
 
+        // CORRIGÉ : ilike (insensible à la casse sous PostgreSQL) et échappement de %, _ et \
         if ($request->filled('q')) {
-            $q = $request->query('q');
-            $requete->where(fn ($w) => $w->where('nom', 'like', "%{$q}%")
-                ->orWhere('prenom', 'like', "%{$q}%")
-                ->orWhere('email', 'like', "%{$q}%"));
+            $q = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $request->query('q')).'%';
+            $requete->where(fn ($w) => $w->where('nom', 'ilike', $q)
+                ->orWhere('prenom', 'ilike', $q)
+                ->orWhere('email', 'ilike', $q));
         }
 
         return response()->json(
@@ -74,6 +75,10 @@ class UtilisateurController extends Controller
 
         $donnees = $request->validated();
 
+        if (empty($donnees)) {
+            return response()->json(['message' => 'Aucun champ à modifier.'], 422);
+        }
+
         if (isset($donnees['role_id']) && (int) $donnees['role_id'] !== $cible->role_id) {
             $role = Role::where('entreprise_id', $appelant->entreprise_id)->findOrFail($donnees['role_id']);
 
@@ -81,11 +86,16 @@ class UtilisateurController extends Controller
                 return response()->json(['message' => 'Vous ne pouvez pas attribuer un rôle plus élevé que le vôtre.'], 403);
             }
             if ($this->droits->estDernierAdminActif($cible)) { // RG33
-                return response()->json(['message' => "Le dernier administrateur actif ne peut pas changer de rôle."], 422);
+                return response()->json(['message' => 'Le dernier administrateur actif ne peut pas changer de rôle.'], 422);
             }
         }
 
         $cible->update($donnees);
+
+        // CORRIGÉ : la réinitialisation du mot de passe par un tiers invalide les sessions du compte
+        if (isset($donnees['mot_de_passe']) && $cible->id !== $appelant->id) {
+            $cible->tokens()->delete();
+        }
 
         return response()->json($this->formater($cible->load('role:id,nom_role')));
     }

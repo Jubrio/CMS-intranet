@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\IntranetController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\ModuleEntrepriseController;
 use App\Http\Controllers\Api\PersonnalisationController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UtilisateurController;
 use App\Http\Controllers\Api\DepartementController;
+use App\Http\Controllers\Api\ContenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -51,4 +53,32 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/departements/{id}', [DepartementController::class, 'update'])->whereNumber('id');
         Route::delete('/departements/{id}', [DepartementController::class, 'destroy'])->whereNumber('id');
     });
+            // Rôles et permissions (étape 26)
+    Route::get('/roles/assignables', [RoleController::class, 'assignables'])
+        ->middleware('permission:utilisateurs.gerer');
+
+    Route::middleware('permission:roles.gerer')->group(function () {
+        Route::get('/permissions', [RoleController::class, 'permissions']);
+        Route::get('/roles', [RoleController::class, 'index']);
+        Route::post('/roles', [RoleController::class, 'store']);
+        Route::get('/roles/{id}', [RoleController::class, 'show'])->whereNumber('id');
+        Route::put('/roles/{id}', [RoleController::class, 'update'])->whereNumber('id');
+        Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->whereNumber('id');
+    });
+            // Contenus (étape 28)
+    Route::get('/contenus/{type}', [ContenuController::class, 'index'])
+        ->where('type', 'actualite|annonce|article|note_service');
+    Route::get('/contenus/{type}/{id}', [ContenuController::class, 'show'])
+        ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+    Route::post('/contenus/{type}', [ContenuController::class, 'store'])
+        ->where('type', 'actualite|annonce|article|note_service');
+
+    Route::put('/contenus/{type}/{id}', [ContenuController::class, 'update'])
+        ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+    Route::post('/contenus/{type}/{id}/publier', [ContenuController::class, 'publier'])
+        ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+    Route::post('/contenus/{type}/{id}/archiver', [ContenuController::class, 'archiver'])
+        ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+    Route::delete('/contenus/{type}/{id}', [ContenuController::class, 'destroy'])
+        ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
 });
