@@ -19,7 +19,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
         $presence = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         $superieur = ['nullable', 'integer',
-            Rule::exists('utilisateurs', 'id')->where('entreprise_id', $entrepriseId)]; // RG02
+            Rule::exists('utilisateurs', 'id')->where('entreprise_id', $entrepriseId)]; 
         if ($id) {
             $superieur[] = Rule::notIn([$id]); // pas son propre supérieur
         }
@@ -28,7 +28,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
             'nom'            => [$presence, 'string', 'max:100'],
             'prenom'         => [$presence, 'string', 'max:100'],
             'email'          => [$presence, 'email', 'max:255',
-                                 Rule::unique('utilisateurs', 'email')->ignore($id)], // RG08
+                                 Rule::unique('utilisateurs', 'email')->ignore($id)], 
             'mot_de_passe'   => [$presence, 'string', 'min:8', 'max:72'],
             'role_id'        => [$presence, 'integer',
                                  Rule::exists('roles', 'id')->where('entreprise_id', $entrepriseId)],
