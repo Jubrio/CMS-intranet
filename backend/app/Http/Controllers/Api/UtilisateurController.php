@@ -78,6 +78,10 @@ class UtilisateurController extends Controller
         if (empty($donnees)) {
             return response()->json(['message' => 'Aucun champ à modifier.'], 422);
         }
+        if (! empty($donnees['superieur_id'])
+            && app(\App\Services\HierarchieUtilisateurs::class)->creeUnCycle($cible->id, (int) $donnees['superieur_id'])) {
+            return response()->json(['message' => 'Ce choix créerait une boucle hiérarchique.'], 422);
+        }
 
         if (isset($donnees['role_id']) && (int) $donnees['role_id'] !== $cible->role_id) {
             $role = Role::where('entreprise_id', $appelant->entreprise_id)->findOrFail($donnees['role_id']);

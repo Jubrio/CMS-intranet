@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UtilisateurController;
 use App\Http\Controllers\Api\DepartementController;
 use App\Http\Controllers\Api\ContenuController;
+use App\Http\Controllers\Api\AnnuaireController;
+use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\EvenementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -81,4 +84,40 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
     Route::delete('/contenus/{type}/{id}', [ContenuController::class, 'destroy'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+            // Annuaire et organigramme (étape 30)
+    Route::middleware(['module:annuaire', 'permission:annuaire.consulter'])->group(function () {
+        Route::get('/annuaire', [AnnuaireController::class, 'index']);
+        Route::get('/annuaire/{id}', [AnnuaireController::class, 'show'])->whereNumber('id');
+        Route::get('/organigramme', [AnnuaireController::class, 'organigramme']);
+    });
+    Route::middleware(['module:annuaire', 'permission:annuaire.gerer'])->group(function () {
+        Route::put('/annuaire/{id}', [AnnuaireController::class, 'modifier'])->whereNumber('id');
+        Route::post('/annuaire/{id}/photo', [AnnuaireController::class, 'photo'])->whereNumber('id');
+    });
+        // Documents (étape 32)
+    Route::middleware('module:documents')->group(function () {
+        Route::middleware('permission:documents.consulter')->group(function () {
+            Route::get('/documents', [DocumentController::class, 'index']);
+            Route::get('/documents/categories', [DocumentController::class, 'categories']);
+            Route::get('/documents/{id}', [DocumentController::class, 'show'])->whereNumber('id');
+            Route::get('/documents/{id}/telecharger', [DocumentController::class, 'telecharger'])->whereNumber('id');
+        });
+        Route::middleware('permission:documents.gerer')->group(function () {
+            Route::post('/documents', [DocumentController::class, 'store']);
+            Route::put('/documents/{id}', [DocumentController::class, 'update'])->whereNumber('id');
+            Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->whereNumber('id');
+        });
+    });
+            // Calendrier et événements (étape 33)
+    Route::middleware(['module:calendrier', 'module:evenements'])->group(function () {
+        Route::middleware(['permission:calendrier.consulter', 'permission:evenements.consulter'])->group(function () {
+            Route::get('/evenements', [EvenementController::class, 'index']);
+            Route::get('/evenements/{id}', [EvenementController::class, 'show'])->whereNumber('id');
+        });
+        Route::middleware('permission:evenements.gerer')->group(function () {
+            Route::post('/evenements', [EvenementController::class, 'store']);
+            Route::put('/evenements/{id}', [EvenementController::class, 'update'])->whereNumber('id');
+            Route::delete('/evenements/{id}', [EvenementController::class, 'destroy'])->whereNumber('id');
+        });
+    });
 });
