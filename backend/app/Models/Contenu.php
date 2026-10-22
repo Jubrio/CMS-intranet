@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contenu extends Model
 {
@@ -29,5 +30,9 @@ class Contenu extends Model
     public function departement(): BelongsTo
     {
         return $this->belongsTo(Departement::class);
+    }
+    public function images(): HasMany
+    {
+        return $this->hasMany(Image::class, 'contenu_id')->orderBy('id');
     }
 }

@@ -12,6 +12,13 @@ use App\Http\Controllers\Api\ContenuController;
 use App\Http\Controllers\Api\AnnuaireController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EvenementController;
+use App\Http\Controllers\Api\QuestionFaqController;
+use App\Http\Controllers\Api\FormulaireController;
+use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\MenuGestionController;
+use App\Http\Controllers\Api\PageImageController;
+use App\Http\Controllers\Api\LectureNoteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +28,10 @@ Route::get('/health', fn () => response()->json(['status' => 'ok']));
 Route::get('/modules/catalogue', [ModuleController::class, 'catalogue']);
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/intranets', [IntranetController::class, 'creer'])->middleware('throttle:5,1');
+
+// Fichier d'image : accès contrôlé par la signature de l'adresse (étape 38)
+Route::get('/images/{id}/fichier', [PageImageController::class, 'fichier'])
+    ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('images.fichier');
 
 // Routes protégées (jeton obligatoire)
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
@@ -120,4 +131,68 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::delete('/evenements/{id}', [EvenementController::class, 'destroy'])->whereNumber('id');
         });
     });
+        // FAQ (étape 34)
+    Route::middleware('module:faq')->group(function () {
+        Route::middleware('permission:faq.consulter')->group(function () {
+            Route::get('/faq', [QuestionFaqController::class, 'index']);
+            Route::get('/faq/categories', [QuestionFaqController::class, 'categories']);
+            Route::get('/faq/{id}', [QuestionFaqController::class, 'show'])->whereNumber('id');
+        });
+        Route::middleware('permission:faq.gerer')->group(function () {
+            Route::post('/faq', [QuestionFaqController::class, 'store']);
+            Route::put('/faq/{id}', [QuestionFaqController::class, 'update'])->whereNumber('id');
+            Route::delete('/faq/{id}', [QuestionFaqController::class, 'destroy'])->whereNumber('id');
+        });
+    });
+    // Formulaires internes (étape 35)
+Route::middleware('module:formulaires')->group(function () {
+    Route::middleware('permission:formulaires.repondre')->group(function () {
+        Route::get('/formulaires', [FormulaireController::class, 'index']);
+        Route::get('/formulaires/{id}', [FormulaireController::class, 'show'])->whereNumber('id');
+        Route::post('/formulaires/{id}/reponses', [FormulaireController::class, 'repondre'])->whereNumber('id');
+    });
+    Route::middleware('permission:formulaires.gerer')->group(function () {
+        Route::post('/formulaires', [FormulaireController::class, 'store']);
+        Route::put('/formulaires/{id}', [FormulaireController::class, 'update'])->whereNumber('id');
+        Route::post('/formulaires/{id}/publier', [FormulaireController::class, 'publier'])->whereNumber('id');
+        Route::post('/formulaires/{id}/cloturer', [FormulaireController::class, 'cloturer'])->whereNumber('id');
+        Route::delete('/formulaires/{id}', [FormulaireController::class, 'destroy'])->whereNumber('id');
+        Route::get('/formulaires/{id}/reponses', [FormulaireController::class, 'reponses'])->whereNumber('id');
+    });
+});
+// Menu de l'utilisateur connecté (étape 36)
+Route::get('/menu', [MenuController::class, 'index']);
+
+// Pages internes (étape 36)
+// Pages internes (étape 36) et leurs images (étape 38)
+Route::middleware('module:pages')->group(function () {
+    Route::middleware('permission:pages.consulter')->group(function () {
+        Route::get('/pages', [PageController::class, 'index']);
+        Route::get('/pages/{id}', [PageController::class, 'show'])->whereNumber('id');
+    });
+    Route::middleware('permission:pages.gerer')->group(function () {
+        Route::post('/pages', [PageController::class, 'store']);
+        Route::put('/pages/{id}', [PageController::class, 'update'])->whereNumber('id');
+        Route::post('/pages/{id}/publier', [PageController::class, 'publier'])->whereNumber('id');
+        Route::post('/pages/{id}/archiver', [PageController::class, 'archiver'])->whereNumber('id');
+        Route::delete('/pages/{id}', [PageController::class, 'destroy'])->whereNumber('id');
+        Route::post('/pages/{id}/images', [PageImageController::class, 'store'])->whereNumber('id');
+        Route::delete('/pages/{id}/images/{imageId}', [PageImageController::class, 'destroy'])->whereNumber(['id', 'imageId']);
+    });
+});
+    // Gestion des menus (étape 37) : module personnalisation, obligatoire donc toujours actif
+Route::middleware('permission:personnalisation.parametres')->group(function () {
+    Route::get('/menus', [MenuGestionController::class, 'index']);
+    Route::put('/menus/modules/{code}', [MenuGestionController::class, 'modifierModule'])->where('code', '[a-z_]+');
+    Route::delete('/menus/modules/{code}', [MenuGestionController::class, 'reinitialiserModule'])->where('code', '[a-z_]+');
+    Route::post('/menus/liens', [MenuGestionController::class, 'creerLien']);
+    Route::put('/menus/liens/{id}', [MenuGestionController::class, 'modifierLien'])->whereNumber('id');
+    Route::delete('/menus/liens/{id}', [MenuGestionController::class, 'supprimerLien'])->whereNumber('id');
+});
+    // Confirmation de lecture des notes de service (étape 39)
+Route::post('/contenus/note_service/{id}/lecture', [LectureNoteController::class, 'confirmer'])
+    ->whereNumber('id');
+Route::get('/contenus/note_service/{id}/lectures', [LectureNoteController::class, 'lectures'])
+    ->whereNumber('id');
+    
 });

@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use App\Models\LectureNote;
 
 class ContenuController extends Controller
 {
@@ -59,7 +60,14 @@ class ContenuController extends Controller
             abort(404);
         }
 
-        return response()->json($this->formater($c, true));
+        $x = $this->formater($c, true);
+if ($type === 'note_service') {
+    $l = LectureNote::where('contenu_id', $c->id)->where('utilisateur_id', $u->id)->first();
+    $x['lu'] = (bool) $l;
+    $x['date_lecture'] = $l?->date_lecture;
+}
+
+return response()->json($x);
     }
 
     public function store(EnregistrerContenuRequest $request, string $type): JsonResponse
