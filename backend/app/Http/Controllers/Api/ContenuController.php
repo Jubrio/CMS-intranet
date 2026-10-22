@@ -131,7 +131,10 @@ return response()->json($x);
         if ($c->date_expiration && $c->date_expiration->lt(today())) { // RG23
             return response()->json(['message' => "La date d'expiration est dépassée."], 422);
         }
-        $c->update(['statut_contenu' => 'publie', 'date_publication' => now()]);
+        $c->update([
+    'statut_contenu' => 'publie',
+    'date_publication' => $c->date_publication ?? now(),
+]);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
