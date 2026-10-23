@@ -29,6 +29,9 @@ export type Profil = {
   email: string;
   role: string;
   departement_id?: number | null;
+  telephone?: string | null;
+  poste?: string | null;
+  photo?: string | null;
   entreprise: string | null;
   permissions: string[];
   modules_actifs: string[];
@@ -85,16 +88,16 @@ export const NAV: GroupeNav[] = [
       { libelle: "Événements", icone: CalendarCheck, href: "/espace/evenements", permission: "evenements.gerer", module: "evenements" },
       { libelle: "FAQ", icone: CircleHelp, href: "/espace/faq", permission: "faq.gerer", module: "faq" },
       { libelle: "Formulaires", icone: ClipboardList, href: "/espace/formulaires", permission: "formulaires.gerer", module: "formulaires" },
-      { libelle: "Annuaire", icone: Contact, permission: "annuaire.gerer", module: "annuaire" },
+      { libelle: "Annuaire", icone: Contact, href: "/espace/annuaire", permission: "annuaire.gerer", module: "annuaire" },
     ],
   },
   {
     titre: "Configuration",
     entrees: [
-      { libelle: "Modules", icone: Blocks, permission: "personnalisation.modules" },
-      { libelle: "Apparence", icone: Palette, permission: "personnalisation.apparence" },
+      { libelle: "Modules", icone: Blocks, href: "/espace/modules", permission: "personnalisation.modules" },
+      { libelle: "Apparence", icone: Palette, href: "/espace/apparence", permission: "personnalisation.apparence" },
       { libelle: "Menus", icone: ListTree, permission: "personnalisation.menus" },
-      { libelle: "Paramètres", icone: Settings, permission: "personnalisation.parametres" },
+      { libelle: "Paramètres", icone: Settings, href: "/espace/parametres", permission: "personnalisation.parametres" },
     ],
   },
 ];

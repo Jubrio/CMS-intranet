@@ -63,3 +63,10 @@ export async function telechargerFichier(cheminLien: string, token: string): Pro
   lien.click();
   lien.remove();
 }
+
+// Adresse publique d'un fichier du disque « public » de Laravel (photos de profil), à partir du
+// chemin relatif renvoyé par l'API (ex. « photos/abc.jpg »). Le lien « storage » doit exister côté serveur.
+export function urlStockage(chemin: string): string {
+  if (/^https?:\/\//.test(chemin)) return chemin;
+  return `${API_URL.replace(/\/api\/?$/, "")}/storage/${chemin.replace(/^\/+/, "")}`;
+}

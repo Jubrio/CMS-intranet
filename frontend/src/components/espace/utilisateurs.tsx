@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Search, UserCheck, UserX, Users, X } from "lucide-react";
-import { api, ApiError, messageErreur } from "@/lib/api";
+import { api, ApiError, messageErreur, urlStockage } from "@/lib/api";
 import { initiales } from "@/lib/espace";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -25,15 +25,24 @@ function Squelette({ className }: { className?: string }) {
 }
 
 function Avatar({ u }: { u: Utilisateur }) {
+  const [echec, setEchec] = useState<string | null>(null);
+  const actif = u.statut_compte === "actif";
+  const afficher = u.photo && echec !== u.photo;
+
   return (
     <span
       aria-hidden
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-        u.statut_compte === "actif" ? "bg-brand-violet/15 text-brand-violet" : "bg-site-line text-site-muted",
+        "flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold",
+        actif ? "bg-brand-violet/15 text-brand-violet" : "bg-site-line text-site-muted",
       )}
     >
-      {initiales(u)}
+      {afficher ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={urlStockage(u.photo as string)} alt="" loading="lazy" onError={() => setEchec(u.photo ?? null)} className={cn("size-full object-cover", !actif && "opacity-60 grayscale")} />
+      ) : (
+        initiales(u)
+      )}
     </span>
   );
 }

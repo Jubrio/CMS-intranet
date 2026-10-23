@@ -12,6 +12,7 @@ export type Utilisateur = {
   prenom: string;
   email: string;
   telephone: string | null;
+  photo?: string | null;
   poste: string | null;
   date_embauche: string | null;
   statut_compte: "actif" | "inactif";

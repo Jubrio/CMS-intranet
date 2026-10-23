@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\IntranetController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\ModuleEntrepriseController;
@@ -40,6 +41,9 @@ Route::get('/documents/{id}/fichier', [DocumentController::class, 'fichier'])
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'moi']);
+    Route::put('/me', [ProfilController::class, 'modifier']);
+    Route::post('/me/photo', [ProfilController::class, 'photo']);
+    Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
 
     // Modules (étape 22)
     Route::get('/modules', [ModuleEntrepriseController::class, 'index'])
@@ -103,6 +107,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/annuaire', [AnnuaireController::class, 'index']);
         Route::get('/annuaire/{id}', [AnnuaireController::class, 'show'])->whereNumber('id');
         Route::get('/organigramme', [AnnuaireController::class, 'organigramme']);
+        Route::get('/organigramme/personnes', [AnnuaireController::class, 'organigrammePersonnes']);
     });
     Route::middleware(['module:annuaire', 'permission:annuaire.gerer'])->group(function () {
         Route::put('/annuaire/{id}', [AnnuaireController::class, 'modifier'])->whereNumber('id');

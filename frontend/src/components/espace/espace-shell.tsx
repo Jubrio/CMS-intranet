@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import { initiales, type Personnalisation, type Profil } from "@/lib/espace";
+import type { Personnalisation, Profil } from "@/lib/espace";
+import { variablesTheme } from "@/lib/apparence";
 import { effacerToken, lireToken } from "@/lib/session";
 import { ThemeToggle } from "@/components/visiteur/theme";
 import { EspaceContext } from "./espace-context";
 import { Sidebar } from "./sidebar";
+import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
 
 type Session = { token: string; profil: Profil; perso: Personnalisation | null };
 
@@ -17,11 +19,28 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [erreur, setErreur] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [profilOuvert, setProfilOuvert] = useState(false);
+  const fermerProfil = useCallback(() => setProfilOuvert(false), []);
 
   const expirer = useCallback(() => {
     effacerToken();
     router.replace("/connexion");
   }, [router]);
+
+  const majPerso = useCallback((perso: Personnalisation) => {
+    setSession((s) => (s ? { ...s, perso } : s));
+  }, []);
+
+  const jeton = session?.token;
+  const actualiser = useCallback(async () => {
+    if (!jeton) return;
+    try {
+      const profil = await api<Profil>("/me", { token: jeton });
+      setSession((s) => (s ? { ...s, profil } : s));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) expirer();
+    }
+  }, [jeton, expirer]);
 
   useEffect(() => {
     const token = lireToken();
@@ -66,7 +85,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     router.replace("/");
   }
 
-  const valeur = useMemo(() => (session ? { ...session, expirer } : null), [session, expirer]);
+  const valeur = useMemo(() => (session ? { ...session, expirer, actualiser, majPerso } : null), [session, expirer, actualiser, majPerso]);
 
   if (erreur) {
     return (
@@ -88,6 +107,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
 
   return (
     <EspaceContext.Provider value={valeur}>
+      {/* Couleurs de l'entreprise : les variables s'appliquent à tout l'espace sans ajouter de boîte */}
+      <div className="contents" style={variablesTheme(perso?.couleur_principale, perso?.couleur_secondaire)}>
       {/* Menu latéral (bureau) */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-site-line bg-site-surface lg:block">
         <Sidebar profil={profil} perso={perso} />
@@ -135,20 +156,22 @@ export function EspaceShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <ThemeToggle />
             <span aria-hidden className="hidden h-6 w-px bg-site-line sm:block" />
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden
-                className="v-gradient-btn flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-              >
-                {initiales(profil)}
-              </span>
+            <button
+              type="button"
+              onClick={() => setProfilOuvert(true)}
+              aria-haspopup="dialog"
+              title="Mon profil"
+              className="flex items-center gap-3 rounded-full py-1 pl-1 pr-1 text-left transition-colors hover:bg-site-surface2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40 md:pr-4"
+            >
+              <PastilleProfil profil={profil} />
               <div className="hidden min-w-0 leading-tight md:block">
                 <p className="truncate text-sm font-medium">
                   {profil.prenom} {profil.nom}
                 </p>
                 <p className="truncate text-xs text-site-muted">{profil.role}</p>
               </div>
-            </div>
+              <span className="sr-only">Ouvrir mon profil</span>
+            </button>
             <button
               type="button"
               onClick={deconnecter}
@@ -163,6 +186,9 @@ export function EspaceShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+
+      {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}
       </div>
     </EspaceContext.Provider>
   );

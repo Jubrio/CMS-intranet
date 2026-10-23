@@ -106,6 +106,18 @@ class AnnuaireController extends Controller
         return response()->json($construire(0));
     }
 
+    // Organigramme des personnes : tous les comptes actifs avec leur supérieur (l'arbre est construit côté client)
+    public function organigrammePersonnes(Request $request): JsonResponse
+    {
+        $personnes = $this->base($request)
+            ->orderBy('utilisateurs.nom')->orderBy('utilisateurs.prenom')
+            ->limit(1000)
+            ->get(['utilisateurs.id', 'utilisateurs.nom', 'utilisateurs.prenom', 'utilisateurs.poste',
+                'utilisateurs.photo', 'utilisateurs.superieur_id', 'departements.nom_departement']);
+
+        return response()->json($personnes);
+    }
+
     public function modifier(Request $request, int $id): JsonResponse
 {
     $cible = $this->cible($request, $id);

@@ -47,7 +47,7 @@ class AuthController extends Controller
         return response()->json($this->profil($request->user()->load(['role.permissions', 'entreprise'])));
     }
 
-    private function profil(Utilisateur $u): array
+    public function profil(Utilisateur $u): array
     {
         $modules = $u->entreprise_id
             ? Module::whereIn('id', ModuleEntreprise::where('entreprise_id', $u->entreprise_id)
@@ -61,6 +61,9 @@ class AuthController extends Controller
             'email' => $u->email,
             'role' => $u->role->nom_role,
             'departement_id' => $u->departement_id,
+            'telephone' => $u->telephone,
+            'poste' => $u->poste,
+            'photo' => $u->photo,
             'entreprise' => $u->entreprise?->nom_entreprise,
             'permissions' => $u->role->permissions->pluck('code_permission'),
             'modules_actifs' => $modules,

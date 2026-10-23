@@ -9,6 +9,10 @@ type Valeur = {
   token: string;
   // Session expirée : efface le jeton et renvoie vers la connexion
   expirer: () => void;
+  // Recharge le profil (menu, modules actifs) après un changement de configuration
+  actualiser: () => Promise<void>;
+  // Remplace la personnalisation (logo, couleurs) après une modification
+  majPerso: (perso: Personnalisation) => void;
 };
 
 export const EspaceContext = createContext<Valeur | null>(null);
