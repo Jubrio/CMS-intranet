@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class DocumentController extends Controller
@@ -46,17 +47,42 @@ class DocumentController extends Controller
         return response()->json($this->formater($d));
     }
 
-    public function telecharger(Request $request, int $id)
+    // Adresse de téléchargement signée et de courte durée, remise seulement à qui voit le document (RG26).
+    // Le navigateur la télécharge directement : pas d'appel inter-origines, donc pas de souci CORS.
+    public function lien(Request $request, int $id): JsonResponse
     {
         $d = $this->visibles($request->user())->findOrFail($id);
-        abort_unless(Storage::disk('local')->exists($d->fichier), 404);
 
-        $extension = pathinfo($d->fichier, PATHINFO_EXTENSION);
+        return response()->json([
+            'url' => URL::temporarySignedRoute('documents.fichier', now()->addMinutes(5), ['id' => $d->id]),
+        ]);
+    }
 
+    // Fichier du document. Route HORS authentification : l'accès est contrôlé par la signature de l'adresse.
+    public function fichier(Request $request, int $id)
+    {
+        return $this->envoyer(Document::findOrFail($id));
+    }
+
+    // Téléchargement direct avec jeton (clients qui peuvent envoyer l'en-tête Authorization)
+    public function telecharger(Request $request, int $id)
+    {
+        return $this->envoyer($this->visibles($request->user())->findOrFail($id));
+    }
+
+    private function envoyer(Document $d)
+    {
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disque */
         $disque = Storage::disk('local');
+        abort_unless($disque->exists($d->fichier), 404);
 
-        return $disque->download($d->fichier, $d->nom_document . '.' . $extension);
+        // Nom proposé : celui du document + l'extension du fichier, sans caractère interdit dans un en-tête
+        $nom = trim(preg_replace('/[\/\\\\"\x00-\x1F\x7F]+/', '-', $d->nom_document), " .-");
+        $extension = pathinfo($d->fichier, PATHINFO_EXTENSION);
+
+        return $disque->download($d->fichier, ($nom !== '' ? $nom : 'document') . ($extension !== '' ? '.' . $extension : ''), [
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function store(EnregistrerDocumentRequest $request): JsonResponse

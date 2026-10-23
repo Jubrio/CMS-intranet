@@ -32,6 +32,9 @@ Route::post('/intranets', [IntranetController::class, 'creer'])->middleware('thr
 // Fichier d'image : accès contrôlé par la signature de l'adresse (étape 38)
 Route::get('/images/{id}/fichier', [PageImageController::class, 'fichier'])
     ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('images.fichier');
+// Fichier d'un document : accès contrôlé par la signature de l'adresse remise par /documents/{id}/lien
+Route::get('/documents/{id}/fichier', [DocumentController::class, 'fichier'])
+    ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('documents.fichier');
 
 // Routes protégées (jeton obligatoire)
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
@@ -112,6 +115,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::get('/documents/categories', [DocumentController::class, 'categories']);
             Route::get('/documents/{id}', [DocumentController::class, 'show'])->whereNumber('id');
             Route::get('/documents/{id}/telecharger', [DocumentController::class, 'telecharger'])->whereNumber('id');
+            Route::get('/documents/{id}/lien', [DocumentController::class, 'lien'])->whereNumber('id');
         });
         Route::middleware('permission:documents.gerer')->group(function () {
             Route::post('/documents', [DocumentController::class, 'store']);

@@ -50,3 +50,16 @@ export function messageErreur(err: unknown): string {
   }
   return "Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.";
 }
+
+// Télécharge un fichier protégé : le serveur remet une adresse signée de courte durée, que le
+// navigateur télécharge directement (le fichier arrive avec « Content-Disposition: attachment »,
+// la page courante n'est donc pas quittée). Aucun appel inter-origines : pas de souci CORS.
+export async function telechargerFichier(cheminLien: string, token: string): Promise<void> {
+  const { url } = await api<{ url: string }>(cheminLien, { token });
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.rel = "noopener";
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+}
