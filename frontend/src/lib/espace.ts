@@ -28,6 +28,7 @@ export type Profil = {
   nom: string;
   email: string;
   role: string;
+  departement_id?: number | null;
   entreprise: string | null;
   permissions: string[];
   modules_actifs: string[];
@@ -69,17 +70,17 @@ export const NAV: GroupeNav[] = [
     entrees: [
       { libelle: "Utilisateurs", icone: Users, href: "/espace/utilisateurs", permission: "utilisateurs.gerer", module: "utilisateurs" },
       { libelle: "Départements", icone: Building2, href: "/espace/departements", permission: "utilisateurs.departements", module: "utilisateurs" },
-      { libelle: "Rôles et permissions", icone: ShieldCheck, permission: "roles.gerer", module: "roles" },
+      { libelle: "Rôles et permissions", icone: ShieldCheck, href: "/espace/roles", permission: "roles.gerer", module: "roles" },
     ],
   },
   {
     titre: "Contenus",
     entrees: [
-      { libelle: "Actualités", icone: Newspaper, permission: "actualites.publier", module: "actualites" },
-      { libelle: "Annonces", icone: Megaphone, permission: "annonces.publier", module: "annonces" },
-      { libelle: "Articles", icone: FileText, permission: "articles.publier", module: "articles" },
-      { libelle: "Notes de service", icone: ScrollText, permission: "notes_service.publier", module: "notes_service" },
-      { libelle: "Pages internes", icone: LayoutTemplate, permission: "pages.gerer", module: "pages" },
+      { libelle: "Actualités", icone: Newspaper, href: "/espace/actualites", permission: "actualites.publier", module: "actualites" },
+      { libelle: "Annonces", icone: Megaphone, href: "/espace/annonces", permission: "annonces.publier", module: "annonces" },
+      { libelle: "Articles", icone: FileText, href: "/espace/articles", permission: "articles.publier", module: "articles" },
+      { libelle: "Notes de service", icone: ScrollText, href: "/espace/notes-service", permission: "notes_service.publier", module: "notes_service" },
+      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/pages-internes", permission: "pages.gerer", module: "pages" },
       { libelle: "Documents", icone: FolderOpen, permission: "documents.gerer", module: "documents" },
       { libelle: "Événements", icone: CalendarCheck, permission: "evenements.gerer", module: "evenements" },
       { libelle: "FAQ", icone: CircleHelp, permission: "faq.gerer", module: "faq" },

@@ -20,7 +20,8 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      // Un FormData (envoi de fichier) fixe lui-même son Content-Type et sa frontière
+      ...(init.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,

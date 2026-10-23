@@ -60,6 +60,7 @@ class AuthController extends Controller
             'prenom' => $u->prenom,
             'email' => $u->email,
             'role' => $u->role->nom_role,
+            'departement_id' => $u->departement_id,
             'entreprise' => $u->entreprise?->nom_entreprise,
             'permissions' => $u->role->permissions->pluck('code_permission'),
             'modules_actifs' => $modules,
