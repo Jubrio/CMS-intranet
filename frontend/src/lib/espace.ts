@@ -67,8 +67,8 @@ export const NAV: GroupeNav[] = [
   {
     titre: "Organisation",
     entrees: [
-      { libelle: "Utilisateurs", icone: Users, permission: "utilisateurs.gerer", module: "utilisateurs" },
-      { libelle: "Départements", icone: Building2, permission: "utilisateurs.departements", module: "utilisateurs" },
+      { libelle: "Utilisateurs", icone: Users, href: "/espace/utilisateurs", permission: "utilisateurs.gerer", module: "utilisateurs" },
+      { libelle: "Départements", icone: Building2, href: "/espace/departements", permission: "utilisateurs.departements", module: "utilisateurs" },
       { libelle: "Rôles et permissions", icone: ShieldCheck, permission: "roles.gerer", module: "roles" },
     ],
   },
