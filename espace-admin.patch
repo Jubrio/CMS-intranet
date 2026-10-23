@@ -1,0 +1,1070 @@
+From 5b80d8746b3b32a4dd5a2eecf582f49f441510ea Mon Sep 17 00:00:00 2001
+From: claude <c@x>
+Date: Fri, 23 Oct 2026 04:49:00 +0000
+Subject: [PATCH] Espace admin : coque et tableau de bord
+
+---
+ frontend/src/app/espace/layout.tsx            |  17 +
+ frontend/src/app/espace/page.tsx              |  76 +---
+ .../src/components/espace/espace-context.tsx  | 129 ++++++
+ .../src/components/espace/espace-shell.tsx    | 109 +++++
+ frontend/src/components/espace/sidebar.tsx    | 109 +++++
+ .../src/components/espace/tableau-de-bord.tsx | 383 ++++++++++++++++++
+ frontend/src/components/espace/use-donnees.ts |  53 +++
+ frontend/src/lib/espace.ts                    | 119 ++++++
+ 8 files changed, 922 insertions(+), 73 deletions(-)
+ create mode 100644 frontend/src/app/espace/layout.tsx
+ create mode 100644 frontend/src/components/espace/espace-context.tsx
+ create mode 100644 frontend/src/components/espace/espace-shell.tsx
+ create mode 100644 frontend/src/components/espace/sidebar.tsx
+ create mode 100644 frontend/src/components/espace/tableau-de-bord.tsx
+ create mode 100644 frontend/src/components/espace/use-donnees.ts
+ create mode 100644 frontend/src/lib/espace.ts
+
+diff --git a/frontend/src/app/espace/layout.tsx b/frontend/src/app/espace/layout.tsx
+new file mode 100644
+index 0000000..4eb6419
+--- /dev/null
++++ b/frontend/src/app/espace/layout.tsx
+@@ -0,0 +1,17 @@
++import type { Metadata } from "next";
++import type { ReactNode } from "react";
++import { EspaceProvider } from "@/components/espace/espace-context";
++import { EspaceShell } from "@/components/espace/espace-shell";
++
++export const metadata: Metadata = {
++  title: "Tableau de bord — CMS Intranet",
++  robots: { index: false, follow: false },
++};
++
++export default function EspaceLayout({ children }: { children: ReactNode }) {
++  return (
++    <EspaceProvider>
++      <EspaceShell>{children}</EspaceShell>
++    </EspaceProvider>
++  );
++}
+diff --git a/frontend/src/app/espace/page.tsx b/frontend/src/app/espace/page.tsx
+index 336f24e..29677a5 100644
+--- a/frontend/src/app/espace/page.tsx
++++ b/frontend/src/app/espace/page.tsx
+@@ -1,75 +1,5 @@
+-"use client";
++import { TableauDeBord } from "@/components/espace/tableau-de-bord";
+ 
+-import { useEffect, useState } from "react";
+-import { useRouter } from "next/navigation";
+-import { api, ApiError } from "@/lib/api";
+-import { effacerToken, lireToken } from "@/lib/session";
+-
+-type Profil = {
+-  prenom: string;
+-  nom: string;
+-  email: string;
+-  role: string;
+-  entreprise: string | null;
+-  modules_actifs: string[];
+-};
+-
+-// Page PROVISOIRE : elle prouve que la création / la connexion fonctionnent
+-// de bout en bout. Elle sera remplacée par l'application intranet connectée.
+-export default function Espace() {
+-  const router = useRouter();
+-  const [profil, setProfil] = useState<Profil | null>(null);
+-  const [erreur, setErreur] = useState<string | null>(null);
+-
+-  useEffect(() => {
+-    const token = lireToken();
+-    if (!token) {
+-      router.replace("/connexion");
+-      return;
+-    }
+-    api<Profil>("/me", { token })
+-      .then(setProfil)
+-      .catch((err) => {
+-        if (err instanceof ApiError && err.status === 401) {
+-          effacerToken();
+-          router.replace("/connexion");
+-        } else {
+-          setErreur("Impossible de charger votre profil.");
+-        }
+-      });
+-  }, [router]);
+-
+-  async function deconnecter() {
+-    const token = lireToken();
+-    try {
+-      await api("/logout", { method: "POST", token });
+-    } catch {
+-      // le jeton local est supprimé dans tous les cas
+-    }
+-    effacerToken();
+-    router.replace("/");
+-  }
+-
+-  if (erreur) return <main className="p-8">{erreur}</main>;
+-  if (!profil) return <main className="p-8 text-sm text-muted-foreground">Chargement…</main>;
+-
+-  return (
+-    <main className="mx-auto w-full max-w-2xl p-8">
+-      <h1 className="text-2xl font-bold">Bonjour, {profil.prenom}</h1>
+-      <p className="mt-1 text-muted-foreground">
+-        {profil.entreprise} · {profil.role}
+-      </p>
+-      <p className="mt-6 text-sm">
+-        Modules actifs : {profil.modules_actifs.length > 0 ? profil.modules_actifs.join(", ") : "aucun"}
+-      </p>
+-      <p className="mt-6 text-sm text-muted-foreground">L&apos;espace intranet complet arrive à la prochaine étape.</p>
+-      <button
+-        type="button"
+-        onClick={deconnecter}
+-        className="mt-8 rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted"
+-      >
+-        Se déconnecter
+-      </button>
+-    </main>
+-  );
++export default function PageEspace() {
++  return <TableauDeBord />;
+ }
+diff --git a/frontend/src/components/espace/espace-context.tsx b/frontend/src/components/espace/espace-context.tsx
+new file mode 100644
+index 0000000..43c2f7f
+--- /dev/null
++++ b/frontend/src/components/espace/espace-context.tsx
+@@ -0,0 +1,129 @@
++"use client";
++
++import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
++import { useRouter } from "next/navigation";
++import { api, ApiError } from "@/lib/api";
++import { effacerToken, lireToken } from "@/lib/session";
++import type { Perso, Profil } from "@/lib/espace";
++import { Button } from "@/components/ui/button";
++
++type Valeur = {
++  profil: Profil;
++  perso: Perso | null;
++  deconnecter: () => Promise<void>;
++};
++
++type Etat =
++  | { statut: "chargement" }
++  | { statut: "erreur" }
++  | { statut: "pret"; profil: Profil; perso: Perso | null };
++
++const Contexte = createContext<Valeur | null>(null);
++
++export function useEspace(): Valeur {
++  const v = useContext(Contexte);
++  if (!v) throw new Error("useEspace doit être utilisé dans <EspaceProvider>.");
++  return v;
++}
++
++// Vérifie la session, charge le profil et la personnalisation, puis n'affiche
++// l'espace que lorsque tout est prêt. Sans jeton valide : retour à la connexion.
++export function EspaceProvider({ children }: { children: ReactNode }) {
++  const router = useRouter();
++  const [etat, setEtat] = useState<Etat>({ statut: "chargement" });
++  const [essai, setEssai] = useState(0);
++
++  useEffect(() => {
++    const token = lireToken();
++    if (!token) {
++      router.replace("/connexion");
++      return;
++    }
++
++    let annule = false;
++    Promise.all([
++      api<Profil>("/me", { token }),
++      // La personnalisation est facultative : sans elle, on garde les valeurs par défaut
++      api<Perso>("/personnalisation", { token }).catch(() => null),
++    ])
++      .then(([profil, perso]) => {
++        if (!annule) setEtat({ statut: "pret", profil, perso });
++      })
++      .catch((err) => {
++        if (annule) return;
++        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
++          effacerToken();
++          router.replace("/connexion");
++          return;
++        }
++        setEtat({ statut: "erreur" });
++      });
++
++    return () => {
++      annule = true;
++    };
++  }, [router, essai]);
++
++  const deconnecter = useCallback(async () => {
++    const token = lireToken();
++    try {
++      await api("/logout", { method: "POST", token });
++    } catch {
++      // le jeton local est supprimé dans tous les cas
++    }
++    effacerToken();
++    router.replace("/");
++  }, [router]);
++
++  const valeur = useMemo<Valeur | null>(
++    () => (etat.statut === "pret" ? { profil: etat.profil, perso: etat.perso, deconnecter } : null),
++    [etat, deconnecter],
++  );
++
++  if (etat.statut === "chargement") {
++    return (
++      <main className="grid min-h-screen place-items-center text-sm text-muted-foreground" aria-busy="true">
++        Chargement de votre espace…
++      </main>
++    );
++  }
++
++  if (etat.statut === "erreur") {
++    return (
++      <main className="grid min-h-screen place-items-center p-6">
++        <div className="max-w-sm text-center">
++          <p className="font-medium">Impossible de charger votre espace.</p>
++          <p className="mt-1 text-sm text-muted-foreground">Vérifiez votre connexion, puis réessayez.</p>
++          <Button
++            className="mt-4"
++            onClick={() => {
++              setEtat({ statut: "chargement" });
++              setEssai((n) => n + 1);
++            }}
++          >
++            Réessayer
++          </Button>
++        </div>
++      </main>
++    );
++  }
++
++  // Compte sans entreprise (Super-administrateur) : cet espace est celui d'un intranet
++  if (valeur && etat.statut === "pret" && etat.profil.entreprise === null) {
++    return (
++      <main className="grid min-h-screen place-items-center p-6">
++        <div className="max-w-sm text-center">
++          <p className="font-medium">Cet espace est réservé aux comptes d&apos;une entreprise.</p>
++          <p className="mt-1 text-sm text-muted-foreground">
++            Le compte {etat.profil.email} n&apos;est rattaché à aucun intranet.
++          </p>
++          <Button className="mt-4" variant="outline" onClick={deconnecter}>
++            Se déconnecter
++          </Button>
++        </div>
++      </main>
++    );
++  }
++
++  return <Contexte.Provider value={valeur}>{children}</Contexte.Provider>;
++}
+diff --git a/frontend/src/components/espace/espace-shell.tsx b/frontend/src/components/espace/espace-shell.tsx
+new file mode 100644
+index 0000000..448f13c
+--- /dev/null
++++ b/frontend/src/components/espace/espace-shell.tsx
+@@ -0,0 +1,109 @@
++"use client";
++
++import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
++import { LogOut, Menu, X } from "lucide-react";
++import { COULEUR_PAR_DEFAUT, couleurTexte, couleurValide, initiales } from "@/lib/espace";
++import { Button } from "@/components/ui/button";
++import { useEspace } from "./espace-context";
++import { LogoEntreprise, Sidebar } from "./sidebar";
++
++export function EspaceShell({ children }: { children: ReactNode }) {
++  const { profil, perso, deconnecter } = useEspace();
++  const [menuOuvert, setMenuOuvert] = useState(false);
++
++  // Couleur principale de l'entreprise, avec vérification du format avant de l'injecter
++  const accent = couleurValide(perso?.couleur_principale) ? perso.couleur_principale : COULEUR_PAR_DEFAUT;
++  const variables = { "--espace-accent": accent, "--espace-accent-fg": couleurTexte(accent) } as CSSProperties;
++
++  useEffect(() => {
++    if (!menuOuvert) return;
++    const surTouche = (e: KeyboardEvent) => {
++      if (e.key === "Escape") setMenuOuvert(false);
++    };
++    window.addEventListener("keydown", surTouche);
++    return () => window.removeEventListener("keydown", surTouche);
++  }, [menuOuvert]);
++
++  return (
++    <div style={variables} className="flex min-h-screen flex-1 bg-muted/30">
++      <a
++        href="#contenu"
++        className="sr-only z-50 rounded-md bg-background px-3 py-2 text-sm focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
++      >
++        Aller au contenu
++      </a>
++
++      {/* Menu fixe (grands écrans) */}
++      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r bg-sidebar lg:block">
++        <Sidebar />
++      </aside>
++
++      {/* Menu en tiroir (petits écrans) */}
++      {menuOuvert && (
++        <div className="fixed inset-0 z-40 lg:hidden">
++          <button
++            type="button"
++            aria-label="Fermer le menu"
++            className="absolute inset-0 bg-black/40"
++            onClick={() => setMenuOuvert(false)}
++          />
++          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r bg-sidebar shadow-xl">
++            <Button
++              variant="ghost"
++              size="icon-sm"
++              className="absolute right-2 top-2.5"
++              aria-label="Fermer le menu"
++              onClick={() => setMenuOuvert(false)}
++            >
++              <X />
++            </Button>
++            <Sidebar onNavigate={() => setMenuOuvert(false)} />
++          </aside>
++        </div>
++      )}
++
++      <div className="flex min-w-0 flex-1 flex-col">
++        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur lg:px-8">
++          <Button
++            variant="ghost"
++            size="icon"
++            className="lg:hidden"
++            aria-label="Ouvrir le menu"
++            aria-expanded={menuOuvert}
++            onClick={() => setMenuOuvert(true)}
++          >
++            <Menu />
++          </Button>
++          <div className="flex min-w-0 items-center gap-2 lg:hidden">
++            <LogoEntreprise className="size-6 text-xs" />
++            <span className="truncate text-sm font-semibold">{perso?.nom_entreprise ?? profil.entreprise}</span>
++          </div>
++
++          <div className="ml-auto flex items-center gap-3">
++            <div className="hidden text-right leading-tight sm:block">
++              <p className="text-sm font-medium">
++                {profil.prenom} {profil.nom}
++              </p>
++              <p className="text-xs text-muted-foreground">{profil.role}</p>
++            </div>
++            <span
++              aria-hidden
++              className="grid size-8 place-items-center rounded-full bg-[var(--espace-accent)] text-xs font-semibold text-[var(--espace-accent-fg)]"
++            >
++              {initiales(profil.prenom, profil.nom)}
++            </span>
++            <Button variant="outline" size="sm" onClick={deconnecter}>
++              <LogOut aria-hidden />
++              <span className="hidden sm:inline">Se déconnecter</span>
++              <span className="sr-only sm:hidden">Se déconnecter</span>
++            </Button>
++          </div>
++        </header>
++
++        <main id="contenu" className="flex-1 px-4 py-6 lg:px-8">
++          <div className="mx-auto w-full max-w-6xl">{children}</div>
++        </main>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/components/espace/sidebar.tsx b/frontend/src/components/espace/sidebar.tsx
+new file mode 100644
+index 0000000..0e2cc43
+--- /dev/null
++++ b/frontend/src/components/espace/sidebar.tsx
+@@ -0,0 +1,109 @@
++"use client";
++
++import Link from "next/link";
++import { usePathname } from "next/navigation";
++import { NAV, afficher } from "@/lib/espace";
++import { cn } from "@/lib/utils";
++import { useEspace } from "./espace-context";
++
++export function LogoEntreprise({ className }: { className?: string }) {
++  const { profil, perso } = useEspace();
++  const nom = perso?.nom_entreprise ?? profil.entreprise ?? "";
++
++  if (perso?.logo_url) {
++    // eslint-disable-next-line @next/next/no-img-element
++    return <img src={perso.logo_url} alt="" className={cn("size-8 rounded-md object-contain", className)} />;
++  }
++  return (
++    <span
++      aria-hidden
++      className={cn(
++        "grid size-8 place-items-center rounded-md bg-[var(--espace-accent)] text-sm font-semibold text-[var(--espace-accent-fg)]",
++        className,
++      )}
++    >
++      {nom.charAt(0).toUpperCase() || "?"}
++    </span>
++  );
++}
++
++export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
++  const { profil, perso } = useEspace();
++  const pathname = usePathname();
++
++  // On ne montre que les entrées auxquelles le rôle a droit (permission + module actif)
++  const groupes = NAV.map((g) => ({ ...g, items: g.items.filter((i) => afficher(profil, i)) })).filter(
++    (g) => g.items.length > 0,
++  );
++
++  return (
++    <div className="flex h-full flex-col">
++      <div className="flex h-14 shrink-0 items-center gap-2.5 border-b px-4">
++        <LogoEntreprise />
++        <span className="truncate text-sm font-semibold">{perso?.nom_entreprise ?? profil.entreprise}</span>
++      </div>
++
++      <nav aria-label="Navigation principale" className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
++        {groupes.map((groupe) => (
++          <div key={groupe.titre ?? "principal"}>
++            {groupe.titre && (
++              <p className="mb-1.5 px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
++                {groupe.titre}
++              </p>
++            )}
++            <ul className="space-y-0.5">
++              {groupe.items.map((item) => {
++                const Icone = item.icone;
++                const actif = item.href
++                  ? item.href === "/espace"
++                    ? pathname === "/espace"
++                    : pathname === item.href || pathname.startsWith(`${item.href}/`)
++                  : false;
++
++                if (!item.href) {
++                  return (
++                    <li key={item.libelle}>
++                      <span
++                        aria-disabled="true"
++                        className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground/70"
++                      >
++                        <Icone className="size-4 shrink-0" aria-hidden />
++                        <span className="truncate">{item.libelle}</span>
++                        <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium">
++                          Bientôt
++                        </span>
++                      </span>
++                    </li>
++                  );
++                }
++
++                return (
++                  <li key={item.libelle}>
++                    <Link
++                      href={item.href}
++                      onClick={onNavigate}
++                      aria-current={actif ? "page" : undefined}
++                      className={cn(
++                        "relative flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
++                        actif ? "bg-muted font-medium text-foreground" : "text-foreground/80 hover:bg-muted/60",
++                      )}
++                    >
++                      {actif && (
++                        <span
++                          aria-hidden
++                          className="absolute inset-y-1.5 -left-3 w-1 rounded-r-full bg-[var(--espace-accent)]"
++                        />
++                      )}
++                      <Icone className="size-4 shrink-0" aria-hidden />
++                      <span className="truncate">{item.libelle}</span>
++                    </Link>
++                  </li>
++                );
++              })}
++            </ul>
++          </div>
++        ))}
++      </nav>
++    </div>
++  );
++}
+diff --git a/frontend/src/components/espace/tableau-de-bord.tsx b/frontend/src/components/espace/tableau-de-bord.tsx
+new file mode 100644
+index 0000000..874ac63
+--- /dev/null
++++ b/frontend/src/components/espace/tableau-de-bord.tsx
+@@ -0,0 +1,383 @@
++"use client";
++
++import { useCallback, useMemo, type ReactNode } from "react";
++import { format } from "date-fns";
++import { fr } from "date-fns/locale";
++import { Blocks, Building2, FileClock, Users, type LucideIcon } from "lucide-react";
++import { api } from "@/lib/api";
++import { iconeModule } from "@/lib/module-icons";
++import { cn } from "@/lib/utils";
++import { Button } from "@/components/ui/button";
++import { useEspace } from "./espace-context";
++import { useDonnees } from "./use-donnees";
++
++// ---- Formes des réponses de l'API ------------------------------------------
++
++type PageTotal = { total: number };
++
++type DepartementResume = {
++  id: number;
++  nom_departement: string;
++  nb_employes: number;
++  responsable: { id: number; nom: string; prenom: string } | null;
++};
++
++type ModuleEtat = {
++  code_module: string;
++  nom_module: string;
++  description_module: string;
++  module_obligatoire: boolean;
++  actif: boolean;
++};
++
++// Types de contenu et module associé (même correspondance que Contenu::MODULES côté Laravel)
++const TYPES_CONTENU = [
++  { type: "actualite", libelle: "Actualités", module: "actualites" },
++  { type: "annonce", libelle: "Annonces", module: "annonces" },
++  { type: "article", libelle: "Articles", module: "articles" },
++  { type: "note_service", libelle: "Notes de service", module: "notes_service" },
++] as const;
++
++const nombre = new Intl.NumberFormat("fr-FR");
++
++// ---- Éléments d'affichage ---------------------------------------------------
++
++function Carte({ children, className }: { children: ReactNode; className?: string }) {
++  return <section className={cn("rounded-xl border bg-card p-4 text-card-foreground", className)}>{children}</section>;
++}
++
++function Squelette({ className }: { className?: string }) {
++  return <div aria-hidden className={cn("animate-pulse rounded-md bg-muted", className)} />;
++}
++
++function ErreurBloc({ onReessayer }: { onReessayer: () => void }) {
++  return (
++    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
++      <span>Impossible de charger cette section.</span>
++      <Button variant="outline" size="xs" onClick={onReessayer}>
++        Réessayer
++      </Button>
++    </div>
++  );
++}
++
++function Barre({ pourcentage }: { pourcentage: number }) {
++  return (
++    <div aria-hidden className="h-2 overflow-hidden rounded-full bg-muted">
++      <div
++        className="h-full rounded-full bg-[var(--espace-accent)]"
++        style={{ width: `${Math.max(0, Math.min(100, pourcentage))}%` }}
++      />
++    </div>
++  );
++}
++
++type KpiProps = {
++  icone: LucideIcon;
++  libelle: string;
++  valeur: string | null;
++  detail?: string;
++  chargement: boolean;
++  erreur: boolean;
++  onReessayer: () => void;
++};
++
++function Kpi({ icone: Icone, libelle, valeur, detail, chargement, erreur, onReessayer }: KpiProps) {
++  return (
++    <Carte>
++      <div className="flex items-center gap-3">
++        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground/70">
++          <Icone className="size-4.5" aria-hidden />
++        </span>
++        <h2 className="text-sm text-muted-foreground">{libelle}</h2>
++      </div>
++      <div className="mt-3">
++        {chargement ? (
++          <>
++            <Squelette className="h-8 w-16" />
++            <Squelette className="mt-2 h-3.5 w-32" />
++          </>
++        ) : erreur ? (
++          <ErreurBloc onReessayer={onReessayer} />
++        ) : (
++          <>
++            <p className="text-3xl font-semibold tabular-nums">{valeur}</p>
++            {detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}
++          </>
++        )}
++      </div>
++    </Carte>
++  );
++}
++
++// ---- Tableau de bord --------------------------------------------------------
++
++export function TableauDeBord() {
++  const { profil } = useEspace();
++  const peut = (permission: string) => profil.permissions.includes(permission);
++
++  const voirUtilisateurs = peut("utilisateurs.gerer");
++  const voirDepartements = peut("utilisateurs.departements");
++  const voirModules = peut("personnalisation.modules");
++
++  // Brouillons : seulement les types que ce rôle peut publier, dans un module actif
++  const typesPublies = useMemo(
++    () =>
++      TYPES_CONTENU.filter(
++        (t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.publier`),
++      ),
++    [profil],
++  );
++  const voirBrouillons = typesPublies.length > 0;
++
++  const chargerUtilisateurs = useCallback(async (token: string) => {
++    // Les listes sont paginées : le total suffit, on ne lit pas les lignes
++    const [actifs, inactifs] = await Promise.all([
++      api<PageTotal>("/utilisateurs?statut=actif", { token }),
++      api<PageTotal>("/utilisateurs?statut=inactif", { token }),
++    ]);
++    return { actifs: actifs.total, inactifs: inactifs.total };
++  }, []);
++
++  const chargerDepartements = useCallback((token: string) => api<DepartementResume[]>("/departements", { token }), []);
++  const chargerModules = useCallback((token: string) => api<ModuleEtat[]>("/modules", { token }), []);
++
++  const chargerBrouillons = useCallback(
++    async (token: string) => {
++      const reponses = await Promise.allSettled(
++        typesPublies.map((t) => api<PageTotal>(`/contenus/${t.type}?statut=brouillon`, { token })),
++      );
++      if (reponses.every((r) => r.status === "rejected")) throw new Error("brouillons indisponibles");
++      // Un type qui échoue s'affiche « — » plutôt qu'un 0 trompeur
++      return typesPublies.map((t, i) => {
++        const r = reponses[i];
++        return { libelle: t.libelle, total: r.status === "fulfilled" ? r.value.total : null };
++      });
++    },
++    [typesPublies],
++  );
++
++  const utilisateurs = useDonnees(voirUtilisateurs, chargerUtilisateurs);
++  const departements = useDonnees(voirDepartements, chargerDepartements);
++  const modules = useDonnees(voirModules, chargerModules);
++  const brouillons = useDonnees(voirBrouillons, chargerBrouillons);
++
++  const aujourdhui = format(new Date(), "EEEE d MMMM yyyy", { locale: fr });
++
++  const nbModulesActifs = modules.donnees?.filter((m) => m.actif).length ?? 0;
++  const nbObligatoires = modules.donnees?.filter((m) => m.module_obligatoire).length ?? 0;
++  const nbEmployesRattaches = departements.donnees?.reduce((somme, d) => somme + d.nb_employes, 0) ?? 0;
++  const totalBrouillons = brouillons.donnees?.reduce((somme, b) => somme + (b.total ?? 0), 0) ?? 0;
++
++  const rienAAfficher = !voirUtilisateurs && !voirDepartements && !voirModules && !voirBrouillons;
++
++  const departementsTries = [...(departements.donnees ?? [])].sort((a, b) => b.nb_employes - a.nb_employes).slice(0, 6);
++  const maxEmployes = Math.max(1, ...departementsTries.map((d) => d.nb_employes));
++  const maxBrouillons = Math.max(1, ...(brouillons.donnees ?? []).map((b) => b.total ?? 0));
++  const modulesTries = [...(modules.donnees ?? [])].sort(
++    (a, b) => Number(b.actif) - Number(a.actif) || a.nom_module.localeCompare(b.nom_module, "fr"),
++  );
++
++  return (
++    <div className="space-y-6">
++      <header>
++        <h1 className="text-2xl font-semibold tracking-tight">Bonjour, {profil.prenom}</h1>
++        <p className="mt-1 text-sm text-muted-foreground">
++          {profil.entreprise} · {profil.role} ·{" "}
++          <span className="inline-block first-letter:uppercase">{aujourdhui}</span>
++        </p>
++      </header>
++
++      {rienAAfficher && (
++        <Carte>
++          <p className="text-sm text-muted-foreground">
++            Votre rôle ne comporte pas d&apos;outil d&apos;administration pour le moment.
++          </p>
++        </Carte>
++      )}
++
++      {(voirUtilisateurs || voirDepartements || voirModules || voirBrouillons) && (
++        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
++          {voirUtilisateurs && (
++            <Kpi
++              icone={Users}
++              libelle="Comptes actifs"
++              valeur={utilisateurs.donnees ? nombre.format(utilisateurs.donnees.actifs) : null}
++              detail={
++                utilisateurs.donnees
++                  ? utilisateurs.donnees.inactifs === 0
++                    ? "Aucun compte désactivé"
++                    : `${nombre.format(utilisateurs.donnees.inactifs)} compte(s) désactivé(s)`
++                  : undefined
++              }
++              chargement={utilisateurs.chargement}
++              erreur={utilisateurs.erreur}
++              onReessayer={utilisateurs.reessayer}
++            />
++          )}
++          {voirDepartements && (
++            <Kpi
++              icone={Building2}
++              libelle="Départements"
++              valeur={departements.donnees ? nombre.format(departements.donnees.length) : null}
++              detail={
++                departements.donnees ? `${nombre.format(nbEmployesRattaches)} employé(s) rattaché(s)` : undefined
++              }
++              chargement={departements.chargement}
++              erreur={departements.erreur}
++              onReessayer={departements.reessayer}
++            />
++          )}
++          {voirModules && (
++            <Kpi
++              icone={Blocks}
++              libelle="Modules actifs"
++              valeur={modules.donnees ? `${nbModulesActifs} / ${modules.donnees.length}` : null}
++              detail={modules.donnees ? `dont ${nbObligatoires} obligatoires` : undefined}
++              chargement={modules.chargement}
++              erreur={modules.erreur}
++              onReessayer={modules.reessayer}
++            />
++          )}
++          {voirBrouillons && (
++            <Kpi
++              icone={FileClock}
++              libelle="Brouillons à publier"
++              valeur={brouillons.donnees ? nombre.format(totalBrouillons) : null}
++              detail={brouillons.donnees ? `sur ${typesPublies.length} type(s) de contenu` : undefined}
++              chargement={brouillons.chargement}
++              erreur={brouillons.erreur}
++              onReessayer={brouillons.reessayer}
++            />
++          )}
++        </div>
++      )}
++
++      {(voirDepartements || voirBrouillons) && (
++        <div className="grid gap-4 lg:grid-cols-3">
++          {voirDepartements && (
++            <Carte className={voirBrouillons ? "lg:col-span-2" : "lg:col-span-3"}>
++              <h2 className="text-sm font-medium">Employés par département</h2>
++              <div className="mt-4">
++                {departements.chargement ? (
++                  <div className="space-y-4">
++                    <Squelette className="h-8 w-full" />
++                    <Squelette className="h-8 w-full" />
++                    <Squelette className="h-8 w-full" />
++                  </div>
++                ) : departements.erreur ? (
++                  <ErreurBloc onReessayer={departements.reessayer} />
++                ) : departementsTries.length === 0 ? (
++                  <p className="text-sm text-muted-foreground">Aucun département n&apos;a encore été créé.</p>
++                ) : (
++                  <ul className="space-y-4">
++                    {departementsTries.map((d) => (
++                      <li key={d.id}>
++                        <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
++                          <span className="truncate font-medium">{d.nom_departement}</span>
++                          <span className="shrink-0 tabular-nums text-muted-foreground">
++                            {nombre.format(d.nb_employes)}
++                          </span>
++                        </div>
++                        <Barre pourcentage={(d.nb_employes / maxEmployes) * 100} />
++                        <p className="mt-1 text-xs text-muted-foreground">
++                          {d.responsable
++                            ? `Responsable : ${d.responsable.prenom} ${d.responsable.nom}`
++                            : "Aucun responsable désigné"}
++                        </p>
++                      </li>
++                    ))}
++                  </ul>
++                )}
++                {(departements.donnees?.length ?? 0) > departementsTries.length && (
++                  <p className="mt-4 text-xs text-muted-foreground">
++                    Les {departementsTries.length} départements les plus peuplés sur {departements.donnees?.length}.
++                  </p>
++                )}
++              </div>
++            </Carte>
++          )}
++
++          {voirBrouillons && (
++            <Carte className={voirDepartements ? undefined : "lg:col-span-3"}>
++              <h2 className="text-sm font-medium">Contenus en brouillon</h2>
++              <div className="mt-4">
++                {brouillons.chargement ? (
++                  <div className="space-y-4">
++                    <Squelette className="h-8 w-full" />
++                    <Squelette className="h-8 w-full" />
++                  </div>
++                ) : brouillons.erreur ? (
++                  <ErreurBloc onReessayer={brouillons.reessayer} />
++                ) : totalBrouillons === 0 ? (
++                  <p className="text-sm text-muted-foreground">Aucun brouillon en attente de publication.</p>
++                ) : (
++                  <ul className="space-y-4">
++                    {brouillons.donnees?.map((b) => (
++                      <li key={b.libelle}>
++                        <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
++                          <span className="font-medium">{b.libelle}</span>
++                          <span className="tabular-nums text-muted-foreground">
++                            {b.total === null ? "—" : nombre.format(b.total)}
++                          </span>
++                        </div>
++                        <Barre pourcentage={((b.total ?? 0) / maxBrouillons) * 100} />
++                      </li>
++                    ))}
++                  </ul>
++                )}
++              </div>
++            </Carte>
++          )}
++        </div>
++      )}
++
++      {voirModules && (
++        <Carte>
++          <h2 className="text-sm font-medium">Modules de l&apos;intranet</h2>
++          <div className="mt-4">
++            {modules.chargement ? (
++              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
++                {Array.from({ length: 6 }, (_, i) => (
++                  <Squelette key={i} className="h-14" />
++                ))}
++              </div>
++            ) : modules.erreur ? (
++              <ErreurBloc onReessayer={modules.reessayer} />
++            ) : (
++              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
++                {modulesTries.map((m) => {
++                  const Icone = iconeModule(m.code_module);
++                  return (
++                    <li
++                      key={m.code_module}
++                      className={cn("flex items-center gap-3 rounded-lg border p-3", !m.actif && "opacity-60")}
++                    >
++                      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted">
++                        <Icone className="size-4" aria-hidden />
++                      </span>
++                      <div className="min-w-0 flex-1">
++                        <p className="truncate text-sm font-medium">{m.nom_module}</p>
++                        <p className="truncate text-xs text-muted-foreground">
++                          {m.module_obligatoire ? "Obligatoire" : m.actif ? "Activé" : "Désactivé"}
++                        </p>
++                      </div>
++                      <span
++                        className={cn(
++                          "size-2 shrink-0 rounded-full",
++                          m.actif ? "bg-[var(--espace-accent)]" : "bg-muted-foreground/40",
++                        )}
++                      >
++                        <span className="sr-only">{m.actif ? "Actif" : "Inactif"}</span>
++                      </span>
++                    </li>
++                  );
++                })}
++              </ul>
++            )}
++          </div>
++        </Carte>
++      )}
++    </div>
++  );
++}
+diff --git a/frontend/src/components/espace/use-donnees.ts b/frontend/src/components/espace/use-donnees.ts
+new file mode 100644
+index 0000000..c4a8ccc
+--- /dev/null
++++ b/frontend/src/components/espace/use-donnees.ts
+@@ -0,0 +1,53 @@
++"use client";
++
++import { useCallback, useEffect, useState } from "react";
++import { useRouter } from "next/navigation";
++import { ApiError } from "@/lib/api";
++import { effacerToken, lireToken } from "@/lib/session";
++
++type Etat<T> = { donnees: T | null; erreur: boolean; chargement: boolean };
++
++// Charge une donnée de l'API pour un bloc du tableau de bord.
++// `actif` = false : le bloc n'est pas concerné (permission ou module absent), aucun appel.
++// `charger` doit être stable (useCallback) pour éviter de relancer l'appel à chaque rendu.
++export function useDonnees<T>(actif: boolean, charger: (token: string) => Promise<T>) {
++  const router = useRouter();
++  const [etat, setEtat] = useState<Etat<T>>({ donnees: null, erreur: false, chargement: actif });
++  const [essai, setEssai] = useState(0);
++
++  useEffect(() => {
++    if (!actif) return;
++    const token = lireToken();
++    if (!token) {
++      router.replace("/connexion");
++      return;
++    }
++
++    let annule = false;
++    charger(token)
++      .then((donnees) => {
++        if (!annule) setEtat({ donnees, erreur: false, chargement: false });
++      })
++      .catch((err) => {
++        if (annule) return;
++        if (err instanceof ApiError && err.status === 401) {
++          // session expirée pendant l'utilisation
++          effacerToken();
++          router.replace("/connexion");
++          return;
++        }
++        setEtat({ donnees: null, erreur: true, chargement: false });
++      });
++
++    return () => {
++      annule = true;
++    };
++  }, [actif, charger, essai, router]);
++
++  const reessayer = useCallback(() => {
++    setEtat({ donnees: null, erreur: false, chargement: true });
++    setEssai((n) => n + 1);
++  }, []);
++
++  return { ...etat, reessayer };
++}
+diff --git a/frontend/src/lib/espace.ts b/frontend/src/lib/espace.ts
+new file mode 100644
+index 0000000..003f415
+--- /dev/null
++++ b/frontend/src/lib/espace.ts
+@@ -0,0 +1,119 @@
++import {
++  Building2,
++  CalendarCheck,
++  CircleHelp,
++  ClipboardList,
++  Contact,
++  FileText,
++  FolderOpen,
++  LayoutDashboard,
++  LayoutTemplate,
++  ListTree,
++  Megaphone,
++  Newspaper,
++  Palette,
++  ScrollText,
++  Settings,
++  ShieldCheck,
++  SlidersHorizontal,
++  Users,
++  type LucideIcon,
++} from "lucide-react";
++
++// Réponse de GET /api/me
++export type Profil = {
++  id: number;
++  prenom: string;
++  nom: string;
++  email: string;
++  role: string;
++  entreprise: string | null;
++  permissions: string[];
++  modules_actifs: string[];
++};
++
++// Réponse de GET /api/personnalisation
++export type Perso = {
++  nom_entreprise: string;
++  slug: string;
++  email_contact: string | null;
++  logo_url: string | null;
++  couleur_principale: string;
++  couleur_secondaire: string;
++};
++
++export type NavItem = {
++  libelle: string;
++  icone: LucideIcon;
++  // Absent tant que l'écran n'est pas construit : l'entrée s'affiche en « Bientôt »
++  href?: string;
++  // Permission exigée (RG10) et modules qui doivent être actifs pour l'entreprise
++  permission?: string;
++  modules?: string[];
++};
++
++export type NavGroupe = { titre: string | null; items: NavItem[] };
++
++export const NAV: NavGroupe[] = [
++  {
++    titre: null,
++    items: [{ libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace" }],
++  },
++  {
++    titre: "Organisation",
++    items: [
++      { libelle: "Utilisateurs", icone: Users, permission: "utilisateurs.gerer" },
++      { libelle: "Départements", icone: Building2, permission: "utilisateurs.departements" },
++      { libelle: "Rôles et permissions", icone: ShieldCheck, permission: "roles.gerer" },
++    ],
++  },
++  {
++    titre: "Contenus",
++    items: [
++      { libelle: "Actualités", icone: Newspaper, permission: "actualites.publier", modules: ["actualites"] },
++      { libelle: "Annonces", icone: Megaphone, permission: "annonces.publier", modules: ["annonces"] },
++      { libelle: "Articles", icone: FileText, permission: "articles.publier", modules: ["articles"] },
++      { libelle: "Notes de service", icone: ScrollText, permission: "notes_service.publier", modules: ["notes_service"] },
++      { libelle: "Pages internes", icone: LayoutTemplate, permission: "pages.gerer", modules: ["pages"] },
++      { libelle: "Documents", icone: FolderOpen, permission: "documents.gerer", modules: ["documents"] },
++      { libelle: "Événements", icone: CalendarCheck, permission: "evenements.gerer", modules: ["evenements", "calendrier"] },
++      { libelle: "FAQ", icone: CircleHelp, permission: "faq.gerer", modules: ["faq"] },
++      { libelle: "Formulaires", icone: ClipboardList, permission: "formulaires.gerer", modules: ["formulaires"] },
++      { libelle: "Annuaire", icone: Contact, permission: "annuaire.gerer", modules: ["annuaire"] },
++    ],
++  },
++  {
++    titre: "Configuration",
++    items: [
++      { libelle: "Modules", icone: SlidersHorizontal, permission: "personnalisation.modules" },
++      { libelle: "Apparence", icone: Palette, permission: "personnalisation.apparence" },
++      { libelle: "Menus", icone: ListTree, permission: "personnalisation.parametres" },
++      { libelle: "Paramètres", icone: Settings, permission: "personnalisation.parametres" },
++    ],
++  },
++];
++
++// Une entrée est visible si le rôle a la permission ET si les modules requis sont actifs
++export function afficher(profil: Profil, item: NavItem): boolean {
++  if (item.permission && !profil.permissions.includes(item.permission)) return false;
++  if (item.modules && !item.modules.every((m) => profil.modules_actifs.includes(m))) return false;
++  return true;
++}
++
++export const COULEUR_PAR_DEFAUT = "#1D4ED8";
++
++export function couleurValide(c: string | null | undefined): c is string {
++  return typeof c === "string" && /^#[0-9A-Fa-f]{6}$/.test(c);
++}
++
++// Texte lisible (noir ou blanc) sur la couleur principale choisie par l'entreprise
++export function couleurTexte(hex: string): string {
++  const r = parseInt(hex.slice(1, 3), 16);
++  const g = parseInt(hex.slice(3, 5), 16);
++  const b = parseInt(hex.slice(5, 7), 16);
++  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? "#111827" : "#FFFFFF";
++}
++
++export function initiales(prenom: string, nom: string): string {
++  return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
++}
+-- 
+2.43.0
+
