@@ -1,5 +1,5 @@
-import { TableauDeBord } from "@/components/espace/tableau-de-bord";
+import { Accueil } from "@/components/espace/accueil";
 
 export default function PageEspace() {
-  return <TableauDeBord />;
+  return <Accueil />;
 }

@@ -83,7 +83,18 @@ export function Anneau({
 
 type Point = { label: string; valeur: number; infobulle?: string };
 
-export function CourbeAire({ donnees, description }: { donnees: Point[]; description: string }) {
+// `unite` et `prefixeDate` ne servent qu'à l'infobulle ; sans eux, elle parle de publications par semaine.
+export function CourbeAire({
+  donnees,
+  description,
+  unite = { un: "publication", plusieurs: "publications" },
+  prefixeDate = "Semaine du",
+}: {
+  donnees: Point[];
+  description: string;
+  unite?: { un: string; plusieurs: string };
+  prefixeDate?: string;
+}) {
   const id = useId().replace(/:/g, "");
   const [survol, setSurvol] = useState<number | null>(null);
   const n = donnees.length;
@@ -155,8 +166,10 @@ export function CourbeAire({ donnees, description }: { donnees: Point[]; descrip
               style={{ left: `${Math.min(86, Math.max(14, x(survol)))}%`, top: `calc(${y(donnees[survol].valeur)}% - 14px)` }}
             >
               <span className="font-display font-semibold tabular-nums">{donnees[survol].valeur}</span>{" "}
-              <span className="text-site-muted">{donnees[survol].valeur > 1 ? "publications" : "publication"}</span>
-              <span className="block text-[11px] text-site-muted">Semaine du {donnees[survol].label}</span>
+              <span className="text-site-muted">{donnees[survol].valeur > 1 ? unite.plusieurs : unite.un}</span>
+              <span className="block text-[11px] text-site-muted">
+                {prefixeDate} {donnees[survol].label}
+              </span>
             </div>
           )}
 

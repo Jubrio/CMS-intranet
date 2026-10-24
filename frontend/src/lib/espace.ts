@@ -6,6 +6,7 @@ import {
   Contact,
   FileText,
   FolderOpen,
+  Landmark,
   LayoutDashboard,
   LayoutTemplate,
   ListTree,
@@ -59,7 +60,12 @@ export type EntreeNav = {
   href?: string;
   permission?: string;
   module?: string;
+  // Entrée de la plateforme : visible uniquement par le Super-administrateur
+  superAdmin?: boolean;
 };
+
+// Le Super-administrateur n'appartient à aucune entreprise
+export const estSuperAdmin = (p: Pick<Profil, "role" | "entreprise">) => p.role === "Super-administrateur" && p.entreprise === null;
 
 export type GroupeNav = { titre: string | null; entrees: EntreeNav[] };
 
@@ -102,9 +108,34 @@ export const NAV: GroupeNav[] = [
   },
 ];
 
+// Menu du Super-administrateur : il gère la plateforme, pas l'intranet d'une entreprise
+export const NAV_PLATEFORME: GroupeNav[] = [
+  {
+    titre: null,
+    entrees: [{ libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace", superAdmin: true }],
+  },
+  {
+    titre: "Plateforme",
+    entrees: [
+      { libelle: "Intranets", icone: Landmark, href: "/espace/intranets", superAdmin: true },
+      { libelle: "Catalogue de modules", icone: Blocks, href: "/espace/catalogue-modules", superAdmin: true },
+    ],
+  },
+];
+
+// Le rôle « RH » est créé avec chaque intranet ; il gère les personnes, pas la configuration
+export const estRH = (p: Pick<Profil, "role" | "entreprise">) => p.role === "RH" && p.entreprise !== null;
+
+// Le rôle « Manager » est créé avec chaque intranet ; il pilote une équipe et publie pour son département
+export const estManager = (p: Pick<Profil, "role" | "entreprise">) => p.role === "Manager" && p.entreprise !== null;
+
+// Entrées regroupées sous « Ressources humaines » dans le menu du rôle RH
+const ENTREES_RH = ["Utilisateurs", "Départements", "Annuaire"];
+
 // Menu filtré selon le profil ; les groupes vides disparaissent
 export function menuPour(profil: Profil): GroupeNav[] {
-  return NAV.map((g) => ({
+  if (estSuperAdmin(profil)) return NAV_PLATEFORME;
+  const groupes = NAV.map((g) => ({
     ...g,
     entrees: g.entrees.filter(
       (e) =>
@@ -112,4 +143,15 @@ export function menuPour(profil: Profil): GroupeNav[] {
         (!e.module || profil.modules_actifs.includes(e.module)),
     ),
   })).filter((g) => g.entrees.length > 0);
+
+  if (!estRH(profil)) return groupes;
+
+  // RH : les écrans du personnel passent dans un groupe dédié, juste sous le tableau de bord
+  const rh = groupes.flatMap((g) => g.entrees).filter((e) => ENTREES_RH.includes(e.libelle));
+  if (rh.length === 0) return groupes;
+  const autres = groupes
+    .map((g) => ({ ...g, entrees: g.entrees.filter((e) => !ENTREES_RH.includes(e.libelle)) }))
+    .filter((g) => g.entrees.length > 0);
+  const [premier, ...suite] = autres;
+  return [premier, { titre: "Ressources humaines", entrees: rh }, ...suite];
 }

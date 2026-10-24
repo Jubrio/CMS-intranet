@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Layers } from "lucide-react";
-import { menuPour, type Personnalisation, type Profil } from "@/lib/espace";
+import { estSuperAdmin, menuPour, type Personnalisation, type Profil } from "@/lib/espace";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({
@@ -31,7 +31,7 @@ export function Sidebar({
         )}
         <div className="min-w-0 leading-tight">
           <p className="truncate font-display text-sm font-semibold">{nom}</p>
-          <p className="truncate text-[11px] text-site-muted">Espace d&apos;administration</p>
+          <p className="truncate text-[11px] text-site-muted">{estSuperAdmin(profil) ? "Administration de la plateforme" : "Espace d'administration"}</p>
         </div>
       </div>
 

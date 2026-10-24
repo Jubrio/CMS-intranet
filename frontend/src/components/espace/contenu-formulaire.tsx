@@ -6,6 +6,8 @@ import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { CHAMP } from "./utilisateur-formulaire";
+import { ImagesContenu } from "./images-contenu";
+import type { ImageContenu } from "./lecteur-contenu";
 import { textes, type ConfigContenu } from "./contenus-config";
 
 export type Statut = "brouillon" | "publie" | "archive";
@@ -23,6 +25,7 @@ export type Contenu = {
   auteur: { id: number; nom: string; prenom: string } | null;
   extrait?: string;
   corps?: string;
+  images?: ImageContenu[];
 };
 
 export type DepartementOption = { id: number; nom_departement: string };
@@ -60,6 +63,7 @@ export function ContenuFormulaire({ config, contenu, departements, manager, onFe
   const [titre, setTitre] = useState(contenu?.titre ?? "");
   const [categorie, setCategorie] = useState(contenu?.categorie ?? "");
   const [corps, setCorps] = useState("");
+  const [images, setImages] = useState<ImageContenu[]>([]);
   const [numero, setNumero] = useState(contenu?.numero_note ?? "");
   const [expiration, setExpiration] = useState(contenu?.date_expiration ?? "");
   const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(manager ? "departement" : (contenu?.visibilite ?? "entreprise"));
@@ -80,6 +84,7 @@ export function ContenuFormulaire({ config, contenu, departements, manager, onFe
       .then((d) => {
         if (annule) return;
         setCorps(d.corps ?? "");
+        setImages(d.images ?? []);
         setExpiration(d.date_expiration ?? "");
         setNumero(d.numero_note ?? "");
         setChargement(false);
@@ -268,6 +273,13 @@ export function ContenuFormulaire({ config, contenu, departements, manager, onFe
               <Champ id="a-corps" label="Contenu" requis erreur={err("corps")}>
                 <textarea id="a-corps" rows={12} value={corps} onChange={(e) => setCorps(e.target.value)} className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")} />
               </Champ>
+
+              {config.type !== "note_service" &&
+                (edition && contenu ? (
+                  <ImagesContenu type={config.type} contenuId={contenu.id} images={images} onChange={setImages} />
+                ) : (
+                  <p className="text-[11px] text-site-muted">Les images peuvent être ajoutées une fois la publication enregistrée en brouillon : rouvrez-la pour les joindre.</p>
+                ))}
             </>
           )}
         </div>

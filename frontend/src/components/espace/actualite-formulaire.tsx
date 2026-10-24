@@ -6,6 +6,8 @@ import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { CHAMP } from "./utilisateur-formulaire";
+import { ImagesContenu } from "./images-contenu";
+import type { ImageContenu } from "./lecteur-contenu";
 
 export type Statut = "brouillon" | "publie" | "archive";
 
@@ -20,6 +22,7 @@ export type Actualite = {
   auteur: { id: number; nom: string; prenom: string } | null;
   extrait?: string;
   corps?: string;
+  images?: ImageContenu[];
 };
 
 export type DepartementOption = { id: number; nom_departement: string };
@@ -55,6 +58,7 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
   const [titre, setTitre] = useState(actualite?.titre ?? "");
   const [categorie, setCategorie] = useState(actualite?.categorie ?? "");
   const [corps, setCorps] = useState("");
+  const [images, setImages] = useState<ImageContenu[]>([]);
   const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(manager ? "departement" : (actualite?.visibilite ?? "entreprise"));
   const [departementId, setDepartementId] = useState(actualite?.departement_id ? String(actualite.departement_id) : "");
   const [chargement, setChargement] = useState(edition);
@@ -73,6 +77,7 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
       .then((d) => {
         if (annule) return;
         setCorps(d.corps ?? "");
+        setImages(d.images ?? []);
         setChargement(false);
       })
       .catch((e) => {
@@ -245,6 +250,12 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
               <Champ id="a-corps" label="Contenu" requis erreur={err("corps")}>
                 <textarea id="a-corps" rows={12} value={corps} onChange={(e) => setCorps(e.target.value)} className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")} />
               </Champ>
+
+              {edition && actualite ? (
+                <ImagesContenu type="actualite" contenuId={actualite.id} images={images} onChange={setImages} />
+              ) : (
+                <p className="text-[11px] text-site-muted">Les images peuvent être ajoutées une fois l’actualité enregistrée en brouillon : rouvrez-la pour les joindre.</p>
+              )}
             </>
           )}
         </div>
