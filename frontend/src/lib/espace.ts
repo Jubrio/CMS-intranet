@@ -6,6 +6,7 @@ import {
   Contact,
   FileText,
   FolderOpen,
+  Home,
   Landmark,
   LayoutDashboard,
   LayoutTemplate,
@@ -62,6 +63,8 @@ export type EntreeNav = {
   module?: string;
   // Entrée de la plateforme : visible uniquement par le Super-administrateur
   superAdmin?: boolean;
+  // Entrée réservée à certains rôles (ex. fil d'accueil de l'Employé)
+  roles?: string[];
 };
 
 // Le Super-administrateur n'appartient à aucune entreprise
@@ -72,7 +75,10 @@ export type GroupeNav = { titre: string | null; entrees: EntreeNav[] };
 export const NAV: GroupeNav[] = [
   {
     titre: null,
-    entrees: [{ libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace" }],
+    entrees: [
+      { libelle: "Accueil", icone: Home, href: "/espace/accueil", roles: ["Employé"] },
+      { libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace" },
+    ],
   },
   {
     titre: "Organisation",
@@ -140,7 +146,8 @@ export function menuPour(profil: Profil): GroupeNav[] {
     entrees: g.entrees.filter(
       (e) =>
         (!e.permission || profil.permissions.includes(e.permission)) &&
-        (!e.module || profil.modules_actifs.includes(e.module)),
+        (!e.module || profil.modules_actifs.includes(e.module)) &&
+        (!e.roles || e.roles.includes(profil.role)),
     ),
   })).filter((g) => g.entrees.length > 0);
 
