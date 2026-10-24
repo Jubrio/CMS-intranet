@@ -23,6 +23,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   const [erreur, setErreur] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [profilOuvert, setProfilOuvert] = useState(false);
+  const [confirmerDeconnexion, setConfirmerDeconnexion] = useState(false);
+  const [deconnexionEnCours, setDeconnexionEnCours] = useState(false);
   const fermerProfil = useCallback(() => setProfilOuvert(false), []);
 
   const expirer = useCallback(() => {
@@ -83,7 +85,16 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", surTouche);
   }, [menuOuvert]);
 
+  // La confirmation de déconnexion se ferme avec Échap
+  useEffect(() => {
+    if (!confirmerDeconnexion || deconnexionEnCours) return;
+    const surTouche = (e: KeyboardEvent) => e.key === "Escape" && setConfirmerDeconnexion(false);
+    window.addEventListener("keydown", surTouche);
+    return () => window.removeEventListener("keydown", surTouche);
+  }, [confirmerDeconnexion, deconnexionEnCours]);
+
   async function deconnecter() {
+    setDeconnexionEnCours(true);
     try {
       await api("/logout", { method: "POST", token: session?.token });
     } catch {
@@ -191,7 +202,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
               </button>
               <button
                 type="button"
-                onClick={deconnecter}
+                onClick={() => setConfirmerDeconnexion(true)}
+                aria-haspopup="dialog"
                 title="Se déconnecter"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-site-line px-3 text-sm text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink sm:px-4"
               >
@@ -208,6 +220,52 @@ export function EspaceShell({ children }: { children: ReactNode }) {
         </div>
 
         {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}
+
+        {/* Confirmation avant de quitter la session */}
+        {confirmerDeconnexion && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="titre-deconnexion"
+          >
+            <button
+              type="button"
+              aria-label="Annuler"
+              disabled={deconnexionEnCours}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setConfirmerDeconnexion(false)}
+            />
+            <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
+              <h2 id="titre-deconnexion" className="flex items-start gap-2 font-display text-base font-semibold">
+                <LogOut size={18} aria-hidden className="mt-0.5 shrink-0 text-brand-violet" />
+                Voulez-vous vous déconnecter ?
+              </h2>
+              <p className="mt-2 text-sm text-site-muted">
+                Vous quitterez votre espace et devrez vous reconnecter pour y revenir.
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  autoFocus
+                  disabled={deconnexionEnCours}
+                  onClick={() => setConfirmerDeconnexion(false)}
+                  className="h-10 rounded-full border border-site-line px-5 text-sm font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  disabled={deconnexionEnCours}
+                  onClick={deconnecter}
+                  className="h-10 rounded-full bg-site-danger px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-60"
+                >
+                  {deconnexionEnCours ? "Déconnexion…" : "Se déconnecter"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </EspaceContext.Provider>
   );
