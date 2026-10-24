@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UtilisateurController;
 use App\Http\Controllers\Api\DepartementController;
 use App\Http\Controllers\Api\ContenuController;
+use App\Http\Controllers\Api\ContenuImageController;
+use App\Http\Controllers\Api\FilController;
 use App\Http\Controllers\Api\AnnuaireController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EvenementController;
@@ -20,6 +22,7 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuGestionController;
 use App\Http\Controllers\Api\PageImageController;
 use App\Http\Controllers\Api\LectureNoteController;
+use App\Http\Controllers\Api\EmployeTableauDeBordController;
 use App\Http\Controllers\Api\ManagerTableauDeBordController;
 use App\Http\Controllers\Api\RhTableauDeBordController;
 use App\Http\Controllers\Api\SuperIntranetController;
@@ -56,6 +59,9 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     // Manager : son équipe, son département et ses publications (le contrôleur vérifie le rôle)
     Route::get('/manager/tableau-de-bord', ManagerTableauDeBordController::class);
+
+    // Employé : notes à lire, nouveautés, événements, formulaires et son entourage (lecture seule)
+    Route::get('/employe/tableau-de-bord', EmployeTableauDeBordController::class);
 
     // Plateforme : réservé au Super-administrateur (intranets de toutes les entreprises)
     Route::middleware('super.admin')->prefix('super')->group(function () {
@@ -118,6 +124,13 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     Route::put('/contenus/{type}/{id}', [ContenuController::class, 'update'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
+    // Images des publications (actualités, annonces, articles) affichées dans le fil d'accueil
+    Route::post('/contenus/{type}/{id}/images', [ContenuImageController::class, 'store'])
+        ->where('type', 'actualite|annonce|article')->whereNumber('id');
+    Route::delete('/contenus/{type}/{id}/images/{imageId}', [ContenuImageController::class, 'destroy'])
+        ->where('type', 'actualite|annonce|article')->whereNumber(['id', 'imageId']);
+    // Fil d'accueil : publications lisibles par l'utilisateur, de la plus récente à la plus ancienne
+    Route::get('/fil', FilController::class);
     Route::post('/contenus/{type}/{id}/publier', [ContenuController::class, 'publier'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
     Route::post('/contenus/{type}/{id}/archiver', [ContenuController::class, 'archiver'])

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\LectureNote;
 
@@ -153,7 +154,9 @@ return response()->json($x);
     public function destroy(Request $request, string $type, int $id): JsonResponse
     {
         $c = $this->gerer($request, $type, $id);
-        $c->delete();
+        $fichiers = $c->images()->pluck('fichier')->all();
+        $c->delete(); // les lignes images partent en cascade
+        Storage::disk('local')->delete($fichiers);
 
         return response()->json(['message' => 'Contenu supprimé.']);
     }
@@ -211,6 +214,9 @@ return response()->json($x);
             'auteur' => $c->auteur ? $c->auteur->only(['id', 'nom', 'prenom']) : null,
         ];
         $r[$complet ? 'corps' : 'extrait'] = $complet ? $c->corps : Str::limit($c->corps, 150);
+        if ($complet) {
+            $r['images'] = $c->images->map(fn ($i) => PageImageController::formater($i))->values()->all();
+        }
 
         return $r;
     }
