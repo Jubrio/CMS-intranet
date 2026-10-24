@@ -33,7 +33,9 @@ export function Sidebar({
         )}
         <div className="min-w-0 leading-tight">
           <p className="truncate font-display text-sm font-semibold">{nom}</p>
-          <p className="truncate text-[11px] text-site-muted">{estSuperAdmin(profil) ? "Administration de la plateforme" : "Espace d'administration"}</p>
+          <p className="truncate text-[11px] text-site-muted">
+            {estSuperAdmin(profil) ? "Administration de la plateforme" : "Espace d'administration"}
+          </p>
         </div>
       </div>
 
@@ -41,7 +43,9 @@ export function Sidebar({
         {menuPour(profil, menu).map((groupe, i) => (
           <div key={groupe.titre ?? i} className={cn(i > 0 && "mt-6")}>
             {groupe.titre && (
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted">{groupe.titre}</p>
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted">
+                {groupe.titre}
+              </p>
             )}
             <ul className="space-y-0.5">
               {groupe.entrees.map((e) => {
@@ -67,14 +71,22 @@ export function Sidebar({
 
                 const classe = cn(
                   "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  actif ? "bg-brand-violet/15 text-brand-violet" : "text-site-muted hover:bg-site-surface2 hover:text-site-ink",
+                  actif
+                    ? "bg-brand-violet/15 text-brand-violet"
+                    : "text-site-muted hover:bg-site-surface2 hover:text-site-ink",
                 );
 
                 // Lien vers un site externe (liens personnalisés) : nouvel onglet
                 if (e.externe) {
                   return (
                     <li key={`${e.libelle}-${e.href}`}>
-                      <a href={e.href} target="_blank" rel="noopener noreferrer" onClick={onNavigate} className={classe}>
+                      <a
+                        href={e.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={onNavigate}
+                        className={classe}
+                      >
                         <Icone size={18} aria-hidden className="shrink-0" />
                         <span className="truncate">{e.libelle}</span>
                         <span className="sr-only"> (s’ouvre dans un nouvel onglet)</span>
@@ -96,7 +108,9 @@ export function Sidebar({
                           : "text-site-muted hover:bg-site-surface2 hover:text-site-ink",
                       )}
                     >
-                      {actif && <span aria-hidden className="v-gradient-btn absolute inset-y-2 left-0 w-1 rounded-r-full" />}
+                      {actif && (
+                        <span aria-hidden className="v-gradient-btn absolute inset-y-2 left-0 w-1 rounded-r-full" />
+                      )}
                       <Icone size={18} aria-hidden className="shrink-0" />
                       <span className="truncate">{e.libelle}</span>
                     </Link>

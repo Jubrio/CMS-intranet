@@ -21,7 +21,13 @@ type ReponseApi = {
   reponses: { data: Reponse[]; current_page: number; last_page: number; total: number };
 };
 
-const dateHeure = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateHeure = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 const jourSeul = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 // Valeur lisible d'une réponse selon le type du champ
@@ -62,7 +68,13 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
     };
   }, [onFermer]);
 
-  const charger = useCallback(async (jeton: string) => ({ page, res: await api<ReponseApi>(`/formulaires/${formulaire.id}/reponses?page=${page}`, { token: jeton }) }), [formulaire.id, page]);
+  const charger = useCallback(
+    async (jeton: string) => ({
+      page,
+      res: await api<ReponseApi>(`/formulaires/${formulaire.id}/reponses?page=${page}`, { token: jeton }),
+    }),
+    [formulaire.id, page],
+  );
   const { donnees, chargement, erreur, reessayer } = useDonnees(true, charger);
   const enChargement = chargement || (donnees !== null && donnees.page !== page);
   const res = donnees?.res ?? null;
@@ -92,7 +104,14 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
       const url = URL.createObjectURL(new Blob([contenu], { type: "text/csv;charset=utf-8" }));
       const lien = document.createElement("a");
       lien.href = url;
-      lien.download = `reponses-${formulaire.titre_formulaire.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() || "formulaire"}.csv`;
+      lien.download = `reponses-${
+        formulaire.titre_formulaire
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-zA-Z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .toLowerCase() || "formulaire"
+      }.csv`;
       document.body.appendChild(lien);
       lien.click();
       lien.remove();
@@ -110,7 +129,12 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-reponses">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative ml-auto flex h-full w-full max-w-2xl flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-site-line px-5">
           <div className="min-w-0">
@@ -126,7 +150,11 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
               disabled={export_ || !res || res.reponses.total === 0}
               className="inline-flex h-9 items-center gap-2 rounded-full border border-site-line px-4 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50"
             >
-              {export_ ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Download size={14} aria-hidden />}
+              {export_ ? (
+                <Loader2 size={14} className="animate-spin" aria-hidden />
+              ) : (
+                <Download size={14} aria-hidden />
+              )}
               Exporter en CSV
             </button>
             <button
@@ -142,7 +170,10 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {erreurExport && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {erreurExport}
             </p>
           )}
@@ -165,7 +196,9 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
               ))}
             </div>
           ) : res.reponses.data.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-site-line px-4 py-10 text-center text-sm text-site-muted">Aucune réponse pour le moment.</p>
+            <p className="rounded-xl border border-dashed border-site-line px-4 py-10 text-center text-sm text-site-muted">
+              Aucune réponse pour le moment.
+            </p>
           ) : (
             <>
               <p className="text-xs text-site-muted tabular-nums">
@@ -175,21 +208,36 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
                 {res.reponses.data.map((r) => (
                   <li key={r.id} className="rounded-xl border border-site-line bg-site-base/40">
                     <div className="flex items-center gap-3 border-b border-site-line px-4 py-3">
-                      <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet">
+                      <span
+                        aria-hidden
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet"
+                      >
                         {r.utilisateur ? initiales(r.utilisateur) : "?"}
                       </span>
-                      <span className={cn("min-w-0 flex-1 truncate text-sm font-medium", !r.utilisateur && "text-site-muted")}>
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1 truncate text-sm font-medium",
+                          !r.utilisateur && "text-site-muted",
+                        )}
+                      >
                         {r.utilisateur ? `${r.utilisateur.prenom} ${r.utilisateur.nom}` : "Compte supprimé"}
                       </span>
-                      <span className="shrink-0 text-xs tabular-nums text-site-muted">{dateHeure.format(new Date(r.created_at))}</span>
+                      <span className="shrink-0 text-xs tabular-nums text-site-muted">
+                        {dateHeure.format(new Date(r.created_at))}
+                      </span>
                     </div>
                     <dl className="divide-y divide-site-line/60">
                       {champs.map((c) => {
                         const texte = formaterValeur(c, r.valeurs[c.nom]);
                         return (
-                          <div key={c.nom} className="grid gap-1 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:gap-4">
+                          <div
+                            key={c.nom}
+                            className="grid gap-1 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:gap-4"
+                          >
                             <dt className="text-xs text-site-muted">{c.libelle}</dt>
-                            <dd className={cn("whitespace-pre-wrap break-words text-sm", !texte && "text-site-muted")}>{texte || "—"}</dd>
+                            <dd className={cn("whitespace-pre-wrap break-words text-sm", !texte && "text-site-muted")}>
+                              {texte || "—"}
+                            </dd>
                           </div>
                         );
                       })}

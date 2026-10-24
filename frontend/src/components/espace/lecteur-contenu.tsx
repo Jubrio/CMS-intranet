@@ -68,7 +68,10 @@ export function LecteurContenu({ ouvert, onFermer, onLu }: { ouvert: Ouvert; onF
     };
   }, [onFermer]);
 
-  const charger = useCallback((jeton: string) => api<Detail>(`/contenus/${ouvert.type}/${ouvert.id}`, { token: jeton }), [ouvert]);
+  const charger = useCallback(
+    (jeton: string) => api<Detail>(`/contenus/${ouvert.type}/${ouvert.id}`, { token: jeton }),
+    [ouvert],
+  );
   const { donnees: c, chargement, erreur, reessayer } = useDonnees(true, charger);
 
   const estNote = ouvert.type === "note_service";
@@ -91,7 +94,12 @@ export function LecteurContenu({ ouvert, onFermer, onLu }: { ouvert: Ouvert; onF
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-lecteur">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-site-line px-5">
           <div className="flex min-w-0 items-center gap-3">
@@ -151,7 +159,12 @@ export function LecteurContenu({ ouvert, onFermer, onLu }: { ouvert: Ouvert; onF
                     <li key={i.id} className="overflow-hidden rounded-xl border border-site-line">
                       {/* Adresse signée temporaire : next/image n'est pas adapté */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={i.url} alt={i.texte_alternatif ?? i.nom_image} className="w-full object-cover" loading="lazy" />
+                      <img
+                        src={i.url}
+                        alt={i.texte_alternatif ?? i.nom_image}
+                        className="w-full object-cover"
+                        loading="lazy"
+                      />
                     </li>
                   ))}
                 </ul>

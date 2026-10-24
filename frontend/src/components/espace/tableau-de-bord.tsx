@@ -93,12 +93,7 @@ const ACCENTS: Record<Accent, { tuile: string; halo: string; texte: string }> = 
 
 function Carte({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section
-      className={cn(
-        "rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm sm:p-6",
-        className,
-      )}
-    >
+    <section className={cn("rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm sm:p-6", className)}>
       {children}
     </section>
   );
@@ -152,11 +147,24 @@ type KpiProps = {
   onReessayer: () => void;
 };
 
-function Kpi({ icone: Icone, accent, libelle, valeur, detail, progression, chargement, erreur, onReessayer }: KpiProps) {
+function Kpi({
+  icone: Icone,
+  accent,
+  libelle,
+  valeur,
+  detail,
+  progression,
+  chargement,
+  erreur,
+  onReessayer,
+}: KpiProps) {
   const a = ACCENTS[accent];
   return (
     <section className="group relative overflow-hidden rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm transition-colors hover:border-brand-violet/40 sm:p-6">
-      <span aria-hidden className={cn("pointer-events-none absolute -right-8 -top-12 size-36 rounded-full blur-3xl", a.halo)} />
+      <span
+        aria-hidden
+        className={cn("pointer-events-none absolute -right-8 -top-12 size-36 rounded-full blur-3xl", a.halo)}
+      />
       <span aria-hidden className="v-gradient-btn absolute inset-x-0 top-0 h-px opacity-70" />
       <div className="relative flex items-center gap-3">
         <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl", a.tuile)}>
@@ -177,10 +185,15 @@ function Kpi({ icone: Icone, accent, libelle, valeur, detail, progression, charg
             <p className="font-display text-[2.5rem] font-bold leading-none tabular-nums">{valeur}</p>
             {progression !== undefined && (
               <div aria-hidden className="mt-4 h-1.5 overflow-hidden rounded-full bg-site-line">
-                <div className="v-gradient-btn h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.min(100, progression)}%` }} />
+                <div
+                  className="v-gradient-btn h-full rounded-full transition-[width] duration-700"
+                  style={{ width: `${Math.min(100, progression)}%` }}
+                />
               </div>
             )}
-            {detail && <p className={cn("text-xs text-site-muted", progression !== undefined ? "mt-2.5" : "mt-4")}>{detail}</p>}
+            {detail && (
+              <p className={cn("text-xs text-site-muted", progression !== undefined ? "mt-2.5" : "mt-4")}>{detail}</p>
+            )}
           </>
         )}
       </div>
@@ -200,15 +213,24 @@ export function TableauDeBord() {
   const voirRoles = peut("roles.gerer");
   const voirModules = peut("personnalisation.modules");
   const voirEvenements =
-    moduleActif("calendrier") && moduleActif("evenements") && peut("calendrier.consulter") && peut("evenements.consulter");
+    moduleActif("calendrier") &&
+    moduleActif("evenements") &&
+    peut("calendrier.consulter") &&
+    peut("evenements.consulter");
 
   // Types que ce rôle peut publier (brouillons) / consulter (publications), module actif
   const typesPublies = useMemo(
-    () => TYPES_CONTENU.filter((t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.publier`)),
+    () =>
+      TYPES_CONTENU.filter(
+        (t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.publier`),
+      ),
     [profil],
   );
   const typesLisibles = useMemo(
-    () => TYPES_CONTENU.filter((t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.consulter`)),
+    () =>
+      TYPES_CONTENU.filter(
+        (t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.consulter`),
+      ),
     [profil],
   );
   const voirBrouillons = typesPublies.length > 0;
@@ -280,7 +302,11 @@ export function TableauDeBord() {
         }
         // La liste est limitée à 20 par type : si le plus ancien reçu est encore dans la
         // fenêtre affichée, des publications plus anciennes de la fenêtre peuvent manquer.
-        if (page.total > page.data.length && plusAncien && differenceInCalendarWeeks(maintenant, plusAncien, options) < NB_SEMAINES) {
+        if (
+          page.total > page.data.length &&
+          plusAncien &&
+          differenceInCalendarWeeks(maintenant, plusAncien, options) < NB_SEMAINES
+        ) {
           partiel = true;
         }
       });
@@ -305,7 +331,13 @@ export function TableauDeBord() {
     const fin = format(addDays(maintenant, HORIZON_EVENEMENTS_JOURS), "yyyy-MM-dd");
     const r = await api<{ evenements: EvenementApi[] }>(`/evenements?debut=${debut}&fin=${fin}`, { token });
     return r.evenements
-      .map((e) => ({ id: e.id, titre: e.titre_evenement, lieu: e.lieu, debut: dateLocale(e.date_debut), fin: dateLocale(e.date_fin) }))
+      .map((e) => ({
+        id: e.id,
+        titre: e.titre_evenement,
+        lieu: e.lieu,
+        debut: dateLocale(e.date_debut),
+        fin: dateLocale(e.date_fin),
+      }))
       .filter((e) => e.fin >= maintenant)
       .sort((a, b) => a.debut.getTime() - b.debut.getTime());
   }, []);
@@ -317,7 +349,6 @@ export function TableauDeBord() {
   const brouillons = useDonnees(voirBrouillons, chargerBrouillons);
   const publications = useDonnees(voirPublications, chargerPublications);
   const evenements = useDonnees(voirEvenements, chargerEvenements);
-
 
   const aujourdhui = format(new Date(), "EEEE d MMMM yyyy", { locale: fr });
 
@@ -339,7 +370,13 @@ export function TableauDeBord() {
   const couleurType = (type: string) => COULEURS_SERIE[Math.max(0, typesAffiches.indexOf(type)) % 3];
 
   const rienAAfficher =
-    !voirUtilisateurs && !voirDepartements && !voirModules && !voirBrouillons && !voirPublications && !voirRoles && !voirEvenements;
+    !voirUtilisateurs &&
+    !voirDepartements &&
+    !voirModules &&
+    !voirBrouillons &&
+    !voirPublications &&
+    !voirRoles &&
+    !voirEvenements;
 
   return (
     <div className="space-y-6">
@@ -351,7 +388,8 @@ export function TableauDeBord() {
             Bonjour, <span className="v-gradient-text">{profil.prenom}</span>
           </h1>
           <p className="mt-1.5 text-sm text-site-muted">
-            Voici l&apos;état de l&apos;intranet de <span className="font-medium text-site-ink">{profil.entreprise}</span>.
+            Voici l&apos;état de l&apos;intranet de{" "}
+            <span className="font-medium text-site-ink">{profil.entreprise}</span>.
           </p>
         </div>
         <p className="relative inline-flex items-center gap-2 rounded-full border border-site-line bg-site-base/60 px-4 py-2 text-xs text-site-muted first-letter:uppercase">
@@ -362,7 +400,9 @@ export function TableauDeBord() {
 
       {rienAAfficher && (
         <Carte>
-          <p className="text-sm text-site-muted">Votre rôle ne comporte pas d&apos;outil d&apos;administration pour le moment.</p>
+          <p className="text-sm text-site-muted">
+            Votre rôle ne comporte pas d&apos;outil d&apos;administration pour le moment.
+          </p>
         </Carte>
       )}
 
@@ -446,7 +486,11 @@ export function TableauDeBord() {
               <EnteteCarte
                 icone={TrendingUp}
                 titre="Publications"
-                meta={publications.donnees ? `${NB_SEMAINES} semaines · ${totalPublications} au total` : `${NB_SEMAINES} semaines`}
+                meta={
+                  publications.donnees
+                    ? `${NB_SEMAINES} semaines · ${totalPublications} au total`
+                    : `${NB_SEMAINES} semaines`
+                }
               />
               {publications.chargement ? (
                 <Squelette className="h-60 w-full" />
@@ -556,7 +600,11 @@ export function TableauDeBord() {
 
           {voirEvenements && (
             <Carte className={voirDepartements ? undefined : "lg:col-span-3"}>
-              <EnteteCarte icone={CalendarDays} titre="Prochains événements" meta={`${HORIZON_EVENEMENTS_JOURS} jours`} />
+              <EnteteCarte
+                icone={CalendarDays}
+                titre="Prochains événements"
+                meta={`${HORIZON_EVENEMENTS_JOURS} jours`}
+              />
               {evenements.chargement ? (
                 <div className="space-y-4">
                   <Squelette className="h-12 w-full" />
@@ -579,7 +627,9 @@ export function TableauDeBord() {
                     >
                       <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-violet/15 leading-none text-brand-violet">
                         <span className="font-display text-lg font-bold">{format(e.debut, "d")}</span>
-                        <span className="mt-0.5 text-[10px] font-semibold uppercase">{format(e.debut, "MMM", { locale: fr })}</span>
+                        <span className="mt-0.5 text-[10px] font-semibold uppercase">
+                          {format(e.debut, "MMM", { locale: fr })}
+                        </span>
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{e.titre}</p>
@@ -713,7 +763,10 @@ export function TableauDeBord() {
                         m.actif ? "bg-brand-cyan/15 text-brand-cyan" : "bg-site-line text-site-muted",
                       )}
                     >
-                      <span aria-hidden className={cn("size-1.5 rounded-full", m.actif ? "bg-brand-cyan" : "bg-site-muted")} />
+                      <span
+                        aria-hidden
+                        className={cn("size-1.5 rounded-full", m.actif ? "bg-brand-cyan" : "bg-site-muted")}
+                      />
                       {m.actif ? "Actif" : "Inactif"}
                     </span>
                   </li>

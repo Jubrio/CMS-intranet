@@ -36,7 +36,11 @@ function Branche({ noeuds, repliees, onBasculer, onOuvrirPersonne, onVoirEquipe 
                     aria-label={`${ouvert ? "Replier" : "Déplier"} ${n.nom_departement}`}
                     className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet transition-colors hover:bg-brand-violet/25"
                   >
-                    <ChevronDown size={18} aria-hidden className={cn("transition-transform", !ouvert && "-rotate-90")} />
+                    <ChevronDown
+                      size={18}
+                      aria-hidden
+                      className={cn("transition-transform", !ouvert && "-rotate-90")}
+                    />
                   </button>
                 ) : (
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
@@ -63,11 +67,15 @@ function Branche({ noeuds, repliees, onBasculer, onOuvrirPersonne, onVoirEquipe 
                       <span className="block truncate text-xs font-semibold">
                         {n.responsable.prenom} {n.responsable.nom}
                       </span>
-                      <span className="block truncate text-[10px] text-site-muted">{n.responsable.poste || "Responsable"}</span>
+                      <span className="block truncate text-[10px] text-site-muted">
+                        {n.responsable.poste || "Responsable"}
+                      </span>
                     </span>
                   </button>
                 ) : (
-                  <span className="rounded-full bg-site-line px-3 py-1 text-[11px] font-medium text-site-muted">Sans responsable</span>
+                  <span className="rounded-full bg-site-line px-3 py-1 text-[11px] font-medium text-site-muted">
+                    Sans responsable
+                  </span>
                 )}
 
                 <button
@@ -84,7 +92,13 @@ function Branche({ noeuds, repliees, onBasculer, onOuvrirPersonne, onVoirEquipe 
 
             {aDesEnfants && ouvert && (
               <div className="ml-5 mt-3 border-l border-site-line pl-5">
-                <Branche noeuds={n.enfants} repliees={repliees} onBasculer={onBasculer} onOuvrirPersonne={onOuvrirPersonne} onVoirEquipe={onVoirEquipe} />
+                <Branche
+                  noeuds={n.enfants}
+                  repliees={repliees}
+                  onBasculer={onBasculer}
+                  onOuvrirPersonne={onOuvrirPersonne}
+                  onVoirEquipe={onVoirEquipe}
+                />
               </div>
             )}
           </li>
@@ -121,7 +135,11 @@ export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, on
     return (
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted shadow-sm">
         <span>Impossible de charger l’organigramme. Votre rôle doit aussi pouvoir consulter l’annuaire.</span>
-        <button type="button" onClick={onReessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+        <button
+          type="button"
+          onClick={onReessayer}
+          className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+        >
           Réessayer
         </button>
       </div>
@@ -132,7 +150,11 @@ export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, on
     return (
       <div className="space-y-3" aria-hidden>
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="h-[72px] animate-pulse rounded-2xl bg-site-line" style={{ marginLeft: i > 0 ? 24 : 0 }} />
+          <div
+            key={i}
+            className="h-[72px] animate-pulse rounded-2xl bg-site-line"
+            style={{ marginLeft: i > 0 ? 24 : 0 }}
+          />
         ))}
       </div>
     );
@@ -146,7 +168,9 @@ export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, on
         </span>
         <p className="mt-4 text-sm font-medium">Aucun département pour le moment.</p>
         <p className="mt-1 text-xs text-site-muted">
-          {lectureSeule ? "L’organigramme apparaîtra dès que les départements auront été créés." : "Créez vos départements depuis l’écran Départements pour construire l’organigramme."}
+          {lectureSeule
+            ? "L’organigramme apparaîtra dès que les départements auront été créés."
+            : "Créez vos départements depuis l’écran Départements pour construire l’organigramme."}
         </p>
       </div>
     );
@@ -156,15 +180,31 @@ export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, on
     <div className="space-y-4">
       {repliables.length > 0 && (
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={() => setRepliees(new Set())} disabled={repliees.size === 0} className="h-8 rounded-full border border-site-line px-3 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-40">
+          <button
+            type="button"
+            onClick={() => setRepliees(new Set())}
+            disabled={repliees.size === 0}
+            className="h-8 rounded-full border border-site-line px-3 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-40"
+          >
             Tout déplier
           </button>
-          <button type="button" onClick={() => setRepliees(new Set(repliables))} disabled={repliees.size >= repliables.length} className="h-8 rounded-full border border-site-line px-3 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-40">
+          <button
+            type="button"
+            onClick={() => setRepliees(new Set(repliables))}
+            disabled={repliees.size >= repliables.length}
+            className="h-8 rounded-full border border-site-line px-3 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-40"
+          >
             Tout replier
           </button>
         </div>
       )}
-      <Branche noeuds={noeuds} repliees={repliees} onBasculer={basculer} onOuvrirPersonne={onOuvrirPersonne} onVoirEquipe={onVoirEquipe} />
+      <Branche
+        noeuds={noeuds}
+        repliees={repliees}
+        onBasculer={basculer}
+        onOuvrirPersonne={onOuvrirPersonne}
+        onVoirEquipe={onVoirEquipe}
+      />
     </div>
   );
 }

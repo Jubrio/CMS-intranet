@@ -90,7 +90,9 @@ function CaseModule({
           {nomModule(groupe.code)}
         </label>
         {!actif && (
-          <span className="shrink-0 rounded-full border border-dashed border-site-line px-2 py-0.5 text-[10px] font-medium text-site-muted">Module inactif</span>
+          <span className="shrink-0 rounded-full border border-dashed border-site-line px-2 py-0.5 text-[10px] font-medium text-site-muted">
+            Module inactif
+          </span>
         )}
         <span className="shrink-0 text-xs tabular-nums text-site-muted">
           {groupe.permissions.filter((p) => selection.has(p.code_permission)).length}/{groupe.permissions.length}
@@ -273,8 +275,17 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-role">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={soumettre} noValidate className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-site-line bg-site-surface shadow-2xl">
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={soumettre}
+        noValidate
+        className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-formulaire-role" className="font-display text-base font-semibold">
             {titre}
@@ -291,7 +302,10 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
 
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
@@ -377,7 +391,10 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
             <button
               type="submit"
               disabled={envoi || chargement}
-              className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", (envoi || chargement) && "opacity-70")}
+              className={cn(
+                "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+                (envoi || chargement) && "opacity-70",
+              )}
             >
               {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
               {edition ? "Enregistrer" : "Créer le rôle"}

@@ -49,11 +49,11 @@ export function Fonctionnalites() {
           {FONCTIONNALITES.map(({ icone: Icone, titre, texte }, i) => (
             <RevealItem key={titre} delay={(i % 3) * 0.1}>
               <div className="v-card-hover h-full rounded-2xl border border-site-line bg-site-surface p-6">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-brand-violet/15 text-brand-violet">
-                <Icone size={20} strokeWidth={2} />
-              </span>
-              <h3 className="mt-4 font-display text-lg font-semibold">{titre}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-site-muted">{texte}</p>
+                <span className="flex size-10 items-center justify-center rounded-lg bg-brand-violet/15 text-brand-violet">
+                  <Icone size={20} strokeWidth={2} />
+                </span>
+                <h3 className="mt-4 font-display text-lg font-semibold">{titre}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-site-muted">{texte}</p>
               </div>
             </RevealItem>
           ))}

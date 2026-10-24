@@ -71,8 +71,18 @@ function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
   }, [onFermer]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-labelledby="titre-fiche-module">
-      <button type="button" aria-label="Fermer la fiche" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+    <div
+      className="fixed inset-0 z-[60] flex justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titre-fiche-module"
+    >
+      <button
+        type="button"
+        aria-label="Fermer la fiche"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <aside className="relative flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <div className="flex items-center justify-between gap-3 border-b border-site-line px-5 py-4">
           <h2 id="titre-fiche-module" className="font-display text-base font-semibold">
@@ -155,7 +165,8 @@ function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
 
               <section>
                 <h3 className="mb-2 font-display text-sm font-semibold">
-                  Entreprises utilisatrices <span className="font-normal text-site-muted">({nombre.format(m.nb_entreprises)})</span>
+                  Entreprises utilisatrices{" "}
+                  <span className="font-normal text-site-muted">({nombre.format(m.nb_entreprises)})</span>
                 </h3>
                 {m.entreprises.length === 0 ? (
                   <p className="text-sm text-site-muted">Aucune entreprise n’utilise ce module pour le moment.</p>
@@ -165,17 +176,28 @@ function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
                       {m.entreprises.map((e) => (
                         <li key={e.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                           <div className="min-w-0">
-                            <p className={cn("truncate text-sm font-medium", e.statut_entreprise === "suspendue" && "text-site-muted")}>{e.nom_entreprise}</p>
+                            <p
+                              className={cn(
+                                "truncate text-sm font-medium",
+                                e.statut_entreprise === "suspendue" && "text-site-muted",
+                              )}
+                            >
+                              {e.nom_entreprise}
+                            </p>
                             <p className="truncate text-xs text-site-muted">{e.slug}</p>
                           </div>
                           {e.statut_entreprise === "suspendue" && (
-                            <span className="shrink-0 rounded-full bg-site-danger/15 px-2 py-0.5 text-[10px] font-semibold text-site-danger">Suspendue</span>
+                            <span className="shrink-0 rounded-full bg-site-danger/15 px-2 py-0.5 text-[10px] font-semibold text-site-danger">
+                              Suspendue
+                            </span>
                           )}
                         </li>
                       ))}
                     </ul>
                     {m.nb_entreprises > m.entreprises.length && (
-                      <p className="mt-2 text-xs text-site-muted">Les {m.entreprises.length} premières entreprises sont affichées, par ordre alphabétique.</p>
+                      <p className="mt-2 text-xs text-site-muted">
+                        Les {m.entreprises.length} premières entreprises sont affichées, par ordre alphabétique.
+                      </p>
                     )}
                   </>
                 )}
@@ -250,7 +272,11 @@ export function ModulesCatalogue() {
   const fermerFiche = useCallback(() => setSelection(null), []);
 
   if (!autorise) {
-    return <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">Cet écran est réservé au super-administrateur.</p>;
+    return (
+      <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
+        Cet écran est réservé au super-administrateur.
+      </p>
+    );
   }
 
   const modules = donnees?.modules ?? null;

@@ -22,7 +22,13 @@ export function Hero({ nombreModules }: { nombreModules: number }) {
                   aria-hidden="true"
                   className="absolute -bottom-0 left-0 h-3.5 w-full"
                 >
-                  <path d="M2 10 C 80 2, 220 2, 298 10" stroke="url(#soulignement)" strokeWidth="3" fill="none" strokeLinecap="round" />
+                  <path
+                    d="M2 10 C 80 2, 220 2, 298 10"
+                    stroke="url(#soulignement)"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
                   <defs>
                     <linearGradient id="soulignement" x1="0" x2="1">
                       <stop offset="0" style={{ stopColor: "var(--grad-text-a)" }} />
@@ -36,8 +42,8 @@ export function Hero({ nombreModules }: { nombreModules: number }) {
 
           <Entree depuis="gauche" delay={0.2} className="mt-7 max-w-lg">
             <p className="text-lg leading-relaxed text-site-muted">
-              CMS Intranet rassemble actualités, documents, annuaire et formulaires dans un espace unique. Vous
-              activez uniquement les modules dont votre entreprise a besoin.
+              CMS Intranet rassemble actualités, documents, annuaire et formulaires dans un espace unique. Vous activez
+              uniquement les modules dont votre entreprise a besoin.
             </p>
           </Entree>
 

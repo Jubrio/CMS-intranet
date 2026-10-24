@@ -9,8 +9,8 @@ export function Modules({ modules }: { modules: ModuleCatalogue[] }) {
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Choisissez vos modules</h2>
           <p className="mt-4 text-site-muted">
-            Les modules de base sont toujours inclus. Les autres s&apos;activent à la création, et se modifient
-            ensuite à tout moment.
+            Les modules de base sont toujours inclus. Les autres s&apos;activent à la création, et se modifient ensuite
+            à tout moment.
           </p>
         </Reveal>
 
@@ -18,7 +18,11 @@ export function Modules({ modules }: { modules: ModuleCatalogue[] }) {
           {modules.map((m, i) => {
             const Icone = iconeModule(m.code_module);
             return (
-              <RevealItem key={m.code_module} delay={(i % 3) * 0.08} className="rounded-2xl border border-site-line bg-site-surface p-6">
+              <RevealItem
+                key={m.code_module}
+                delay={(i % 3) * 0.08}
+                className="rounded-2xl border border-site-line bg-site-surface p-6"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <span className="flex size-10 items-center justify-center rounded-lg bg-brand-violet/15 text-brand-violet">
                     <Icone size={20} strokeWidth={2} />

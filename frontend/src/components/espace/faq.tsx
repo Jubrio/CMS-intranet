@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { type LucideIcon, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Pencil, Plus, Search, Tags, Trash2, X } from "lucide-react";
+import {
+  type LucideIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  Pencil,
+  Plus,
+  Search,
+  Tags,
+  Trash2,
+  X,
+} from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -30,13 +42,29 @@ function Stat({ icone, libelle, valeur }: { icone: LucideIcon; libelle: string; 
       </span>
       <div>
         <p className="text-xs font-medium text-site-muted">{libelle}</p>
-        {valeur === null ? <Squelette className="mt-1.5 h-6 w-12" /> : <p className="font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(valeur)}</p>}
+        {valeur === null ? (
+          <Squelette className="mt-1.5 h-6 w-12" />
+        ) : (
+          <p className="font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(valeur)}</p>
+        )}
       </div>
     </div>
   );
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -184,11 +212,18 @@ export function Faq() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -202,7 +237,11 @@ export function Faq() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
           <div className="relative min-w-52 max-w-md flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -272,8 +311,12 @@ export function Faq() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <CircleHelp size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtre ? "Aucune question ne correspond à cette recherche." : "Aucune question pour le moment."}</p>
-            {!filtre && <p className="mt-1 text-xs text-site-muted">Ajoutez une première question pour alimenter la FAQ.</p>}
+            <p className="mt-4 text-sm font-medium">
+              {filtre ? "Aucune question ne correspond à cette recherche." : "Aucune question pour le moment."}
+            </p>
+            {!filtre && (
+              <p className="mt-1 text-xs text-site-muted">Ajoutez une première question pour alimenter la FAQ.</p>
+            )}
           </div>
         ) : (
           <div>
@@ -292,27 +335,45 @@ export function Faq() {
                         className="flex min-w-0 flex-1 items-start gap-3 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40"
                       >
                         <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-violet/15 text-brand-violet">
-                          <ChevronDown size={16} aria-hidden className={cn("transition-transform", ouverte && "rotate-180")} />
+                          <ChevronDown
+                            size={16}
+                            aria-hidden
+                            className={cn("transition-transform", ouverte && "rotate-180")}
+                          />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className={cn("block text-sm font-semibold", !ouverte && "truncate")}>{f.question}</span>
+                          <span className={cn("block text-sm font-semibold", !ouverte && "truncate")}>
+                            {f.question}
+                          </span>
                           <span className="mt-1 inline-flex max-w-full rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">
                             <span className="truncate">{f.categorie}</span>
                           </span>
                         </span>
                       </button>
                       <div className="flex shrink-0 items-center gap-1">
-                        <BoutonIcone libelle={`Modifier la question « ${f.question} »`} disabled={occupe} onClick={() => setFormulaire({ question: f })}>
+                        <BoutonIcone
+                          libelle={`Modifier la question « ${f.question} »`}
+                          disabled={occupe}
+                          onClick={() => setFormulaire({ question: f })}
+                        >
                           <Pencil size={16} aria-hidden />
                         </BoutonIcone>
-                        <BoutonIcone libelle={`Supprimer la question « ${f.question} »`} danger disabled={occupe} onClick={() => setASupprimer(f)}>
+                        <BoutonIcone
+                          libelle={`Supprimer la question « ${f.question} »`}
+                          danger
+                          disabled={occupe}
+                          onClick={() => setASupprimer(f)}
+                        >
                           <Trash2 size={16} aria-hidden />
                         </BoutonIcone>
                       </div>
                     </div>
 
                     {ouverte && (
-                      <div id={`reponse-${f.id}`} className="ml-11 mt-2 rounded-xl border border-site-line bg-site-base/40 px-4 py-3">
+                      <div
+                        id={`reponse-${f.id}`}
+                        className="ml-11 mt-2 rounded-xl border border-site-line bg-site-base/40 px-4 py-3"
+                      >
                         <p className="whitespace-pre-wrap text-sm leading-relaxed">{f.reponse}</p>
                         {f.auteur && (
                           <p className="mt-2 text-xs text-site-muted">
@@ -327,9 +388,13 @@ export function Faq() {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+              >
                 <p className="text-xs text-site-muted">
-                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} question{res.total > 1 ? "s" : ""}
+                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} question
+                  {res.total > 1 ? "s" : ""}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -369,13 +434,26 @@ export function Faq() {
       )}
 
       {aSupprimer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-faq">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setASupprimer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-faq"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suppression-faq" className="font-display text-base font-semibold">
               Supprimer cette question ?
             </h2>
-            <p className="mt-2 text-sm text-site-muted">La question « {aSupprimer.question} » et sa réponse seront supprimées définitivement. Cette action est irréversible.</p>
+            <p className="mt-2 text-sm text-site-muted">
+              La question « {aSupprimer.question} » et sa réponse seront supprimées définitivement. Cette action est
+              irréversible.
+            </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"

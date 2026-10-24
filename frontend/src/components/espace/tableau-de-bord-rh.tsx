@@ -27,7 +27,19 @@ import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { Anneau, CourbeAire, COULEURS_SERIE } from "./graphiques";
-import { BarreTaux, BOUTON_PETIT, Carte, EnteteCarte, Kpi, Squelette, Vide, decimal, nombre, pluriel, pourcent } from "./elements-tableau";
+import {
+  BarreTaux,
+  BOUTON_PETIT,
+  Carte,
+  EnteteCarte,
+  Kpi,
+  Squelette,
+  Vide,
+  decimal,
+  nombre,
+  pluriel,
+  pourcent,
+} from "./elements-tableau";
 
 // ---- Formes des réponses de l'API ------------------------------------------
 
@@ -97,7 +109,17 @@ function LienCarte({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-function ActionRapide({ href, icone: Icone, libelle, detail }: { href: string; icone: LucideIcon; libelle: string; detail: string }) {
+function ActionRapide({
+  href,
+  icone: Icone,
+  libelle,
+  detail,
+}: {
+  href: string;
+  icone: LucideIcon;
+  libelle: string;
+  detail: string;
+}) {
   return (
     <Link
       href={href}
@@ -110,17 +132,53 @@ function ActionRapide({ href, icone: Icone, libelle, detail }: { href: string; i
         <span className="block truncate text-sm font-semibold">{libelle}</span>
         <span className="block truncate text-xs text-site-muted">{detail}</span>
       </span>
-      <ArrowRight size={16} aria-hidden className="shrink-0 text-site-muted transition-transform group-hover:translate-x-0.5" />
+      <ArrowRight
+        size={16}
+        aria-hidden
+        className="shrink-0 text-site-muted transition-transform group-hover:translate-x-0.5"
+      />
     </Link>
   );
 }
 
-function Point({ icone: Icone, titre, aide, total, ton, children }: { icone: LucideIcon; titre: string; aide: string; total: number; ton: "danger" | "neutre"; children?: ReactNode }) {
+function Point({
+  icone: Icone,
+  titre,
+  aide,
+  total,
+  ton,
+  children,
+}: {
+  icone: LucideIcon;
+  titre: string;
+  aide: string;
+  total: number;
+  ton: "danger" | "neutre";
+  children?: ReactNode;
+}) {
   const rien = total === 0;
   return (
-    <li className={cn("rounded-xl border p-4", rien ? "border-site-line" : ton === "danger" ? "border-site-danger/40 bg-site-danger/5" : "border-brand-violet/30 bg-brand-violet/5")}>
+    <li
+      className={cn(
+        "rounded-xl border p-4",
+        rien
+          ? "border-site-line"
+          : ton === "danger"
+            ? "border-site-danger/40 bg-site-danger/5"
+            : "border-brand-violet/30 bg-brand-violet/5",
+      )}
+    >
       <div className="flex items-start gap-3">
-        <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", rien ? "bg-brand-cyan/15 text-brand-cyan" : ton === "danger" ? "bg-site-danger/15 text-site-danger" : "bg-brand-violet/15 text-brand-violet")}>
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-lg",
+            rien
+              ? "bg-brand-cyan/15 text-brand-cyan"
+              : ton === "danger"
+                ? "bg-site-danger/15 text-site-danger"
+                : "bg-brand-violet/15 text-brand-violet",
+          )}
+        >
           {rien ? <CircleCheck size={17} aria-hidden /> : <Icone size={17} aria-hidden />}
         </span>
         <div className="min-w-0 flex-1">
@@ -160,7 +218,11 @@ export function TableauDeBordRH() {
   const totalRoles = d?.roles.reduce((s, r) => s + r.nb_utilisateurs, 0) ?? 0;
   const departements = d?.departements.filter((x) => x.nb_employes > 0 || x.id !== null) ?? [];
   const maxDepartement = Math.max(1, ...departements.map((x) => x.nb_employes));
-  const nbPoints = d ? d.alertes.departements_sans_responsable.total + d.alertes.comptes_inactifs.total + (d.fiches.completes < d.fiches.total ? 1 : 0) : 0;
+  const nbPoints = d
+    ? d.alertes.departements_sans_responsable.total +
+      d.alertes.comptes_inactifs.total +
+      (d.fiches.completes < d.fiches.total ? 1 : 0)
+    : 0;
 
   const champsManquants = d ? ORDRE_CHAMPS.filter((c) => d.fiches.manques[c] > 0) : [];
 
@@ -169,12 +231,15 @@ export function TableauDeBordRH() {
       <header className="v-noise relative flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl border border-site-line bg-site-surface p-6 sm:p-7">
         <span aria-hidden className="v-gradient-btn absolute inset-x-0 top-0 h-px opacity-70" />
         <div className="relative">
-          <p className="text-xs font-medium uppercase tracking-wider text-site-muted">Tableau de bord · Ressources humaines</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-site-muted">
+            Tableau de bord · Ressources humaines
+          </p>
           <h1 className="mt-1.5 font-display text-2xl font-bold sm:text-3xl">
             Bonjour, <span className="v-gradient-text">{profil.prenom}</span>
           </h1>
           <p className="mt-1.5 text-sm text-site-muted">
-            Voici les effectifs et le suivi des fiches de <span className="font-medium text-site-ink">{profil.entreprise}</span>.
+            Voici les effectifs et le suivi des fiches de{" "}
+            <span className="font-medium text-site-ink">{profil.entreprise}</span>.
           </p>
         </div>
         <div className="relative flex flex-wrap items-center gap-3">
@@ -182,7 +247,12 @@ export function TableauDeBordRH() {
             <CalendarDays size={14} aria-hidden className="text-brand-violet" />
             {aujourdhui}
           </p>
-          <button type="button" onClick={reessayer} className={cn(BOUTON_PETIT, "h-9 gap-2 px-4")} title="Actualiser les chiffres">
+          <button
+            type="button"
+            onClick={reessayer}
+            className={cn(BOUTON_PETIT, "h-9 gap-2 px-4")}
+            title="Actualiser les chiffres"
+          >
             <RefreshCw size={14} aria-hidden className={cn(chargement && "animate-spin")} />
             Actualiser
           </button>
@@ -202,9 +272,24 @@ export function TableauDeBordRH() {
         <>
           {/* Accès rapides */}
           <div className="grid gap-4 sm:grid-cols-3">
-            <ActionRapide href="/espace/utilisateurs" icone={UserPlus} libelle="Gérer les employés" detail="Créer, modifier ou désactiver un compte" />
-            <ActionRapide href="/espace/departements" icone={Building2} libelle="Départements" detail="Structure et responsables" />
-            <ActionRapide href="/espace/annuaire" icone={Contact} libelle="Annuaire et organigramme" detail="Fiches et hiérarchie" />
+            <ActionRapide
+              href="/espace/utilisateurs"
+              icone={UserPlus}
+              libelle="Gérer les employés"
+              detail="Créer, modifier ou désactiver un compte"
+            />
+            <ActionRapide
+              href="/espace/departements"
+              icone={Building2}
+              libelle="Départements"
+              detail="Structure et responsables"
+            />
+            <ActionRapide
+              href="/espace/annuaire"
+              icone={Contact}
+              libelle="Annuaire et organigramme"
+              detail="Fiches et hiérarchie"
+            />
           </div>
 
           {/* Indicateurs clés */}
@@ -215,7 +300,11 @@ export function TableauDeBordRH() {
               libelle="Effectif actif"
               valeur={d ? nombre.format(d.effectif.actifs) : null}
               progression={d ? pourcent(d.effectif.actifs, d.effectif.total) : 0}
-              detail={d ? `${nombre.format(d.effectif.total)} comptes au total · ${nombre.format(d.effectif.inactifs)} ${pluriel(d.effectif.inactifs, "inactif", "inactifs")}` : undefined}
+              detail={
+                d
+                  ? `${nombre.format(d.effectif.total)} comptes au total · ${nombre.format(d.effectif.inactifs)} ${pluriel(d.effectif.inactifs, "inactif", "inactifs")}`
+                  : undefined
+              }
               chargement={chargement}
             />
             <Kpi
@@ -223,14 +312,24 @@ export function TableauDeBordRH() {
               accent="cyan"
               libelle="Arrivées sur 30 jours"
               valeur={d ? nombre.format(d.effectif.arrivees_30j) : null}
-              detail={d ? `${nombre.format(totalArrivees)} ${pluriel(totalArrivees, "arrivée", "arrivées")} sur 12 mois` : undefined}
+              detail={
+                d
+                  ? `${nombre.format(totalArrivees)} ${pluriel(totalArrivees, "arrivée", "arrivées")} sur 12 mois`
+                  : undefined
+              }
               chargement={chargement}
             />
             <Kpi
               icone={UserCheck}
               accent="blue"
               libelle="Ancienneté moyenne"
-              valeur={d ? (d.effectif.anciennete_moyenne_annees === null ? "—" : `${decimal.format(d.effectif.anciennete_moyenne_annees)} ${d.effectif.anciennete_moyenne_annees > 1 ? "ans" : "an"}`) : null}
+              valeur={
+                d
+                  ? d.effectif.anciennete_moyenne_annees === null
+                    ? "—"
+                    : `${decimal.format(d.effectif.anciennete_moyenne_annees)} ${d.effectif.anciennete_moyenne_annees > 1 ? "ans" : "an"}`
+                  : null
+              }
               detail={
                 d
                   ? d.effectif.avec_date_embauche < d.effectif.actifs
@@ -246,7 +345,11 @@ export function TableauDeBordRH() {
               libelle="Fiches complètes"
               valeur={d ? `${d.fiches.taux_completude} %` : null}
               progression={d ? d.fiches.taux_completude : 0}
-              detail={d ? `${nombre.format(d.fiches.completes)} sur ${nombre.format(d.fiches.total)} comptes actifs` : undefined}
+              detail={
+                d
+                  ? `${nombre.format(d.fiches.completes)} sur ${nombre.format(d.fiches.total)} comptes actifs`
+                  : undefined
+              }
               chargement={chargement}
             />
           </div>
@@ -254,7 +357,15 @@ export function TableauDeBordRH() {
           {/* Arrivées + rôles */}
           <div className="grid gap-4 lg:grid-cols-3">
             <Carte className="lg:col-span-2">
-              <EnteteCarte icone={TrendingUp} titre="Arrivées par mois" meta={d ? `12 mois · ${nombre.format(totalArrivees)} ${pluriel(totalArrivees, "arrivée", "arrivées")}` : "12 mois"} />
+              <EnteteCarte
+                icone={TrendingUp}
+                titre="Arrivées par mois"
+                meta={
+                  d
+                    ? `12 mois · ${nombre.format(totalArrivees)} ${pluriel(totalArrivees, "arrivée", "arrivées")}`
+                    : "12 mois"
+                }
+              />
               {!d ? (
                 <Squelette className="h-72 w-full" />
               ) : (
@@ -267,8 +378,13 @@ export function TableauDeBordRH() {
                   />
                   {d.effectif.avec_date_embauche < d.effectif.actifs && (
                     <p className="mt-4 text-xs text-site-muted">
-                      {nombre.format(d.effectif.actifs - d.effectif.avec_date_embauche)} {pluriel(d.effectif.actifs - d.effectif.avec_date_embauche, "compte actif n’a", "comptes actifs n’ont")} pas de date d’embauche : ils
-                      ne sont pas comptés ici.
+                      {nombre.format(d.effectif.actifs - d.effectif.avec_date_embauche)}{" "}
+                      {pluriel(
+                        d.effectif.actifs - d.effectif.avec_date_embauche,
+                        "compte actif n’a",
+                        "comptes actifs n’ont",
+                      )}{" "}
+                      pas de date d’embauche : ils ne sont pas comptés ici.
                     </p>
                   )}
                 </>
@@ -284,7 +400,11 @@ export function TableauDeBordRH() {
               ) : (
                 <div className="flex flex-col items-center gap-6">
                   <Anneau
-                    segments={d.roles.map((r, i) => ({ label: r.nom_role, valeur: r.nb_utilisateurs, couleur: COULEURS_SERIE[i % COULEURS_SERIE.length] }))}
+                    segments={d.roles.map((r, i) => ({
+                      label: r.nom_role,
+                      valeur: r.nb_utilisateurs,
+                      couleur: COULEURS_SERIE[i % COULEURS_SERIE.length],
+                    }))}
                     centreValeur={nombre.format(totalRoles)}
                     centreLibelle={pluriel(totalRoles, "compte actif", "comptes actifs")}
                     description={`Répartition de ${totalRoles} comptes actifs par rôle.`}
@@ -292,10 +412,16 @@ export function TableauDeBordRH() {
                   <ul className="w-full space-y-2.5 text-sm">
                     {d.roles.map((r, i) => (
                       <li key={r.nom_role} className="flex items-center gap-2.5">
-                        <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: COULEURS_SERIE[i % COULEURS_SERIE.length] }} />
+                        <span
+                          aria-hidden
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ background: COULEURS_SERIE[i % COULEURS_SERIE.length] }}
+                        />
                         <span className="min-w-0 flex-1 truncate">{r.nom_role}</span>
                         <span className="font-semibold tabular-nums">{nombre.format(r.nb_utilisateurs)}</span>
-                        <span className="w-10 text-right text-xs tabular-nums text-site-muted">{pourcent(r.nb_utilisateurs, totalRoles)} %</span>
+                        <span className="w-10 text-right text-xs tabular-nums text-site-muted">
+                          {pourcent(r.nb_utilisateurs, totalRoles)} %
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -310,7 +436,11 @@ export function TableauDeBordRH() {
               <EnteteCarte
                 icone={Building2}
                 titre="Effectif par département"
-                meta={d ? `${nombre.format(d.departements.filter((x) => x.id !== null).length)} ${pluriel(d.departements.filter((x) => x.id !== null).length, "département", "départements")}` : undefined}
+                meta={
+                  d
+                    ? `${nombre.format(d.departements.filter((x) => x.id !== null).length)} ${pluriel(d.departements.filter((x) => x.id !== null).length, "département", "départements")}`
+                    : undefined
+                }
                 action={<LienCarte href="/espace/departements">Départements</LienCarte>}
               />
               {!d ? (
@@ -356,9 +486,13 @@ export function TableauDeBordRH() {
                         <p className="truncate text-sm font-semibold">
                           {p.prenom} {p.nom}
                         </p>
-                        <p className="truncate text-xs text-site-muted">{[p.poste, p.departement].filter(Boolean).join(" · ") || "Poste non renseigné"}</p>
+                        <p className="truncate text-xs text-site-muted">
+                          {[p.poste, p.departement].filter(Boolean).join(" · ") || "Poste non renseigné"}
+                        </p>
                       </div>
-                      <span className="shrink-0 text-xs tabular-nums text-site-muted">{dateLongue(p.date_embauche)}</span>
+                      <span className="shrink-0 text-xs tabular-nums text-site-muted">
+                        {dateLongue(p.date_embauche)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -390,11 +524,16 @@ export function TableauDeBordRH() {
                             {p.prenom} {p.nom}
                           </p>
                           <p className="truncate text-xs text-site-muted">
-                            {nombre.format(p.annees)} {pluriel(p.annees, "an", "ans")} dans l’entreprise{p.poste ? ` · ${p.poste}` : ""}
+                            {nombre.format(p.annees)} {pluriel(p.annees, "an", "ans")} dans l’entreprise
+                            {p.poste ? ` · ${p.poste}` : ""}
                           </p>
                         </div>
                         <span className="shrink-0 rounded-full border border-site-line px-2.5 py-1 text-[11px] font-semibold tabular-nums">
-                          {jours <= 0 ? "Aujourd’hui" : jours === 1 ? "Demain" : format(parseISO(p.date), "d MMM", { locale: fr })}
+                          {jours <= 0
+                            ? "Aujourd’hui"
+                            : jours === 1
+                              ? "Demain"
+                              : format(parseISO(p.date), "d MMM", { locale: fr })}
                         </span>
                       </li>
                     );
@@ -404,7 +543,11 @@ export function TableauDeBordRH() {
             </Carte>
 
             <Carte>
-              <EnteteCarte icone={ClipboardCheck} titre="Points d’attention" meta={d ? (nbPoints === 0 ? "Tout est en ordre" : `${nombre.format(nbPoints)} à examiner`) : undefined} />
+              <EnteteCarte
+                icone={ClipboardCheck}
+                titre="Points d’attention"
+                meta={d ? (nbPoints === 0 ? "Tout est en ordre" : `${nombre.format(nbPoints)} à examiner`) : undefined}
+              />
               {!d ? (
                 <div className="space-y-4" aria-hidden>
                   {Array.from({ length: 3 }, (_, i) => (
@@ -423,8 +566,12 @@ export function TableauDeBordRH() {
                     {champsManquants.length > 0 && (
                       <ul className="mt-2 flex flex-wrap gap-1.5">
                         {champsManquants.map((c) => (
-                          <li key={c} className="rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium">
-                            {LIBELLE_CHAMP[c]} <span className="tabular-nums text-site-muted">· {nombre.format(d.fiches.manques[c])}</span>
+                          <li
+                            key={c}
+                            className="rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium"
+                          >
+                            {LIBELLE_CHAMP[c]}{" "}
+                            <span className="tabular-nums text-site-muted">· {nombre.format(d.fiches.manques[c])}</span>
                           </li>
                         ))}
                       </ul>
@@ -451,13 +598,22 @@ export function TableauDeBordRH() {
                   >
                     <ul className="mt-2 flex flex-wrap gap-1.5">
                       {d.alertes.departements_sans_responsable.departements.map((x) => (
-                        <li key={x.id} className="max-w-full truncate rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium">
+                        <li
+                          key={x.id}
+                          className="max-w-full truncate rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium"
+                        >
                           {x.nom_departement}
                         </li>
                       ))}
-                      {d.alertes.departements_sans_responsable.total > d.alertes.departements_sans_responsable.departements.length && (
+                      {d.alertes.departements_sans_responsable.total >
+                        d.alertes.departements_sans_responsable.departements.length && (
                         <li className="px-1 py-0.5 text-[11px] text-site-muted">
-                          et {nombre.format(d.alertes.departements_sans_responsable.total - d.alertes.departements_sans_responsable.departements.length)} de plus
+                          et{" "}
+                          {nombre.format(
+                            d.alertes.departements_sans_responsable.total -
+                              d.alertes.departements_sans_responsable.departements.length,
+                          )}{" "}
+                          de plus
                         </li>
                       )}
                     </ul>
@@ -471,13 +627,18 @@ export function TableauDeBordRH() {
                   >
                     <ul className="mt-2 flex flex-wrap gap-1.5">
                       {d.alertes.comptes_inactifs.comptes.map((p) => (
-                        <li key={p.id} className="max-w-full truncate rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium">
+                        <li
+                          key={p.id}
+                          className="max-w-full truncate rounded-full border border-site-line bg-site-surface px-2.5 py-0.5 text-[11px] font-medium"
+                        >
                           {p.prenom} {p.nom}
                         </li>
                       ))}
                       {d.alertes.comptes_inactifs.total > d.alertes.comptes_inactifs.comptes.length && (
                         <li className="px-1 py-0.5 text-[11px] text-site-muted">
-                          et {nombre.format(d.alertes.comptes_inactifs.total - d.alertes.comptes_inactifs.comptes.length)} de plus
+                          et{" "}
+                          {nombre.format(d.alertes.comptes_inactifs.total - d.alertes.comptes_inactifs.comptes.length)}{" "}
+                          de plus
                         </li>
                       )}
                     </ul>
@@ -489,7 +650,8 @@ export function TableauDeBordRH() {
 
           {d && (
             <p className="text-center text-xs text-site-muted">
-              Chiffres calculés le {format(parseISO(d.genere_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}, sur les comptes de votre entreprise.
+              Chiffres calculés le {format(parseISO(d.genere_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}, sur les
+              comptes de votre entreprise.
             </p>
           )}
         </>

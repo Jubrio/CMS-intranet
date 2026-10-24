@@ -39,7 +39,13 @@ function Avatar({ u }: { u: Utilisateur }) {
     >
       {afficher ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={urlStockage(u.photo as string)} alt="" loading="lazy" onError={() => setEchec(u.photo ?? null)} className={cn("size-full object-cover", !actif && "opacity-60 grayscale")} />
+        <img
+          src={urlStockage(u.photo as string)}
+          alt=""
+          loading="lazy"
+          onError={() => setEchec(u.photo ?? null)}
+          className={cn("size-full object-cover", !actif && "opacity-60 grayscale")}
+        />
       ) : (
         initiales(u)
       )}
@@ -61,7 +67,17 @@ function PastilleStatut({ actif }: { actif: boolean }) {
   );
 }
 
-function Stat({ icone: Icone, libelle, valeur, chargement }: { icone: typeof Users; libelle: string; valeur: number | null; chargement: boolean }) {
+function Stat({
+  icone: Icone,
+  libelle,
+  valeur,
+  chargement,
+}: {
+  icone: typeof Users;
+  libelle: string;
+  valeur: number | null;
+  chargement: boolean;
+}) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-site-line bg-site-surface p-4 shadow-sm">
       <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
@@ -79,7 +95,19 @@ function Stat({ icone: Icone, libelle, valeur, chargement }: { icone: typeof Use
   );
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -207,7 +235,10 @@ export function Utilisateurs() {
     setEnCoursId(u.id);
     try {
       await api<Utilisateur>(`/utilisateurs/${u.id}/statut`, { method: "PUT", token, body: JSON.stringify({ actif }) });
-      setNotice({ type: "ok", texte: actif ? `${u.prenom} ${u.nom} est de nouveau actif.` : `${u.prenom} ${u.nom} a été désactivé.` });
+      setNotice({
+        type: "ok",
+        texte: actif ? `${u.prenom} ${u.nom} est de nouveau actif.` : `${u.prenom} ${u.nom} a été désactivé.`,
+      });
       setVersion((v) => v + 1);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -254,11 +285,18 @@ export function Utilisateurs() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -266,14 +304,28 @@ export function Utilisateurs() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat icone={Users} libelle="Comptes au total" valeur={total} chargement={stats.chargement} />
-        <Stat icone={UserCheck} libelle="Comptes actifs" valeur={stats.donnees?.actifs ?? null} chargement={stats.chargement} />
-        <Stat icone={UserX} libelle="Comptes inactifs" valeur={stats.donnees?.inactifs ?? null} chargement={stats.chargement} />
+        <Stat
+          icone={UserCheck}
+          libelle="Comptes actifs"
+          valeur={stats.donnees?.actifs ?? null}
+          chargement={stats.chargement}
+        />
+        <Stat
+          icone={UserX}
+          libelle="Comptes inactifs"
+          valeur={stats.donnees?.inactifs ?? null}
+          chargement={stats.chargement}
+        />
       </div>
 
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-col gap-3 border-b border-site-line p-4 lg:flex-row lg:items-center">
           <div className="relative flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -362,7 +414,9 @@ export function Utilisateurs() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <Users size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtresActifs ? "Aucun utilisateur ne correspond à ces critères." : "Aucun utilisateur pour le moment."}</p>
+            <p className="mt-4 text-sm font-medium">
+              {filtresActifs ? "Aucun utilisateur ne correspond à ces critères." : "Aucun utilisateur pour le moment."}
+            </p>
             {filtresActifs && (
               <button
                 type="button"
@@ -398,14 +452,20 @@ export function Utilisateurs() {
                         <div className="min-w-0">
                           <p className={cn("truncate text-sm font-semibold", !actif && "text-site-muted")}>
                             {u.prenom} {u.nom}
-                            {soi && <span className="ml-2 rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">Vous</span>}
+                            {soi && (
+                              <span className="ml-2 rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">
+                                Vous
+                              </span>
+                            )}
                           </p>
                           <p className="truncate text-xs text-site-muted">{u.email}</p>
                         </div>
                       </div>
                       <div className="min-w-0 text-sm">
                         <p className="truncate">{u.poste ?? <span className="text-site-muted">—</span>}</p>
-                        <p className="truncate text-xs text-site-muted">{dep ?? (u.departement_id ? `Département n° ${u.departement_id}` : "Aucun département")}</p>
+                        <p className="truncate text-xs text-site-muted">
+                          {dep ?? (u.departement_id ? `Département n° ${u.departement_id}` : "Aucun département")}
+                        </p>
                       </div>
                       <div>
                         <span className="inline-flex max-w-full truncate rounded-full border border-site-line px-2.5 py-1 text-[11px] font-semibold">
@@ -416,7 +476,10 @@ export function Utilisateurs() {
                         <PastilleStatut actif={actif} />
                       </div>
                       <div className="flex items-center gap-1 md:justify-end">
-                        <BoutonIcone libelle={`Modifier ${u.prenom} ${u.nom}`} onClick={() => setFormulaire({ utilisateur: u })}>
+                        <BoutonIcone
+                          libelle={`Modifier ${u.prenom} ${u.nom}`}
+                          onClick={() => setFormulaire({ utilisateur: u })}
+                        >
                           <Pencil size={16} aria-hidden />
                         </BoutonIcone>
                         {!soi && (
@@ -481,14 +544,25 @@ export function Utilisateurs() {
       )}
 
       {aDesactiver && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-confirmation">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setADesactiver(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-confirmation"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setADesactiver(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-confirmation" className="font-display text-base font-semibold">
               Désactiver ce compte ?
             </h2>
             <p className="mt-2 text-sm text-site-muted">
-              {aDesactiver.prenom} {aDesactiver.nom} ne pourra plus se connecter et ses sessions en cours seront fermées. Vous pourrez réactiver le compte à tout moment.
+              {aDesactiver.prenom} {aDesactiver.nom} ne pourra plus se connecter et ses sessions en cours seront
+              fermées. Vous pourrez réactiver le compte à tout moment.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button

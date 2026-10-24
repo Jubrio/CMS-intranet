@@ -41,7 +41,15 @@ function Squelette({ className }: { className?: string }) {
 
 // ---- Fenêtre de remplissage ----------------------------------------------------------
 
-function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: FormulaireInterne; onFermer: () => void; onEnvoye: () => void }) {
+function Remplissage({
+  formulaire,
+  onFermer,
+  onEnvoye,
+}: {
+  formulaire: FormulaireInterne;
+  onFermer: () => void;
+  onEnvoye: () => void;
+}) {
   const { token, expirer } = useEspace();
   const champs = formulaire.champs ?? [];
 
@@ -126,16 +134,33 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="titre-remplissage">
-      <button type="button" aria-label="Fermer" disabled={envoi} className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={envoyer} noValidate className="relative w-full max-w-xl rounded-2xl border border-site-line bg-site-surface shadow-2xl">
+    <div
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titre-remplissage"
+    >
+      <button
+        type="button"
+        aria-label="Fermer"
+        disabled={envoi}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={envoyer}
+        noValidate
+        className="relative w-full max-w-xl rounded-2xl border border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex items-start justify-between gap-3 border-b border-site-line px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <h2 id="titre-remplissage" className="font-display text-lg font-semibold">
               {formulaire.titre_formulaire}
             </h2>
             <p className="mt-1 text-xs text-site-muted">
-              {formulaire.date_limite ? `À remplir avant le ${jour.format(lireJour(formulaire.date_limite))}` : "Sans date limite"}
+              {formulaire.date_limite
+                ? `À remplir avant le ${jour.format(lireJour(formulaire.date_limite))}`
+                : "Sans date limite"}
               {formulaire.reponse_unique && " · Une seule réponse possible"}
             </p>
           </div>
@@ -159,7 +184,11 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
               <div key={c.nom}>
                 <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
                   {c.libelle}
-                  {c.obligatoire && <span className="ml-1 text-site-danger" aria-label="obligatoire">*</span>}
+                  {c.obligatoire && (
+                    <span className="ml-1 text-site-danger" aria-label="obligatoire">
+                      *
+                    </span>
+                  )}
                 </label>
 
                 {(c.type === "texte" || c.type === "nombre" || c.type === "date") && (
@@ -191,7 +220,10 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
                 {c.type === "choix_unique" && (
                   <div id={id} role="radiogroup" aria-label={c.libelle} className="space-y-2">
                     {(c.options ?? []).map((o) => (
-                      <label key={o} className="flex cursor-pointer items-center gap-3 rounded-xl border border-site-line bg-site-base/40 px-4 py-2.5 text-sm">
+                      <label
+                        key={o}
+                        className="flex cursor-pointer items-center gap-3 rounded-xl border border-site-line bg-site-base/40 px-4 py-2.5 text-sm"
+                      >
                         <input
                           type="radio"
                           name={id}
@@ -208,7 +240,10 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
                 {c.type === "choix_multiple" && (
                   <div id={id} role="group" aria-label={c.libelle} className="space-y-2">
                     {(c.options ?? []).map((o) => (
-                      <label key={o} className="flex cursor-pointer items-center gap-3 rounded-xl border border-site-line bg-site-base/40 px-4 py-2.5 text-sm">
+                      <label
+                        key={o}
+                        className="flex cursor-pointer items-center gap-3 rounded-xl border border-site-line bg-site-base/40 px-4 py-2.5 text-sm"
+                      >
                         <input
                           type="checkbox"
                           checked={Array.isArray(v) && v.includes(o)}
@@ -231,7 +266,10 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
           })}
 
           {erreurGlobale && (
-            <p role="alert" className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger"
+            >
               {erreurGlobale}
             </p>
           )}
@@ -249,7 +287,10 @@ function Remplissage({ formulaire, onFermer, onEnvoye }: { formulaire: Formulair
           <button
             type="submit"
             disabled={envoi}
-            className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}
+            className={cn(
+              "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+              envoi && "opacity-70",
+            )}
           >
             {envoi ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Send size={16} aria-hidden />}
             {envoi ? "Envoi…" : "Envoyer"}
@@ -282,7 +323,9 @@ export function MesFormulaires() {
   const charger = useCallback(
     (jeton: string) => {
       void version;
-      return api<Pagination<Element>>(`/formulaires?page=${page}${gestionnaire ? "&statut=publie" : ""}`, { token: jeton });
+      return api<Pagination<Element>>(`/formulaires?page=${page}${gestionnaire ? "&statut=publie" : ""}`, {
+        token: jeton,
+      });
     },
     [page, gestionnaire, version],
   );
@@ -325,7 +368,9 @@ export function MesFormulaires() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
@@ -358,7 +403,10 @@ export function MesFormulaires() {
               const bloque = f.deja_repondu === true && f.reponse_unique;
               const ouvrable = !ferme && !bloque;
               return (
-                <li key={f.id} className="flex flex-wrap items-center gap-4 rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
+                <li
+                  key={f.id}
+                  className="flex flex-wrap items-center gap-4 rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm"
+                >
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
                     <ClipboardList size={18} aria-hidden />
                   </span>

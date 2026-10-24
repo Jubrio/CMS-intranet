@@ -41,7 +41,10 @@ export function SiteHeader({ simple = false, lien }: Props) {
         <Logo />
 
         {!simple && (
-          <nav aria-label="Navigation principale" className="hidden items-center gap-9 text-sm font-medium text-site-muted lg:flex">
+          <nav
+            aria-label="Navigation principale"
+            className="hidden items-center gap-9 text-sm font-medium text-site-muted lg:flex"
+          >
             {LIENS.map((l) => (
               <Link key={l.href} href={l.href} className="transition-colors hover:text-site-ink">
                 {l.label}
@@ -54,7 +57,10 @@ export function SiteHeader({ simple = false, lien }: Props) {
           <ThemeToggle />
           {simple ? (
             lien && (
-              <Link href={lien.href} className="text-sm font-medium text-site-muted transition-colors hover:text-site-ink">
+              <Link
+                href={lien.href}
+                className="text-sm font-medium text-site-muted transition-colors hover:text-site-ink"
+              >
                 {lien.label}
               </Link>
             )

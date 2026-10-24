@@ -16,7 +16,17 @@ function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
 }
 
-function Stat({ icone: Icone, libelle, valeur, chargement }: { icone: typeof Users; libelle: string; valeur: number | null; chargement: boolean }) {
+function Stat({
+  icone: Icone,
+  libelle,
+  valeur,
+  chargement,
+}: {
+  icone: typeof Users;
+  libelle: string;
+  valeur: number | null;
+  chargement: boolean;
+}) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-site-line bg-site-surface p-4 shadow-sm">
       <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
@@ -34,7 +44,19 @@ function Stat({ icone: Icone, libelle, valeur, chargement }: { icone: typeof Use
   );
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -138,7 +160,9 @@ export function Roles() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold">Rôles et permissions</h1>
-          <p className="mt-1 text-sm text-site-muted">Définissez ce que chaque rôle peut consulter et gérer dans l’intranet.</p>
+          <p className="mt-1 text-sm text-site-muted">
+            Définissez ce que chaque rôle peut consulter et gérer dans l’intranet.
+          </p>
         </div>
         <button
           type="button"
@@ -156,11 +180,18 @@ export function Roles() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -175,7 +206,11 @@ export function Roles() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="border-b border-site-line p-4">
           <div className="relative max-w-md">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={recherche}
@@ -215,12 +250,21 @@ export function Roles() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <ShieldCheck size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{recherche ? "Aucun rôle ne correspond à cette recherche." : "Aucun rôle pour le moment."}</p>
-            {!recherche && <p className="mt-1 text-xs text-site-muted">Créez un rôle pour regrouper des permissions.</p>}
+            <p className="mt-4 text-sm font-medium">
+              {recherche ? "Aucun rôle ne correspond à cette recherche." : "Aucun rôle pour le moment."}
+            </p>
+            {!recherche && (
+              <p className="mt-1 text-xs text-site-muted">Créez un rôle pour regrouper des permissions.</p>
+            )}
           </div>
         ) : (
           <div>
-            <div className={cn("hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid", COLONNES)}>
+            <div
+              className={cn(
+                "hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid",
+                COLONNES,
+              )}
+            >
               <span>Rôle</span>
               <span>Permissions</span>
               <span>Comptes</span>
@@ -235,19 +279,29 @@ export function Roles() {
                     ? "Impossible : ce rôle est attribué à des comptes"
                     : `Supprimer ${r.nom_role}`;
                 return (
-                  <li key={r.id} className={cn("grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50", COLONNES)}>
+                  <li
+                    key={r.id}
+                    className={cn(
+                      "grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50",
+                      COLONNES,
+                    )}
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <span
                         className={cn(
                           "flex size-10 shrink-0 items-center justify-center rounded-xl",
-                          r.role_par_defaut ? "bg-brand-blue/15 text-brand-blue" : "bg-brand-violet/15 text-brand-violet",
+                          r.role_par_defaut
+                            ? "bg-brand-blue/15 text-brand-blue"
+                            : "bg-brand-violet/15 text-brand-violet",
                         )}
                       >
                         {r.role_par_defaut ? <Lock size={18} aria-hidden /> : <ShieldCheck size={18} aria-hidden />}
                       </span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{r.nom_role}</p>
-                        <p className="truncate text-xs text-site-muted">{r.role_par_defaut ? "Rôle par défaut, non modifiable" : "Rôle personnalisé"}</p>
+                        <p className="truncate text-xs text-site-muted">
+                          {r.role_par_defaut ? "Rôle par défaut, non modifiable" : "Rôle personnalisé"}
+                        </p>
                       </div>
                     </div>
 
@@ -255,7 +309,9 @@ export function Roles() {
                       <div aria-hidden className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-site-line/70">
                         <div
                           className="v-gradient-btn h-full rounded-full transition-[width] duration-700"
-                          style={{ width: `${r.nb_permissions > 0 ? Math.max((r.nb_permissions / totalPermissions) * 100, 4) : 0}%` }}
+                          style={{
+                            width: `${r.nb_permissions > 0 ? Math.max((r.nb_permissions / totalPermissions) * 100, 4) : 0}%`,
+                          }}
                         />
                       </div>
                       <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
@@ -280,7 +336,12 @@ export function Roles() {
                       >
                         {r.role_par_defaut ? <Eye size={16} aria-hidden /> : <Pencil size={16} aria-hidden />}
                       </BoutonIcone>
-                      <BoutonIcone libelle={raison} danger disabled={!supprimable || enCoursId === r.id} onClick={() => setASupprimer(r)}>
+                      <BoutonIcone
+                        libelle={raison}
+                        danger
+                        disabled={!supprimable || enCoursId === r.id}
+                        onClick={() => setASupprimer(r)}
+                      >
                         <Trash2 size={16} aria-hidden />
                       </BoutonIcone>
                     </div>
@@ -292,11 +353,28 @@ export function Roles() {
         )}
       </section>
 
-      {formulaire && <RoleFormulaire role={formulaire.role} catalogue={catalogue} onFermer={fermerFormulaire} onEnregistre={apresEnregistrement} />}
+      {formulaire && (
+        <RoleFormulaire
+          role={formulaire.role}
+          catalogue={catalogue}
+          onFermer={fermerFormulaire}
+          onEnregistre={apresEnregistrement}
+        />
+      )}
 
       {aSupprimer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-role">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setASupprimer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-role"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suppression-role" className="font-display text-base font-semibold">
               Supprimer ce rôle ?

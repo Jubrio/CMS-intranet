@@ -92,7 +92,10 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     router.replace("/");
   }
 
-  const valeur = useMemo(() => (session ? { ...session, expirer, actualiser, majPerso } : null), [session, expirer, actualiser, majPerso]);
+  const valeur = useMemo(
+    () => (session ? { ...session, expirer, actualiser, majPerso } : null),
+    [session, expirer, actualiser, majPerso],
+  );
 
   if (erreur) {
     return (
@@ -118,86 +121,90 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     <EspaceContext.Provider value={valeur}>
       {/* Couleurs de l'entreprise : les variables s'appliquent à tout l'espace sans ajouter de boîte */}
       <div className="contents" style={variablesTheme(perso?.couleur_principale, perso?.couleur_secondaire)}>
-      {/* Menu latéral (bureau) */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-site-line bg-site-surface lg:block">
-        <Sidebar profil={profil} perso={perso} menu={menu} />
-      </aside>
+        {/* Menu latéral (bureau) */}
+        <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-site-line bg-site-surface lg:block">
+          <Sidebar profil={profil} perso={perso} menu={menu} />
+        </aside>
 
-      {/* Tiroir (mobile) */}
-      {menuOuvert && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            aria-label="Fermer le menu"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setMenuOuvert(false)}
-          />
-          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r border-site-line bg-site-surface shadow-2xl">
+        {/* Tiroir (mobile) */}
+        {menuOuvert && (
+          <div className="fixed inset-0 z-50 lg:hidden">
             <button
               type="button"
               aria-label="Fermer le menu"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setMenuOuvert(false)}
-              className="absolute right-3 top-3.5 z-10 inline-flex size-9 items-center justify-center rounded-full text-site-muted hover:bg-site-surface2 hover:text-site-ink"
+            />
+            <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r border-site-line bg-site-surface shadow-2xl">
+              <button
+                type="button"
+                aria-label="Fermer le menu"
+                onClick={() => setMenuOuvert(false)}
+                className="absolute right-3 top-3.5 z-10 inline-flex size-9 items-center justify-center rounded-full text-site-muted hover:bg-site-surface2 hover:text-site-ink"
+              >
+                <X size={18} />
+              </button>
+              <Sidebar profil={profil} perso={perso} menu={menu} onNavigate={() => setMenuOuvert(false)} />
+            </aside>
+          </div>
+        )}
+
+        <div className="lg:pl-72">
+          <header className="v-glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-site-line px-4 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              aria-label="Ouvrir le menu"
+              onClick={() => setMenuOuvert(true)}
+              className="inline-flex size-10 items-center justify-center rounded-full border border-site-line text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink lg:hidden"
             >
-              <X size={18} />
+              <Menu size={18} />
             </button>
-            <Sidebar profil={profil} perso={perso} menu={menu} onNavigate={() => setMenuOuvert(false)} />
-          </aside>
+
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-sm font-semibold">Administration</p>
+              <p className="hidden truncate text-xs text-site-muted sm:block">
+                {perso?.nom_entreprise ?? profil.entreprise}
+              </p>
+            </div>
+
+            <div className="ml-auto flex items-center gap-3">
+              <ThemeToggle />
+              <span aria-hidden className="hidden h-6 w-px bg-site-line sm:block" />
+              <button
+                type="button"
+                onClick={() => setProfilOuvert(true)}
+                aria-haspopup="dialog"
+                title="Mon profil"
+                className="flex items-center gap-3 rounded-full py-1 pl-1 pr-1 text-left transition-colors hover:bg-site-surface2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40 md:pr-4"
+              >
+                <PastilleProfil profil={profil} />
+                <div className="hidden min-w-0 leading-tight md:block">
+                  <p className="truncate text-sm font-medium">
+                    {profil.prenom} {profil.nom}
+                  </p>
+                  <p className="truncate text-xs text-site-muted">{profil.role}</p>
+                </div>
+                <span className="sr-only">Ouvrir mon profil</span>
+              </button>
+              <button
+                type="button"
+                onClick={deconnecter}
+                title="Se déconnecter"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-site-line px-3 text-sm text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink sm:px-4"
+              >
+                <LogOut size={16} aria-hidden />
+                <span className="hidden sm:inline">Déconnexion</span>
+                <span className="sr-only sm:hidden">Se déconnecter</span>
+              </button>
+            </div>
+          </header>
+
+          <main className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">
+            {refus ? <AccesRefuse raison={refus} /> : children}
+          </main>
         </div>
-      )}
 
-      <div className="lg:pl-72">
-        <header className="v-glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-site-line px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            aria-label="Ouvrir le menu"
-            onClick={() => setMenuOuvert(true)}
-            className="inline-flex size-10 items-center justify-center rounded-full border border-site-line text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink lg:hidden"
-          >
-            <Menu size={18} />
-          </button>
-
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-sm font-semibold">Administration</p>
-            <p className="hidden truncate text-xs text-site-muted sm:block">{perso?.nom_entreprise ?? profil.entreprise}</p>
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <ThemeToggle />
-            <span aria-hidden className="hidden h-6 w-px bg-site-line sm:block" />
-            <button
-              type="button"
-              onClick={() => setProfilOuvert(true)}
-              aria-haspopup="dialog"
-              title="Mon profil"
-              className="flex items-center gap-3 rounded-full py-1 pl-1 pr-1 text-left transition-colors hover:bg-site-surface2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40 md:pr-4"
-            >
-              <PastilleProfil profil={profil} />
-              <div className="hidden min-w-0 leading-tight md:block">
-                <p className="truncate text-sm font-medium">
-                  {profil.prenom} {profil.nom}
-                </p>
-                <p className="truncate text-xs text-site-muted">{profil.role}</p>
-              </div>
-              <span className="sr-only">Ouvrir mon profil</span>
-            </button>
-            <button
-              type="button"
-              onClick={deconnecter}
-              title="Se déconnecter"
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-site-line px-3 text-sm text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink sm:px-4"
-            >
-              <LogOut size={16} aria-hidden />
-              <span className="hidden sm:inline">Déconnexion</span>
-              <span className="sr-only sm:hidden">Se déconnecter</span>
-            </button>
-          </div>
-        </header>
-
-        <main className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">{refus ? <AccesRefuse raison={refus} /> : children}</main>
-      </div>
-
-      {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}
+        {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}
       </div>
     </EspaceContext.Provider>
   );

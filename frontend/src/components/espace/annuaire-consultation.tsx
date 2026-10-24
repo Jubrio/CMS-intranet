@@ -6,7 +6,15 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
-import { Avatar, aplatirOrga, libelleDepartement, nombre, type Employe, type NoeudOrga, type Pagination } from "./annuaire-commun";
+import {
+  Avatar,
+  aplatirOrga,
+  libelleDepartement,
+  nombre,
+  type Employe,
+  type NoeudOrga,
+  type Pagination,
+} from "./annuaire-commun";
 import { PanneauFiche } from "./organigramme-consultation";
 
 // Annuaire en lecture seule : retrouver un collègue par nom, prénom, poste ou département.
@@ -37,7 +45,8 @@ export function AnnuaireConsultation() {
   const orga = useDonnees(true, chargerOrga);
   const departements = useMemo(() => (orga.donnees ? aplatirOrga(orga.donnees) : []), [orga.donnees]);
   // Un département qui n'existe plus ne filtre plus
-  const departementActif = orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
+  const departementActif =
+    orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
 
   const cleCourante = `${page}|${q}|${departementActif}`;
   const chargerListe = useCallback(
@@ -71,7 +80,11 @@ export function AnnuaireConsultation() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
           <div className="relative min-w-52 max-w-md flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -118,7 +131,11 @@ export function AnnuaireConsultation() {
         {liste.erreur ? (
           <div className="flex flex-wrap items-center gap-3 p-6 text-sm text-site-muted">
             <span>Impossible de charger l’annuaire.</span>
-            <button type="button" onClick={liste.reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+            <button
+              type="button"
+              onClick={liste.reessayer}
+              className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+            >
               Réessayer
             </button>
           </div>
@@ -139,8 +156,12 @@ export function AnnuaireConsultation() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <Contact size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtre ? "Aucune personne ne correspond à cette recherche." : "Aucun collègue dans l’annuaire."}</p>
-            {filtre && <p className="mt-1 text-xs text-site-muted">Essayez un seul mot, ou retirez le filtre de département.</p>}
+            <p className="mt-4 text-sm font-medium">
+              {filtre ? "Aucune personne ne correspond à cette recherche." : "Aucun collègue dans l’annuaire."}
+            </p>
+            {filtre && (
+              <p className="mt-1 text-xs text-site-muted">Essayez un seul mot, ou retirez le filtre de département.</p>
+            )}
           </div>
         ) : (
           <div>
@@ -179,7 +200,10 @@ export function AnnuaireConsultation() {
               ))}
             </ul>
 
-            <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+            <nav
+              aria-label="Pagination"
+              className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+            >
               <p className="text-xs text-site-muted">
                 {res.last_page > 1 && `Page ${res.current_page} sur ${res.last_page} · `}
                 {nombre.format(res.total)} personne{res.total > 1 ? "s" : ""}

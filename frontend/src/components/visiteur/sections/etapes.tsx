@@ -31,7 +31,11 @@ export function Etapes() {
 
         <ol className="mt-14 grid gap-6 md:grid-cols-3">
           {ETAPES.map(({ icone: Icone, titre, texte }, i) => (
-            <RevealItem key={titre} delay={i * 0.12} className="relative rounded-2xl border border-site-line bg-site-surface p-7">
+            <RevealItem
+              key={titre}
+              delay={i * 0.12}
+              className="relative rounded-2xl border border-site-line bg-site-surface p-7"
+            >
               <span className="v-gradient-btn absolute -top-4 left-7 flex size-8 items-center justify-center rounded-full font-display text-sm font-bold">
                 {i + 1}
               </span>

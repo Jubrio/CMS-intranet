@@ -37,7 +37,8 @@ function famille(mime: string): { icone: LucideIcon; etiquette: string } {
   if (mime === "application/pdf") return { icone: FileText, etiquette: "PDF" };
   if (mime.includes("word") || mime === "application/msword") return { icone: FileText, etiquette: "Word" };
   if (mime.includes("sheet") || mime.includes("excel")) return { icone: FileSpreadsheet, etiquette: "Excel" };
-  if (mime.includes("presentation") || mime.includes("powerpoint")) return { icone: Presentation, etiquette: "PowerPoint" };
+  if (mime.includes("presentation") || mime.includes("powerpoint"))
+    return { icone: Presentation, etiquette: "PowerPoint" };
   if (mime.startsWith("image/")) return { icone: FileImage, etiquette: "Image" };
   if (mime.startsWith("text/")) return { icone: FileText, etiquette: "Texte" };
   return { icone: File, etiquette: "Fichier" };
@@ -60,13 +61,29 @@ function Stat({ icone, libelle, valeur }: { icone: LucideIcon; libelle: string; 
       </span>
       <div>
         <p className="text-xs font-medium text-site-muted">{libelle}</p>
-        {valeur === null ? <Squelette className="mt-1.5 h-6 w-12" /> : <p className="font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(valeur)}</p>}
+        {valeur === null ? (
+          <Squelette className="mt-1.5 h-6 w-12" />
+        ) : (
+          <p className="font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(valeur)}</p>
+        )}
       </div>
     </div>
   );
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -158,14 +175,18 @@ export function Documents() {
   const res = liste.donnees?.res ?? null;
 
   // Départements : liste complète si le rôle y a accès ; sinon le département de l'utilisateur
-  const chargerDepartements = useCallback(async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }), []);
+  const chargerDepartements = useCallback(
+    async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
+    [],
+  );
   const deps = useDonnees(autorise && peutListerDepartements, chargerDepartements);
   const departements = useMemo<DepartementOption[]>(() => {
     if (deps.donnees) return deps.donnees;
     if (profil.departement_id) return [{ id: profil.departement_id, nom_departement: "Mon département" }];
     return [];
   }, [deps.donnees, profil.departement_id]);
-  const nomDepartement = (id: number | null) => departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
+  const nomDepartement = (id: number | null) =>
+    departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
 
   const fermerFormulaire = useCallback(() => setFormulaire(null), []);
 
@@ -223,7 +244,9 @@ export function Documents() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold">Documents</h1>
-          <p className="mt-1 text-sm text-site-muted">Partagez des fichiers avec toute l’entreprise ou un département.</p>
+          <p className="mt-1 text-sm text-site-muted">
+            Partagez des fichiers avec toute l’entreprise ou un département.
+          </p>
         </div>
         <button
           type="button"
@@ -240,11 +263,18 @@ export function Documents() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -258,7 +288,11 @@ export function Documents() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
           <div className="relative min-w-52 max-w-md flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -328,12 +362,19 @@ export function Documents() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <FolderOpen size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtre ? "Aucun document ne correspond à cette recherche." : "Aucun document pour le moment."}</p>
+            <p className="mt-4 text-sm font-medium">
+              {filtre ? "Aucun document ne correspond à cette recherche." : "Aucun document pour le moment."}
+            </p>
             {!filtre && <p className="mt-1 text-xs text-site-muted">Déposez un premier fichier pour le partager.</p>}
           </div>
         ) : (
           <div>
-            <div className={cn("hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid", COLONNES)}>
+            <div
+              className={cn(
+                "hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid",
+                COLONNES,
+              )}
+            >
               <span>Document</span>
               <span>Destinataires</span>
               <span>Dépôt</span>
@@ -344,7 +385,13 @@ export function Documents() {
                 const occupe = enCoursId === d.id;
                 const f = famille(d.type_mime);
                 return (
-                  <li key={d.id} className={cn("grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50", COLONNES)}>
+                  <li
+                    key={d.id}
+                    className={cn(
+                      "grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50",
+                      COLONNES,
+                    )}
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
                         <Ico de={f.icone} size={18} />
@@ -361,7 +408,9 @@ export function Documents() {
                     </div>
 
                     <div className="min-w-0 text-sm">
-                      <p className="truncate">{d.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(d.departement_id)}</p>
+                      <p className="truncate">
+                        {d.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(d.departement_id)}
+                      </p>
                       {d.auteur && (
                         <p className="truncate text-xs text-site-muted">
                           Par {d.auteur.prenom} {d.auteur.nom}
@@ -372,13 +421,26 @@ export function Documents() {
                     <div className="text-sm tabular-nums">{date.format(new Date(d.created_at))}</div>
 
                     <div className="flex items-center gap-1 md:justify-end">
-                      <BoutonIcone libelle={`Télécharger ${d.nom_document}`} disabled={occupe} onClick={() => telecharger(d)}>
+                      <BoutonIcone
+                        libelle={`Télécharger ${d.nom_document}`}
+                        disabled={occupe}
+                        onClick={() => telecharger(d)}
+                      >
                         <Download size={16} aria-hidden />
                       </BoutonIcone>
-                      <BoutonIcone libelle={`Modifier ${d.nom_document}`} disabled={occupe} onClick={() => setFormulaire({ doc: d })}>
+                      <BoutonIcone
+                        libelle={`Modifier ${d.nom_document}`}
+                        disabled={occupe}
+                        onClick={() => setFormulaire({ doc: d })}
+                      >
                         <Pencil size={16} aria-hidden />
                       </BoutonIcone>
-                      <BoutonIcone libelle={`Supprimer ${d.nom_document}`} danger disabled={occupe} onClick={() => setASupprimer(d)}>
+                      <BoutonIcone
+                        libelle={`Supprimer ${d.nom_document}`}
+                        danger
+                        disabled={occupe}
+                        onClick={() => setASupprimer(d)}
+                      >
                         <Trash2 size={16} aria-hidden />
                       </BoutonIcone>
                     </div>
@@ -388,9 +450,13 @@ export function Documents() {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+              >
                 <p className="text-xs text-site-muted">
-                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} document{res.total > 1 ? "s" : ""}
+                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} document
+                  {res.total > 1 ? "s" : ""}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -419,17 +485,36 @@ export function Documents() {
       </section>
 
       {formulaire && (
-        <DocumentFormulaire doc={formulaire.doc} departements={departements} categories={categories} onFermer={fermerFormulaire} onEnregistre={apresEnregistrement} />
+        <DocumentFormulaire
+          doc={formulaire.doc}
+          departements={departements}
+          categories={categories}
+          onFermer={fermerFormulaire}
+          onEnregistre={apresEnregistrement}
+        />
       )}
 
       {aSupprimer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-doc">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setASupprimer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-doc"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suppression-doc" className="font-display text-base font-semibold">
               Supprimer ce document ?
             </h2>
-            <p className="mt-2 text-sm text-site-muted">Le document « {aSupprimer.nom_document} » et son fichier seront supprimés définitivement. Cette action est irréversible.</p>
+            <p className="mt-2 text-sm text-site-muted">
+              Le document « {aSupprimer.nom_document} » et son fichier seront supprimés définitivement. Cette action est
+              irréversible.
+            </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 type="button"

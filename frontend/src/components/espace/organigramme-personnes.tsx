@@ -38,7 +38,10 @@ function construire(personnes: PersonneOrga[]) {
   racines.forEach(visiter);
 
   const arbres = racines.filter((r) => r.enfants.length > 0).sort((a, b) => b.enfants.length - a.enfants.length);
-  const isoles = [...racines.filter((r) => r.enfants.length === 0), ...[...noeuds.values()].filter((n) => !atteints.has(n.id))];
+  const isoles = [
+    ...racines.filter((r) => r.enfants.length === 0),
+    ...[...noeuds.values()].filter((n) => !atteints.has(n.id)),
+  ];
   return { arbres, isoles };
 }
 
@@ -70,7 +73,10 @@ function Pile({ noeuds, retrait, onOuvrir }: { noeuds: Noeud[]; retrait: string;
     <ul className={retrait}>
       {noeuds.map((n, i) => (
         <li key={n.id} className="relative pl-6 pt-3">
-          <span aria-hidden className={cn("absolute left-0 top-0 w-px", LIGNE, i === noeuds.length - 1 ? "h-10" : "h-full")} />
+          <span
+            aria-hidden
+            className={cn("absolute left-0 top-0 w-px", LIGNE, i === noeuds.length - 1 ? "h-10" : "h-full")}
+          />
           <span aria-hidden className={cn("absolute left-0 top-10 h-px w-6", LIGNE)} />
           <Carte p={n} onOuvrir={onOuvrir} />
           {n.enfants.length > 0 && <Pile noeuds={n.enfants} retrait="ml-6" onOuvrir={onOuvrir} />}
@@ -113,13 +119,20 @@ type Props = {
 };
 
 export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir, lectureSeule }: Props) {
-  const { arbres, isoles } = useMemo(() => (personnes ? construire(personnes) : { arbres: [], isoles: [] }), [personnes]);
+  const { arbres, isoles } = useMemo(
+    () => (personnes ? construire(personnes) : { arbres: [], isoles: [] }),
+    [personnes],
+  );
 
   if (erreur) {
     return (
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted shadow-sm">
         <span>Impossible de charger l’organigramme. Votre rôle doit aussi pouvoir consulter l’annuaire.</span>
-        <button type="button" onClick={onReessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+        <button
+          type="button"
+          onClick={onReessayer}
+          className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+        >
           Réessayer
         </button>
       </div>
@@ -153,7 +166,9 @@ export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir
         <div className="rounded-2xl border border-site-line bg-site-surface px-6 py-14 text-center shadow-sm">
           <p className="text-sm font-medium">Aucun lien hiérarchique renseigné pour le moment.</p>
           <p className="mt-1 text-xs text-site-muted">
-            {lectureSeule ? "Les liens hiérarchiques n’ont pas encore été renseignés." : "Ouvrez la fiche d’un employé et choisissez son supérieur hiérarchique pour construire l’organigramme."}
+            {lectureSeule
+              ? "Les liens hiérarchiques n’ont pas encore été renseignés."
+              : "Ouvrez la fiche d’un employé et choisissez son supérieur hiérarchique pour construire l’organigramme."}
           </p>
         </div>
       )}
@@ -162,7 +177,9 @@ export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir
         <section className="rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
           <h2 className="font-display text-sm font-semibold">Sans rattachement hiérarchique ({isoles.length})</h2>
           <p className="mt-1 text-xs text-site-muted">
-            {lectureSeule ? "Ces personnes n’ont ni supérieur ni subordonné renseigné." : "Ces personnes n’ont ni supérieur ni subordonné renseigné. Ouvrez leur fiche pour les placer dans l’organigramme."}
+            {lectureSeule
+              ? "Ces personnes n’ont ni supérieur ni subordonné renseigné."
+              : "Ces personnes n’ont ni supérieur ni subordonné renseigné. Ouvrez leur fiche pour les placer dans l’organigramme."}
           </p>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {isoles.map((p) => (

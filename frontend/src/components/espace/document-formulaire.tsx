@@ -28,7 +28,21 @@ export function formaterTaille(ko: number): string {
   return `${ko.toLocaleString("fr-FR")} Ko`;
 }
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -122,7 +136,12 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
         await api<DocumentFichier>(`/documents/${doc.id}`, {
           method: "PUT",
           token,
-          body: JSON.stringify({ nom_document: nom.trim(), categorie: categorie.trim(), visibilite, departement_id: departement }),
+          body: JSON.stringify({
+            nom_document: nom.trim(),
+            categorie: categorie.trim(),
+            visibilite,
+            departement_id: departement,
+          }),
         });
         onEnregistre("Document modifié.");
       } else {
@@ -152,8 +171,17 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-doc">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={soumettre} noValidate className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={soumettre}
+        noValidate
+        className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-formulaire-doc" className="font-display text-base font-semibold">
             {edition ? "Modifier le document" : "Déposer un document"}
@@ -170,7 +198,10 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
@@ -200,25 +231,58 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
                 {fichier ? (
                   <>
                     <span className="max-w-full truncate text-sm font-medium">{fichier.name}</span>
-                    <span className="text-xs text-site-muted">{formaterTaille(Math.ceil(fichier.size / 1024))} · cliquez pour changer</span>
+                    <span className="text-xs text-site-muted">
+                      {formaterTaille(Math.ceil(fichier.size / 1024))} · cliquez pour changer
+                    </span>
                   </>
                 ) : (
                   <>
                     <span className="text-sm font-medium">Choisir un fichier</span>
-                    <span className="text-xs text-site-muted">PDF, Word, Excel, PowerPoint, texte, JPG ou PNG · 10 Mo au maximum</span>
+                    <span className="text-xs text-site-muted">
+                      PDF, Word, Excel, PowerPoint, texte, JPG ou PNG · 10 Mo au maximum
+                    </span>
                   </>
                 )}
               </label>
-              {(erreurFichier || err("fichier")) && <p className="mt-1 text-xs text-site-danger">{erreurFichier ?? err("fichier")}</p>}
+              {(erreurFichier || err("fichier")) && (
+                <p className="mt-1 text-xs text-site-danger">{erreurFichier ?? err("fichier")}</p>
+              )}
             </div>
           )}
 
-          <Champ id="doc-nom" label="Nom du document" erreur={err("nom_document")} aide={edition ? undefined : "Facultatif : le nom du fichier est utilisé par défaut."}>
-            <input id="doc-nom" ref={premierChamp} className={CHAMP} value={nom} onChange={(e) => setNom(e.target.value)} maxLength={150} autoComplete="off" />
+          <Champ
+            id="doc-nom"
+            label="Nom du document"
+            erreur={err("nom_document")}
+            aide={edition ? undefined : "Facultatif : le nom du fichier est utilisé par défaut."}
+          >
+            <input
+              id="doc-nom"
+              ref={premierChamp}
+              className={CHAMP}
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              maxLength={150}
+              autoComplete="off"
+            />
           </Champ>
 
-          <Champ id="doc-cat" label="Catégorie" requis erreur={err("categorie")} aide="Choisissez une catégorie existante ou saisissez-en une nouvelle.">
-            <input id="doc-cat" list="doc-categories" className={CHAMP} value={categorie} onChange={(e) => setCategorie(e.target.value)} maxLength={50} autoComplete="off" />
+          <Champ
+            id="doc-cat"
+            label="Catégorie"
+            requis
+            erreur={err("categorie")}
+            aide="Choisissez une catégorie existante ou saisissez-en une nouvelle."
+          >
+            <input
+              id="doc-cat"
+              list="doc-categories"
+              className={CHAMP}
+              value={categorie}
+              onChange={(e) => setCategorie(e.target.value)}
+              maxLength={50}
+              autoComplete="off"
+            />
             <datalist id="doc-categories">
               {categories.map((c) => (
                 <option key={c} value={c} />
@@ -228,7 +292,12 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Champ id="doc-visi" label="Destinataires" requis erreur={err("visibilite")}>
-              <select id="doc-visi" className={CHAMP} value={visibilite} onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}>
+              <select
+                id="doc-visi"
+                className={CHAMP}
+                value={visibilite}
+                onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}
+              >
                 <option value="entreprise">Toute l’entreprise</option>
                 <option value="departement">Un département</option>
               </select>
@@ -236,7 +305,12 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
 
             {visibilite === "departement" && (
               <Champ id="doc-dep" label="Département" requis erreur={err("departement_id")}>
-                <select id="doc-dep" className={CHAMP} value={departementId} onChange={(e) => setDepartementId(e.target.value)}>
+                <select
+                  id="doc-dep"
+                  className={CHAMP}
+                  value={departementId}
+                  onChange={(e) => setDepartementId(e.target.value)}
+                >
                   <option value="">{departements.length === 0 ? "Aucun département disponible" : "Choisir…"}</option>
                   {departements.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -248,7 +322,11 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
             )}
           </div>
 
-          {edition && <p className="text-[11px] text-site-muted">Le fichier lui-même ne peut pas être remplacé : supprimez ce document et déposez-en un nouveau.</p>}
+          {edition && (
+            <p className="text-[11px] text-site-muted">
+              Le fichier lui-même ne peut pas être remplacé : supprimez ce document et déposez-en un nouveau.
+            </p>
+          )}
         </div>
 
         <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-site-line px-5 py-4">
@@ -262,7 +340,10 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
           <button
             type="submit"
             disabled={envoi}
-            className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}
+            className={cn(
+              "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+              envoi && "opacity-70",
+            )}
           >
             {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
             {edition ? "Enregistrer" : "Déposer"}

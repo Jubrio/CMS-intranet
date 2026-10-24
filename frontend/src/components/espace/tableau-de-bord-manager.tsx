@@ -95,7 +95,11 @@ export function TableauDeBordManager() {
   const peut = (permission: string) => profil.permissions.includes(permission);
   const moduleActif = (code: string) => profil.modules_actifs.includes(code);
 
-  const voirEvenements = moduleActif("calendrier") && moduleActif("evenements") && peut("calendrier.consulter") && peut("evenements.consulter");
+  const voirEvenements =
+    moduleActif("calendrier") &&
+    moduleActif("evenements") &&
+    peut("calendrier.consulter") &&
+    peut("evenements.consulter");
 
   const charger = useCallback((token: string) => api<Manager>("/manager/tableau-de-bord", { token }), []);
   const { donnees: d, chargement, erreur, reessayer } = useDonnees(true, charger);
@@ -106,7 +110,13 @@ export function TableauDeBordManager() {
     const fin = format(addDays(maintenant, HORIZON_EVENEMENTS_JOURS), "yyyy-MM-dd");
     const r = await api<{ evenements: EvenementApi[] }>(`/evenements?debut=${debut}&fin=${fin}`, { token });
     return r.evenements
-      .map((e) => ({ id: e.id, titre: e.titre_evenement, lieu: e.lieu, debut: dateLocale(e.date_debut), fin: dateLocale(e.date_fin) }))
+      .map((e) => ({
+        id: e.id,
+        titre: e.titre_evenement,
+        lieu: e.lieu,
+        debut: dateLocale(e.date_debut),
+        fin: dateLocale(e.date_fin),
+      }))
       .filter((e) => e.fin >= maintenant)
       .sort((a, b) => a.debut.getTime() - b.debut.getTime());
   }, []);
@@ -114,7 +124,10 @@ export function TableauDeBordManager() {
 
   // Les accès rapides suivent le menu : droits et modules déjà pris en compte
   const acces = useMemo(
-    () => menuPour(profil).flatMap((g) => g.entrees).filter((e) => e.href && ACCES_RAPIDES.includes(e.libelle)),
+    () =>
+      menuPour(profil)
+        .flatMap((g) => g.entrees)
+        .filter((e) => e.href && ACCES_RAPIDES.includes(e.libelle)),
     [profil],
   );
 
@@ -134,7 +147,8 @@ export function TableauDeBordManager() {
           <p className="mt-1.5 text-sm text-site-muted">
             {dep ? (
               <>
-                Voici votre équipe et vos publications pour le département <span className="font-medium text-site-ink">{dep.nom_departement}</span>.
+                Voici votre équipe et vos publications pour le département{" "}
+                <span className="font-medium text-site-ink">{dep.nom_departement}</span>.
               </>
             ) : (
               <>Voici votre équipe et vos publications.</>
@@ -156,7 +170,12 @@ export function TableauDeBordManager() {
             <CalendarDays size={14} aria-hidden className="text-brand-violet" />
             {aujourdhui}
           </p>
-          <button type="button" onClick={reessayer} className={cn(BOUTON_PETIT, "h-9 gap-2 px-4")} title="Actualiser les chiffres">
+          <button
+            type="button"
+            onClick={reessayer}
+            className={cn(BOUTON_PETIT, "h-9 gap-2 px-4")}
+            title="Actualiser les chiffres"
+          >
             <RefreshCw size={14} aria-hidden className={cn(chargement && "animate-spin")} />
             Actualiser
           </button>
@@ -175,11 +194,14 @@ export function TableauDeBordManager() {
       ) : (
         <>
           {sansDepartement && (
-            <p role="status" className="flex items-start gap-3 rounded-xl border border-brand-violet/30 bg-brand-violet/5 px-4 py-3 text-sm">
+            <p
+              role="status"
+              className="flex items-start gap-3 rounded-xl border border-brand-violet/30 bg-brand-violet/5 px-4 py-3 text-sm"
+            >
               <TriangleAlert size={18} aria-hidden className="mt-0.5 shrink-0 text-brand-violet" />
               <span>
-                Aucun département ne vous est affecté. Un Manager ne publie que pour son département : vous ne pouvez donc pas publier de contenu pour
-                l’instant. Demandez au RH ou à l’administrateur de vous en affecter un.
+                Aucun département ne vous est affecté. Un Manager ne publie que pour son département : vous ne pouvez
+                donc pas publier de contenu pour l’instant. Demandez au RH ou à l’administrateur de vous en affecter un.
               </span>
             </p>
           )}
@@ -199,7 +221,11 @@ export function TableauDeBordManager() {
                       <Icone size={18} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm font-semibold">{e.libelle}</span>
-                    <ArrowRight size={16} aria-hidden className="shrink-0 text-site-muted transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight
+                      size={16}
+                      aria-hidden
+                      className="shrink-0 text-site-muted transition-transform group-hover:translate-x-0.5"
+                    />
                   </Link>
                 );
               })}
@@ -241,7 +267,15 @@ export function TableauDeBordManager() {
               accent="cyan"
               libelle="Mes brouillons"
               valeur={d ? nombre.format(d.contenus.total_brouillons) : null}
-              detail={d ? (d.contenus.types.length === 0 ? "Aucun module de publication disponible" : d.contenus.total_brouillons === 0 ? "Rien en attente de publication" : "à relire et publier") : undefined}
+              detail={
+                d
+                  ? d.contenus.types.length === 0
+                    ? "Aucun module de publication disponible"
+                    : d.contenus.total_brouillons === 0
+                      ? "Rien en attente de publication"
+                      : "à relire et publier"
+                  : undefined
+              }
               chargement={chargement}
             />
             <Kpi
@@ -250,7 +284,13 @@ export function TableauDeBordManager() {
               libelle="Lecture des notes de service"
               valeur={d ? (d.contenus.taux_lecture_moyen === null ? "—" : `${d.contenus.taux_lecture_moyen} %`) : null}
               progression={d?.contenus.taux_lecture_moyen ?? 0}
-              detail={d ? (d.contenus.notes.length === 0 ? "Aucune note publiée à suivre" : `moyenne sur ${d.contenus.notes.length} ${pluriel(d.contenus.notes.length, "note récente", "notes récentes")}`) : undefined}
+              detail={
+                d
+                  ? d.contenus.notes.length === 0
+                    ? "Aucune note publiée à suivre"
+                    : `moyenne sur ${d.contenus.notes.length} ${pluriel(d.contenus.notes.length, "note récente", "notes récentes")}`
+                  : undefined
+              }
               chargement={chargement}
             />
           </div>
@@ -261,7 +301,11 @@ export function TableauDeBordManager() {
               <EnteteCarte
                 icone={UsersRound}
                 titre="Mon équipe directe"
-                meta={d ? `${nombre.format(d.equipe.nb_directs)} ${pluriel(d.equipe.nb_directs, "personne", "personnes")}` : undefined}
+                meta={
+                  d
+                    ? `${nombre.format(d.equipe.nb_directs)} ${pluriel(d.equipe.nb_directs, "personne", "personnes")}`
+                    : undefined
+                }
               />
               {!d ? (
                 <div className="space-y-4" aria-hidden>
@@ -270,12 +314,18 @@ export function TableauDeBordManager() {
                   ))}
                 </div>
               ) : d.equipe.directs.length === 0 ? (
-                <Vide>Personne n’est rattaché à vous pour le moment. Le RH renseigne le supérieur de chaque employé depuis l’annuaire.</Vide>
+                <Vide>
+                  Personne n’est rattaché à vous pour le moment. Le RH renseigne le supérieur de chaque employé depuis
+                  l’annuaire.
+                </Vide>
               ) : (
                 <>
                   <ul className="grid gap-x-8 sm:grid-cols-2">
                     {d.equipe.directs.map((p) => (
-                      <li key={p.id} className="flex items-center gap-3 border-b border-site-line py-3 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
+                      <li
+                        key={p.id}
+                        className="flex items-center gap-3 border-b border-site-line py-3 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0"
+                      >
                         <Avatar p={p} />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold">
@@ -284,14 +334,17 @@ export function TableauDeBordManager() {
                           <p className="truncate text-xs text-site-muted">{p.poste ?? "Poste non renseigné"}</p>
                         </div>
                         {p.date_embauche && (
-                          <span className="shrink-0 text-[11px] tabular-nums text-site-muted">depuis {format(parseISO(p.date_embauche), "MMM yyyy", { locale: fr })}</span>
+                          <span className="shrink-0 text-[11px] tabular-nums text-site-muted">
+                            depuis {format(parseISO(p.date_embauche), "MMM yyyy", { locale: fr })}
+                          </span>
                         )}
                       </li>
                     ))}
                   </ul>
                   {d.equipe.nb_directs > d.equipe.directs.length && (
                     <p className="mt-3 text-xs text-site-muted">
-                      Les {d.equipe.directs.length} premiers sont affichés, par ordre alphabétique, sur {nombre.format(d.equipe.nb_directs)}.
+                      Les {d.equipe.directs.length} premiers sont affichés, par ordre alphabétique, sur{" "}
+                      {nombre.format(d.equipe.nb_directs)}.
                     </p>
                   )}
                   {(d.equipe.arrivees_30j > 0 || d.equipe.fiches_incompletes > 0) && (
@@ -299,13 +352,15 @@ export function TableauDeBordManager() {
                       {d.equipe.arrivees_30j > 0 && (
                         <li className="inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 font-medium">
                           <UserPlus size={12} aria-hidden className="text-brand-cyan" />
-                          {nombre.format(d.equipe.arrivees_30j)} {pluriel(d.equipe.arrivees_30j, "arrivée", "arrivées")} sur 30 jours dans votre équipe
+                          {nombre.format(d.equipe.arrivees_30j)} {pluriel(d.equipe.arrivees_30j, "arrivée", "arrivées")}{" "}
+                          sur 30 jours dans votre équipe
                         </li>
                       )}
                       {d.equipe.fiches_incompletes > 0 && (
                         <li className="inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 font-medium">
                           <TriangleAlert size={12} aria-hidden className="text-brand-violet" />
-                          {nombre.format(d.equipe.fiches_incompletes)} {pluriel(d.equipe.fiches_incompletes, "fiche incomplète", "fiches incomplètes")}
+                          {nombre.format(d.equipe.fiches_incompletes)}{" "}
+                          {pluriel(d.equipe.fiches_incompletes, "fiche incomplète", "fiches incomplètes")}
                         </li>
                       )}
                     </ul>
@@ -340,7 +395,11 @@ export function TableauDeBordManager() {
                           </p>
                         </div>
                         <span className="shrink-0 rounded-full border border-site-line px-2.5 py-1 text-[11px] font-semibold tabular-nums">
-                          {jours <= 0 ? "Aujourd’hui" : jours === 1 ? "Demain" : format(parseISO(p.date), "d MMM", { locale: fr })}
+                          {jours <= 0
+                            ? "Aujourd’hui"
+                            : jours === 1
+                              ? "Demain"
+                              : format(parseISO(p.date), "d MMM", { locale: fr })}
                         </span>
                       </li>
                     );
@@ -388,9 +447,18 @@ export function TableauDeBordManager() {
                           <th scope="row" className="py-3 text-left font-medium">
                             {t.libelle}
                           </th>
-                          <td className={cn("py-3 text-right tabular-nums", t.brouillons > 0 ? "font-semibold text-brand-violet" : "text-site-muted")}>{nombre.format(t.brouillons)}</td>
+                          <td
+                            className={cn(
+                              "py-3 text-right tabular-nums",
+                              t.brouillons > 0 ? "font-semibold text-brand-violet" : "text-site-muted",
+                            )}
+                          >
+                            {nombre.format(t.brouillons)}
+                          </td>
                           <td className="py-3 text-right tabular-nums">{nombre.format(t.publies)}</td>
-                          <td className="py-3 text-right tabular-nums text-site-muted">{nombre.format(t.publies_30j)}</td>
+                          <td className="py-3 text-right tabular-nums text-site-muted">
+                            {nombre.format(t.publies_30j)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -398,12 +466,18 @@ export function TableauDeBordManager() {
                 </div>
               )}
               {d && !d.peut_publier && d.departement === null && d.contenus.types.length > 0 && (
-                <p className="mt-4 text-xs text-site-muted">Sans département, vous ne pouvez pas créer de nouveau contenu.</p>
+                <p className="mt-4 text-xs text-site-muted">
+                  Sans département, vous ne pouvez pas créer de nouveau contenu.
+                </p>
               )}
             </Carte>
 
             <Carte>
-              <EnteteCarte icone={ScrollText} titre="Suivi de lecture des notes de service" meta={d && d.contenus.notes.length > 0 ? `${d.contenus.notes.length} dernières` : undefined} />
+              <EnteteCarte
+                icone={ScrollText}
+                titre="Suivi de lecture des notes de service"
+                meta={d && d.contenus.notes.length > 0 ? `${d.contenus.notes.length} dernières` : undefined}
+              />
               {!d ? (
                 <div className="space-y-5" aria-hidden>
                   {Array.from({ length: 3 }, (_, i) => (
@@ -425,13 +499,19 @@ export function TableauDeBordManager() {
                         role="img"
                         aria-label={`${n.nb_lectures} lectures confirmées sur ${n.nb_destinataires} destinataires`}
                       >
-                        <div className="v-gradient-btn h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.max(n.taux, n.nb_lectures > 0 ? 3 : 0)}%` }} />
+                        <div
+                          className="v-gradient-btn h-full rounded-full transition-[width] duration-700"
+                          style={{ width: `${Math.max(n.taux, n.nb_lectures > 0 ? 3 : 0)}%` }}
+                        />
                       </div>
                       <p className="mt-1.5 truncate text-xs text-site-muted">
-                        {nombre.format(n.nb_lectures)} sur {nombre.format(n.nb_destinataires)} {pluriel(n.nb_destinataires, "destinataire", "destinataires")}
+                        {nombre.format(n.nb_lectures)} sur {nombre.format(n.nb_destinataires)}{" "}
+                        {pluriel(n.nb_destinataires, "destinataire", "destinataires")}
                         {n.numero_note ? ` · note n° ${n.numero_note}` : ""}
                         {n.visibilite === "departement" ? " · mon département" : " · toute l’entreprise"}
-                        {n.date_publication ? ` · ${format(parseISO(n.date_publication), "d MMM yyyy", { locale: fr })}` : ""}
+                        {n.date_publication
+                          ? ` · ${format(parseISO(n.date_publication), "d MMM yyyy", { locale: fr })}`
+                          : ""}
                       </p>
                     </li>
                   ))}
@@ -471,16 +551,25 @@ export function TableauDeBordManager() {
               ) : (
                 <ul className="grid gap-x-8 sm:grid-cols-2">
                   {evenements.donnees.slice(0, 6).map((e) => (
-                    <li key={e.id} className="flex items-center gap-3 border-b border-site-line py-3 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
+                    <li
+                      key={e.id}
+                      className="flex items-center gap-3 border-b border-site-line py-3 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0"
+                    >
                       <span className="flex size-11 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
-                        <span className="text-[10px] font-semibold uppercase leading-none">{format(e.debut, "MMM", { locale: fr })}</span>
-                        <span className="font-display text-base font-bold leading-tight tabular-nums">{format(e.debut, "d")}</span>
+                        <span className="text-[10px] font-semibold uppercase leading-none">
+                          {format(e.debut, "MMM", { locale: fr })}
+                        </span>
+                        <span className="font-display text-base font-bold leading-tight tabular-nums">
+                          {format(e.debut, "d")}
+                        </span>
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold">{e.titre}</p>
                         <p className="flex items-center gap-1.5 truncate text-xs text-site-muted">
                           {format(e.debut, "HH:mm")}
-                          {isSameDay(e.debut, e.fin) ? ` – ${format(e.fin, "HH:mm")}` : ` → ${format(e.fin, "d MMM", { locale: fr })}`}
+                          {isSameDay(e.debut, e.fin)
+                            ? ` – ${format(e.fin, "HH:mm")}`
+                            : ` → ${format(e.fin, "d MMM", { locale: fr })}`}
                           {e.lieu && (
                             <>
                               <MapPin size={11} aria-hidden className="shrink-0" />
@@ -499,7 +588,8 @@ export function TableauDeBordManager() {
           {d && (
             <p className="flex items-center justify-center gap-2 text-center text-xs text-site-muted">
               <CircleCheck size={12} aria-hidden />
-              Chiffres calculés le {format(parseISO(d.genere_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}, sur votre équipe et vos contenus.
+              Chiffres calculés le {format(parseISO(d.genere_le), "d MMMM yyyy 'à' HH:mm", { locale: fr })}, sur votre
+              équipe et vos contenus.
             </p>
           )}
         </>

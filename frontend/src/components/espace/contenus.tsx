@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { type LucideIcon, Archive, BookCheck, ChevronLeft, ChevronRight, FileText, Pencil, Plus, Send, Trash2, X } from "lucide-react";
+import {
+  type LucideIcon,
+  Archive,
+  BookCheck,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Pencil,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -30,7 +42,19 @@ function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -101,14 +125,18 @@ export function Contenus({ config }: { config: ConfigContenu }) {
   const totaux = useDonnees(autorise, chargerTotaux);
 
   // Départements : liste complète si le rôle y a accès ; sinon le Manager garde son propre département
-  const chargerDepartements = useCallback(async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }), []);
+  const chargerDepartements = useCallback(
+    async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
+    [],
+  );
   const deps = useDonnees(autorise && peutListerDepartements, chargerDepartements);
   const departements = useMemo<DepartementOption[]>(() => {
     if (deps.donnees) return deps.donnees;
     if (profil.departement_id) return [{ id: profil.departement_id, nom_departement: "Mon département" }];
     return [];
   }, [deps.donnees, profil.departement_id]);
-  const nomDepartement = (id: number | null) => departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
+  const nomDepartement = (id: number | null) =>
+    departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
 
   const fermerFormulaire = useCallback(() => setFormulaire(null), []);
 
@@ -165,7 +193,11 @@ export function Contenus({ config }: { config: ConfigContenu }) {
     );
   }
 
-  const libelles: Record<Statut, string> = { publie: t.accord("Publié") + "s", brouillon: "Brouillons", archive: t.accord("Archivé") + "s" };
+  const libelles: Record<Statut, string> = {
+    publie: t.accord("Publié") + "s",
+    brouillon: "Brouillons",
+    archive: t.accord("Archivé") + "s",
+  };
   const vides: Record<Statut, string> = {
     publie: `${config.feminin ? "Aucune" : "Aucun"} ${config.nom} ${t.accord("publié")} pour le moment.`,
     brouillon: "Aucun brouillon en cours.",
@@ -196,11 +228,18 @@ export function Contenus({ config }: { config: ConfigContenu }) {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -222,7 +261,9 @@ export function Contenus({ config }: { config: ConfigContenu }) {
               }}
               className={cn(
                 "flex items-center gap-4 rounded-2xl border bg-site-surface p-4 text-left shadow-sm transition-colors",
-                actif ? "border-brand-violet ring-1 ring-brand-violet/40" : "border-site-line hover:border-brand-violet/50",
+                actif
+                  ? "border-brand-violet ring-1 ring-brand-violet/40"
+                  : "border-site-line hover:border-brand-violet/50",
               )}
             >
               <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
@@ -231,7 +272,9 @@ export function Contenus({ config }: { config: ConfigContenu }) {
               <span>
                 <span className="block text-xs font-medium text-site-muted">{libelle}</span>
                 {totaux.donnees ? (
-                  <span className="block font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(totaux.donnees[code])}</span>
+                  <span className="block font-display text-2xl font-bold leading-tight tabular-nums">
+                    {nombre.format(totaux.donnees[code])}
+                  </span>
                 ) : (
                   <Squelette className="mt-1.5 h-6 w-12" />
                 )}
@@ -271,11 +314,18 @@ export function Contenus({ config }: { config: ConfigContenu }) {
               <Ico de={iconeStatut} size={22} />
             </span>
             <p className="mt-4 text-sm font-medium">{vides[statut]}</p>
-            {statut === "publie" && <p className="mt-1 text-xs text-site-muted">{`Créez ${config.feminin ? "une" : "un"} ${config.nom}, puis publiez-${config.feminin ? "la" : "le"} pour ${config.feminin ? "la" : "le"} rendre visible.`}</p>}
+            {statut === "publie" && (
+              <p className="mt-1 text-xs text-site-muted">{`Créez ${config.feminin ? "une" : "un"} ${config.nom}, puis publiez-${config.feminin ? "la" : "le"} pour ${config.feminin ? "la" : "le"} rendre visible.`}</p>
+            )}
           </div>
         ) : (
           <div>
-            <div className={cn("hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid", COLONNES)}>
+            <div
+              className={cn(
+                "hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid",
+                COLONNES,
+              )}
+            >
               <span>{t.Nom}</span>
               <span>Destinataires</span>
               <span>{statut === "brouillon" ? "Statut" : "Publication"}</span>
@@ -285,7 +335,13 @@ export function Contenus({ config }: { config: ConfigContenu }) {
               {res.data.map((a) => {
                 const occupe = enCoursId === a.id;
                 return (
-                  <li key={a.id} className={cn("grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50", COLONNES)}>
+                  <li
+                    key={a.id}
+                    className={cn(
+                      "grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50",
+                      COLONNES,
+                    )}
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
                         <Ico de={iconeStatut} size={18} />
@@ -294,16 +350,22 @@ export function Contenus({ config }: { config: ConfigContenu }) {
                         <p className="truncate text-sm font-semibold">{a.titre}</p>
                         <p className="truncate text-xs text-site-muted">{a.extrait}</p>
                         {a.numero_note && (
-                          <span className="mr-1.5 mt-1 inline-flex rounded-full bg-brand-violet/15 px-2 py-0.5 text-[10px] font-semibold text-brand-violet">N° {a.numero_note}</span>
+                          <span className="mr-1.5 mt-1 inline-flex rounded-full bg-brand-violet/15 px-2 py-0.5 text-[10px] font-semibold text-brand-violet">
+                            N° {a.numero_note}
+                          </span>
                         )}
                         {a.categorie && (
-                          <span className="mt-1 inline-flex rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">{a.categorie}</span>
+                          <span className="mt-1 inline-flex rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">
+                            {a.categorie}
+                          </span>
                         )}
                       </div>
                     </div>
 
                     <div className="min-w-0 text-sm">
-                      <p className="truncate">{a.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(a.departement_id)}</p>
+                      <p className="truncate">
+                        {a.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(a.departement_id)}
+                      </p>
                       {a.auteur && (
                         <p className="truncate text-xs text-site-muted">
                           Par {a.auteur.prenom} {a.auteur.nom}
@@ -313,7 +375,14 @@ export function Contenus({ config }: { config: ConfigContenu }) {
 
                     <div className="text-sm">
                       {a.date_expiration && (
-                        <p className={cn("text-xs", a.date_expiration < new Date().toISOString().slice(0, 10) ? "text-site-danger" : "text-site-muted")}>
+                        <p
+                          className={cn(
+                            "text-xs",
+                            a.date_expiration < new Date().toISOString().slice(0, 10)
+                              ? "text-site-danger"
+                              : "text-site-muted",
+                          )}
+                        >
                           {a.date_expiration < new Date().toISOString().slice(0, 10) ? "Expirée le " : "Expire le "}
                           {date.format(new Date(a.date_expiration))}
                         </p>
@@ -321,21 +390,37 @@ export function Contenus({ config }: { config: ConfigContenu }) {
                       {a.date_publication ? (
                         <span className="tabular-nums">{date.format(new Date(a.date_publication))}</span>
                       ) : (
-                        <span className="inline-flex rounded-full border border-dashed border-site-line px-2.5 py-1 text-[11px] font-medium text-site-muted">Non publiée</span>
+                        <span className="inline-flex rounded-full border border-dashed border-site-line px-2.5 py-1 text-[11px] font-medium text-site-muted">
+                          Non publiée
+                        </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-1 md:justify-end">
-                      <BoutonIcone libelle={`Modifier ${a.titre}`} disabled={occupe} onClick={() => setFormulaire({ contenu: a })}>
+                      <BoutonIcone
+                        libelle={`Modifier ${a.titre}`}
+                        disabled={occupe}
+                        onClick={() => setFormulaire({ contenu: a })}
+                      >
                         <Pencil size={16} aria-hidden />
                       </BoutonIcone>
                       {config.suiviLectures && a.statut_contenu !== "brouillon" && (
-                        <BoutonIcone libelle={`Suivi des lectures de ${a.titre}`} disabled={occupe} onClick={() => setSuivi(a)}>
+                        <BoutonIcone
+                          libelle={`Suivi des lectures de ${a.titre}`}
+                          disabled={occupe}
+                          onClick={() => setSuivi(a)}
+                        >
                           <BookCheck size={16} aria-hidden />
                         </BoutonIcone>
                       )}
                       {a.statut_contenu === "publie" ? (
-                        <BoutonIcone libelle={`Archiver ${a.titre}`} disabled={occupe} onClick={() => action(a, "archiver", `${t.Defini} « ${a.titre} » a été ${t.accord("archivé")}.`)}>
+                        <BoutonIcone
+                          libelle={`Archiver ${a.titre}`}
+                          disabled={occupe}
+                          onClick={() =>
+                            action(a, "archiver", `${t.Defini} « ${a.titre} » a été ${t.accord("archivé")}.`)
+                          }
+                        >
                           <Archive size={16} aria-hidden />
                         </BoutonIcone>
                       ) : (
@@ -347,7 +432,12 @@ export function Contenus({ config }: { config: ConfigContenu }) {
                           <Send size={16} aria-hidden />
                         </BoutonIcone>
                       )}
-                      <BoutonIcone libelle={`Supprimer ${a.titre}`} danger disabled={occupe} onClick={() => setASupprimer(a)}>
+                      <BoutonIcone
+                        libelle={`Supprimer ${a.titre}`}
+                        danger
+                        disabled={occupe}
+                        onClick={() => setASupprimer(a)}
+                      >
                         <Trash2 size={16} aria-hidden />
                       </BoutonIcone>
                     </div>
@@ -357,9 +447,13 @@ export function Contenus({ config }: { config: ConfigContenu }) {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+              >
                 <p className="text-xs text-site-muted">
-                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} {res.total > 1 ? config.pluriel : config.nom}
+                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)}{" "}
+                  {res.total > 1 ? config.pluriel : config.nom}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -401,14 +495,25 @@ export function Contenus({ config }: { config: ConfigContenu }) {
       {suivi && <SuiviLectures noteId={suivi.id} titre={suivi.titre} onFermer={() => setSuivi(null)} />}
 
       {aSupprimer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-actu">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setASupprimer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-actu"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suppression-actu" className="font-display text-base font-semibold">
               {t.supprimerTitre}
             </h2>
             <p className="mt-2 text-sm text-site-muted">
-              {t.Defini} « {aSupprimer.titre} » sera {t.accord("supprimé")} définitivement. Pour la retirer sans la perdre, archivez-la plutôt.
+              {t.Defini} « {aSupprimer.titre} » sera {t.accord("supprimé")} définitivement. Pour la retirer sans la
+              perdre, archivez-la plutôt.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button

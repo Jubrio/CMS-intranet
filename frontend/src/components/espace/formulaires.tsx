@@ -1,7 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { type LucideIcon, ChevronLeft, ChevronRight, ClipboardList, FileText, Inbox, Lock, Pencil, Plus, Send, Trash2, X } from "lucide-react";
+import {
+  type LucideIcon,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  Inbox,
+  Lock,
+  Pencil,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -36,7 +49,19 @@ function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
 }
 
-function BoutonIcone({ libelle, onClick, disabled, danger, children }: { libelle: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: ReactNode }) {
+function BoutonIcone({
+  libelle,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  libelle: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -81,7 +106,9 @@ export function Formulaires() {
   const cleCourante = `${statut}|${page}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
-      const res = await api<Pagination<FormulaireInterne>>(`/formulaires?statut=${statut}&page=${page}`, { token: jeton });
+      const res = await api<Pagination<FormulaireInterne>>(`/formulaires?statut=${statut}&page=${page}`, {
+        token: jeton,
+      });
       // Dernière page vidée (ex. dernier formulaire clôturé) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
@@ -96,29 +123,42 @@ export function Formulaires() {
   const chargerTotaux = useCallback(
     async (jeton: string) => {
       void version;
-      const [publie, brouillon, cloture] = await Promise.all(STATUTS.map((s) => api<{ total: number }>(`/formulaires?statut=${s.code}`, { token: jeton })));
-      return { publie: publie.total, brouillon: brouillon.total, cloture: cloture.total } as Record<StatutFormulaire, number>;
+      const [publie, brouillon, cloture] = await Promise.all(
+        STATUTS.map((s) => api<{ total: number }>(`/formulaires?statut=${s.code}`, { token: jeton })),
+      );
+      return { publie: publie.total, brouillon: brouillon.total, cloture: cloture.total } as Record<
+        StatutFormulaire,
+        number
+      >;
     },
     [version],
   );
   const totaux = useDonnees(autorise, chargerTotaux);
 
   // Départements : liste complète si le rôle y a accès ; sinon le département de l'utilisateur
-  const chargerDepartements = useCallback(async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }), []);
+  const chargerDepartements = useCallback(
+    async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
+    [],
+  );
   const deps = useDonnees(autorise && peutListerDepartements, chargerDepartements);
   const departements = useMemo<DepartementOption[]>(() => {
     if (deps.donnees) return deps.donnees;
     if (profil.departement_id) return [{ id: profil.departement_id, nom_departement: "Mon département" }];
     return [];
   }, [deps.donnees, profil.departement_id]);
-  const nomDepartement = (id: number | null) => departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
+  const nomDepartement = (id: number | null) =>
+    departements.find((d) => d.id === id)?.nom_departement ?? "Un département";
 
   const fermerEditeur = useCallback(() => setEditeur(null), []);
   const fermerReponses = useCallback(() => setReponses(null), []);
 
   function apresEnregistrement(texte: string, echecPublication?: string) {
     setEditeur(null);
-    setNotice(echecPublication ? { type: "erreur", texte: `${texte} La publication a échoué : ${echecPublication}` } : { type: "ok", texte });
+    setNotice(
+      echecPublication
+        ? { type: "erreur", texte: `${texte} La publication a échoué : ${echecPublication}` }
+        : { type: "ok", texte },
+    );
     setVersion((v) => v + 1);
   }
 
@@ -174,7 +214,9 @@ export function Formulaires() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold">Formulaires</h1>
-          <p className="mt-1 text-sm text-site-muted">Créez des formulaires internes, collectez les réponses et exportez-les.</p>
+          <p className="mt-1 text-sm text-site-muted">
+            Créez des formulaires internes, collectez les réponses et exportez-les.
+          </p>
         </div>
         <button
           type="button"
@@ -191,11 +233,18 @@ export function Formulaires() {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -215,7 +264,9 @@ export function Formulaires() {
               }}
               className={cn(
                 "flex items-center gap-4 rounded-2xl border bg-site-surface p-4 text-left shadow-sm transition-colors",
-                actif ? "border-brand-violet ring-1 ring-brand-violet/40" : "border-site-line hover:border-brand-violet/50",
+                actif
+                  ? "border-brand-violet ring-1 ring-brand-violet/40"
+                  : "border-site-line hover:border-brand-violet/50",
               )}
             >
               <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
@@ -224,7 +275,9 @@ export function Formulaires() {
               <span>
                 <span className="block text-xs font-medium text-site-muted">{libelle}</span>
                 {totaux.donnees ? (
-                  <span className="block font-display text-2xl font-bold leading-tight tabular-nums">{nombre.format(totaux.donnees[code])}</span>
+                  <span className="block font-display text-2xl font-bold leading-tight tabular-nums">
+                    {nombre.format(totaux.donnees[code])}
+                  </span>
                 ) : (
                   <Squelette className="mt-1.5 h-6 w-12" />
                 )}
@@ -264,11 +317,20 @@ export function Formulaires() {
               <Ico de={courant.icone} size={22} />
             </span>
             <p className="mt-4 text-sm font-medium">{courant.vide}</p>
-            {statut === "publie" && <p className="mt-1 text-xs text-site-muted">Créez un formulaire, puis publiez-le pour recueillir des réponses.</p>}
+            {statut === "publie" && (
+              <p className="mt-1 text-xs text-site-muted">
+                Créez un formulaire, puis publiez-le pour recueillir des réponses.
+              </p>
+            )}
           </div>
         ) : (
           <div>
-            <div className={cn("hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid", COLONNES)}>
+            <div
+              className={cn(
+                "hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid",
+                COLONNES,
+              )}
+            >
               <span>Formulaire</span>
               <span>Destinataires</span>
               <span>Réponses</span>
@@ -281,7 +343,13 @@ export function Formulaires() {
                 const limite = f.date_limite ? lireJour(f.date_limite) : null;
                 const expire = limite !== null && limite < aujourdhui && f.statut_formulaire === "publie";
                 return (
-                  <li key={f.id} className={cn("grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50", COLONNES)}>
+                  <li
+                    key={f.id}
+                    className={cn(
+                      "grid items-center gap-x-4 gap-y-3 px-5 py-4 transition-colors hover:bg-site-surface2/50",
+                      COLONNES,
+                    )}
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
                         <Ico de={courant.icone} size={18} />
@@ -295,7 +363,9 @@ export function Formulaires() {
                       </div>
                     </div>
 
-                    <div className="min-w-0 truncate text-sm">{f.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(f.departement_id)}</div>
+                    <div className="min-w-0 truncate text-sm">
+                      {f.visibilite === "entreprise" ? "Toute l’entreprise" : nomDepartement(f.departement_id)}
+                    </div>
 
                     <div className="text-sm font-semibold tabular-nums">
                       {f.nb_reponses ?? 0}
@@ -305,7 +375,9 @@ export function Formulaires() {
                     <div className="text-sm">
                       {limite ? (
                         expire ? (
-                          <span className="inline-flex rounded-full bg-site-danger/10 px-2.5 py-1 text-[11px] font-semibold text-site-danger">Expiré le {date.format(limite)}</span>
+                          <span className="inline-flex rounded-full bg-site-danger/10 px-2.5 py-1 text-[11px] font-semibold text-site-danger">
+                            Expiré le {date.format(limite)}
+                          </span>
                         ) : (
                           <span className="tabular-nums">{date.format(limite)}</span>
                         )
@@ -315,27 +387,48 @@ export function Formulaires() {
                     </div>
 
                     <div className="flex items-center gap-1 md:justify-end">
-                      <BoutonIcone libelle={`Voir les réponses à ${f.titre_formulaire}`} disabled={occupe} onClick={() => setReponses(f)}>
+                      <BoutonIcone
+                        libelle={`Voir les réponses à ${f.titre_formulaire}`}
+                        disabled={occupe}
+                        onClick={() => setReponses(f)}
+                      >
                         <Inbox size={16} aria-hidden />
                       </BoutonIcone>
                       <BoutonIcone
-                        libelle={f.statut_formulaire === "cloture" ? "Un formulaire clôturé ne peut plus être modifié" : `Modifier ${f.titre_formulaire}`}
+                        libelle={
+                          f.statut_formulaire === "cloture"
+                            ? "Un formulaire clôturé ne peut plus être modifié"
+                            : `Modifier ${f.titre_formulaire}`
+                        }
                         disabled={occupe || f.statut_formulaire === "cloture"}
                         onClick={() => setEditeur({ formulaire: f })}
                       >
                         <Pencil size={16} aria-hidden />
                       </BoutonIcone>
                       {f.statut_formulaire === "brouillon" && (
-                        <BoutonIcone libelle={`Publier ${f.titre_formulaire}`} disabled={occupe} onClick={() => action(f, "publier", `Le formulaire « ${f.titre_formulaire} » est publié.`)}>
+                        <BoutonIcone
+                          libelle={`Publier ${f.titre_formulaire}`}
+                          disabled={occupe}
+                          onClick={() => action(f, "publier", `Le formulaire « ${f.titre_formulaire} » est publié.`)}
+                        >
                           <Send size={16} aria-hidden />
                         </BoutonIcone>
                       )}
                       {f.statut_formulaire !== "cloture" && f.statut_formulaire !== "brouillon" && (
-                        <BoutonIcone libelle={`Clôturer ${f.titre_formulaire}`} disabled={occupe} onClick={() => setACloturer(f)}>
+                        <BoutonIcone
+                          libelle={`Clôturer ${f.titre_formulaire}`}
+                          disabled={occupe}
+                          onClick={() => setACloturer(f)}
+                        >
                           <Lock size={16} aria-hidden />
                         </BoutonIcone>
                       )}
-                      <BoutonIcone libelle={`Supprimer ${f.titre_formulaire}`} danger disabled={occupe} onClick={() => setASupprimer(f)}>
+                      <BoutonIcone
+                        libelle={`Supprimer ${f.titre_formulaire}`}
+                        danger
+                        disabled={occupe}
+                        onClick={() => setASupprimer(f)}
+                      >
                         <Trash2 size={16} aria-hidden />
                       </BoutonIcone>
                     </div>
@@ -345,9 +438,13 @@ export function Formulaires() {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+              >
                 <p className="text-xs text-site-muted">
-                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} formulaire{res.total > 1 ? "s" : ""}
+                  Page {res.current_page} sur {res.last_page} · {nombre.format(res.total)} formulaire
+                  {res.total > 1 ? "s" : ""}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -388,14 +485,25 @@ export function Formulaires() {
       {reponses && <FormulaireReponses formulaire={reponses} onFermer={fermerReponses} />}
 
       {aCloturer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-cloture-formulaire">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setACloturer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-cloture-formulaire"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setACloturer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-cloture-formulaire" className="font-display text-base font-semibold">
               Clôturer ce formulaire ?
             </h2>
             <p className="mt-2 text-sm text-site-muted">
-              Le formulaire « {aCloturer.titre_formulaire} » n’acceptera plus de réponses et ne pourra plus être modifié. Les réponses déjà reçues sont conservées.
+              Le formulaire « {aCloturer.titre_formulaire} » n’acceptera plus de réponses et ne pourra plus être
+              modifié. Les réponses déjà reçues sont conservées.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -408,7 +516,9 @@ export function Formulaires() {
               </button>
               <button
                 type="button"
-                onClick={() => action(aCloturer, "cloturer", `Le formulaire « ${aCloturer.titre_formulaire} » est clôturé.`)}
+                onClick={() =>
+                  action(aCloturer, "cloturer", `Le formulaire « ${aCloturer.titre_formulaire} » est clôturé.`)
+                }
                 className="v-gradient-btn h-10 rounded-full px-5 text-sm font-semibold"
               >
                 Clôturer
@@ -419,15 +529,28 @@ export function Formulaires() {
       )}
 
       {aSupprimer && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suppression-formulaire">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setASupprimer(null)} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-formulaire"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suppression-formulaire" className="font-display text-base font-semibold">
               Supprimer ce formulaire ?
             </h2>
             <p className="mt-2 text-sm text-site-muted">
               Le formulaire « {aSupprimer.titre_formulaire} » sera supprimé définitivement
-              {(aSupprimer.nb_reponses ?? 0) > 0 ? `, avec ses ${aSupprimer.nb_reponses} réponse${(aSupprimer.nb_reponses ?? 0) > 1 ? "s" : ""}` : ""}. Cette action est irréversible.
+              {(aSupprimer.nb_reponses ?? 0) > 0
+                ? `, avec ses ${aSupprimer.nb_reponses} réponse${(aSupprimer.nb_reponses ?? 0) > 1 ? "s" : ""}`
+                : ""}
+              . Cette action est irréversible.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button

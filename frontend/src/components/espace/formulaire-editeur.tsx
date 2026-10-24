@@ -47,12 +47,26 @@ const MAX_CHAMPS = 30;
 const estChoix = (t: TypeChamp) => t === "choix_unique" || t === "choix_multiple";
 
 // Champ en cours d'édition : `cle` sert d'identifiant stable pour React, `nom` n'existe que pour les champs déjà enregistrés
-type ChampEdite = { cle: number; nom: string | null; libelle: string; type: TypeChamp; obligatoire: boolean; options: string };
+type ChampEdite = {
+  cle: number;
+  nom: string | null;
+  libelle: string;
+  type: TypeChamp;
+  obligatoire: boolean;
+  options: string;
+};
 
 let compteur = 0;
 const nouvelleCle = () => ++compteur;
 
-const champVide = (): ChampEdite => ({ cle: nouvelleCle(), nom: null, libelle: "", type: "texte", obligatoire: false, options: "" });
+const champVide = (): ChampEdite => ({
+  cle: nouvelleCle(),
+  nom: null,
+  libelle: "",
+  type: "texte",
+  obligatoire: false,
+  options: "",
+});
 
 // Identifiant technique d'un champ (a-z, 0-9, _) déduit de son libellé
 function identifiant(libelle: string): string {
@@ -66,7 +80,21 @@ function identifiant(libelle: string): string {
   return /^[a-z]/.test(base) ? base : `champ_${base}`.replace(/_$/, "");
 }
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -96,7 +124,9 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
   const [titre, setTitre] = useState(formulaire?.titre_formulaire ?? "");
   const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(formulaire?.visibilite ?? "entreprise");
-  const [departementId, setDepartementId] = useState(formulaire?.departement_id ? String(formulaire.departement_id) : "");
+  const [departementId, setDepartementId] = useState(
+    formulaire?.departement_id ? String(formulaire.departement_id) : "",
+  );
   const [dateLimite, setDateLimite] = useState(formulaire?.date_limite ?? "");
   const [reponseUnique, setReponseUnique] = useState(formulaire?.reponse_unique ?? false);
   const [champs, setChamps] = useState<ChampEdite[]>([champVide()]);
@@ -162,7 +192,8 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
   const err = (champ: string) => erreurs[champ]?.[0];
   // Erreur du serveur propre au champ n° i (« champs.2.libelle », « champs.2.options.1 », …)
-  const erreurChamp = (i: number) => erreursLocales[i] ?? Object.entries(erreurs).find(([k]) => k.startsWith(`champs.${i}.`))?.[1][0];
+  const erreurChamp = (i: number) =>
+    erreursLocales[i] ?? Object.entries(erreurs).find(([k]) => k.startsWith(`champs.${i}.`))?.[1][0];
 
   function modifier(cle: number, modif: Partial<ChampEdite>) {
     setChamps((l) => l.map((c) => (c.cle === cle ? { ...c, ...modif } : c)));
@@ -189,7 +220,15 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
     champs.forEach((c, i) => {
       if (verrouille) return;
       if (!c.libelle.trim()) locales[i] = "Le libellé du champ est obligatoire.";
-      else if (estChoix(c.type) && new Set(c.options.split("\n").map((o) => o.trim()).filter(Boolean)).size < 2)
+      else if (
+        estChoix(c.type) &&
+        new Set(
+          c.options
+            .split("\n")
+            .map((o) => o.trim())
+            .filter(Boolean),
+        ).size < 2
+      )
         locales[i] = "Ajoutez au moins 2 options, une par ligne.";
     });
     if (Object.keys(locales).length > 0) {
@@ -211,7 +250,15 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
         pris.add(nom);
       }
       const def: ChampDef = { nom, libelle: c.libelle.trim(), type: c.type, obligatoire: c.obligatoire };
-      if (estChoix(c.type)) def.options = [...new Set(c.options.split("\n").map((o) => o.trim()).filter(Boolean))];
+      if (estChoix(c.type))
+        def.options = [
+          ...new Set(
+            c.options
+              .split("\n")
+              .map((o) => o.trim())
+              .filter(Boolean),
+          ),
+        ];
       return def;
     });
 
@@ -251,7 +298,9 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
     // À la création le statut est déjà fixé ; sur un brouillon existant, « publier » est une seconde étape
     if (!publier || !edition || dejaPublie || id === null) {
-      onEnregistre(edition ? "Formulaire modifié." : publier ? "Formulaire publié." : "Formulaire enregistré en brouillon.");
+      onEnregistre(
+        edition ? "Formulaire modifié." : publier ? "Formulaire publié." : "Formulaire enregistré en brouillon.",
+      );
       return;
     }
 
@@ -270,8 +319,18 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
   const occupe = envoi !== null || chargement;
 
   return (
-    <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-editeur-formulaire">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+    <div
+      className="fixed inset-0 z-[60] flex"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titre-editeur-formulaire"
+    >
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -296,7 +355,10 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
@@ -310,12 +372,25 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
           ) : echecChargement ? null : (
             <>
               <Champ id="fo-titre" label="Titre du formulaire" requis erreur={err("titre_formulaire")}>
-                <input id="fo-titre" ref={premierChamp} className={CHAMP} value={titre} onChange={(e) => setTitre(e.target.value)} maxLength={150} autoComplete="off" />
+                <input
+                  id="fo-titre"
+                  ref={premierChamp}
+                  className={CHAMP}
+                  value={titre}
+                  onChange={(e) => setTitre(e.target.value)}
+                  maxLength={150}
+                  autoComplete="off"
+                />
               </Champ>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Champ id="fo-visi" label="Destinataires" requis erreur={err("visibilite")}>
-                  <select id="fo-visi" className={CHAMP} value={visibilite} onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}>
+                  <select
+                    id="fo-visi"
+                    className={CHAMP}
+                    value={visibilite}
+                    onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}
+                  >
                     <option value="entreprise">Toute l’entreprise</option>
                     <option value="departement">Un département</option>
                   </select>
@@ -323,8 +398,15 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
                 {visibilite === "departement" && (
                   <Champ id="fo-dep" label="Département" requis erreur={err("departement_id")}>
-                    <select id="fo-dep" className={CHAMP} value={departementId} onChange={(e) => setDepartementId(e.target.value)}>
-                      <option value="">{departements.length === 0 ? "Aucun département disponible" : "Choisir…"}</option>
+                    <select
+                      id="fo-dep"
+                      className={CHAMP}
+                      value={departementId}
+                      onChange={(e) => setDepartementId(e.target.value)}
+                    >
+                      <option value="">
+                        {departements.length === 0 ? "Aucun département disponible" : "Choisir…"}
+                      </option>
                       {departements.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.nom_departement}
@@ -334,16 +416,35 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
                   </Champ>
                 )}
 
-                <Champ id="fo-limite" label="Date limite" erreur={err("date_limite")} aide="Facultatif. Le jour de la date limite, le formulaire reste ouvert.">
-                  <input id="fo-limite" type="date" className={CHAMP} value={dateLimite} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDateLimite(e.target.value)} />
+                <Champ
+                  id="fo-limite"
+                  label="Date limite"
+                  erreur={err("date_limite")}
+                  aide="Facultatif. Le jour de la date limite, le formulaire reste ouvert."
+                >
+                  <input
+                    id="fo-limite"
+                    type="date"
+                    className={CHAMP}
+                    value={dateLimite}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setDateLimite(e.target.value)}
+                  />
                 </Champ>
               </div>
 
               <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-site-line bg-site-base/40 px-4 py-3">
-                <input type="checkbox" checked={reponseUnique} onChange={(e) => setReponseUnique(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-brand-violet" />
+                <input
+                  type="checkbox"
+                  checked={reponseUnique}
+                  onChange={(e) => setReponseUnique(e.target.checked)}
+                  className="mt-0.5 size-4 shrink-0 accent-brand-violet"
+                />
                 <span>
                   <span className="block text-sm font-medium">Une seule réponse par personne</span>
-                  <span className="block text-xs text-site-muted">Chaque destinataire ne peut remplir ce formulaire qu’une fois.</span>
+                  <span className="block text-xs text-site-muted">
+                    Chaque destinataire ne peut remplir ce formulaire qu’une fois.
+                  </span>
                 </span>
               </label>
 
@@ -360,7 +461,8 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
                 {verrouille && (
                   <p className="mb-3 flex items-start gap-2 rounded-lg border border-site-line bg-site-base/60 px-3 py-2 text-xs text-site-muted">
                     <Lock size={14} aria-hidden className="mt-0.5 shrink-0" />
-                    Les champs ne sont plus modifiables : le formulaire a déjà reçu {formulaire.nb_reponses} réponse{(formulaire.nb_reponses ?? 0) > 1 ? "s" : ""}.
+                    Les champs ne sont plus modifiables : le formulaire a déjà reçu {formulaire.nb_reponses} réponse
+                    {(formulaire.nb_reponses ?? 0) > 1 ? "s" : ""}.
                   </p>
                 )}
                 {err("champs") && <p className="mb-2 text-xs text-site-danger">{err("champs")}</p>}
@@ -369,10 +471,20 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
                   {champs.map((c, i) => {
                     const e = erreurChamp(i);
                     return (
-                      <li key={c.cle} className={cn("rounded-xl border bg-site-base/40 p-4", e ? "border-site-danger/50" : "border-site-line")}>
+                      <li
+                        key={c.cle}
+                        className={cn(
+                          "rounded-xl border bg-site-base/40 p-4",
+                          e ? "border-site-danger/50" : "border-site-line",
+                        )}
+                      >
                         <div className="mb-3 flex items-center gap-2">
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand-violet/15 text-[11px] font-bold tabular-nums text-brand-violet">{i + 1}</span>
-                          <span className="min-w-0 flex-1 truncate text-xs text-site-muted">{c.nom ? `Identifiant : ${c.nom}` : "Nouveau champ"}</span>
+                          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand-violet/15 text-[11px] font-bold tabular-nums text-brand-violet">
+                            {i + 1}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-xs text-site-muted">
+                            {c.nom ? `Identifiant : ${c.nom}` : "Nouveau champ"}
+                          </span>
                           {!verrouille && (
                             <div className="flex items-center gap-0.5">
                               <button
@@ -426,7 +538,13 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
                             <label htmlFor={`fo-type-${c.cle}`} className="sr-only">
                               Type du champ {i + 1}
                             </label>
-                            <select id={`fo-type-${c.cle}`} className={CHAMP} value={c.type} onChange={(ev) => modifier(c.cle, { type: ev.target.value as TypeChamp })} disabled={verrouille}>
+                            <select
+                              id={`fo-type-${c.cle}`}
+                              className={CHAMP}
+                              value={c.type}
+                              onChange={(ev) => modifier(c.cle, { type: ev.target.value as TypeChamp })}
+                              disabled={verrouille}
+                            >
                               {TYPES.map((t) => (
                                 <option key={t.code} value={t.code}>
                                   {t.libelle}
@@ -438,7 +556,10 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
                         {estChoix(c.type) && (
                           <div className="mt-3">
-                            <label htmlFor={`fo-opt-${c.cle}`} className="mb-1.5 block text-xs font-medium text-site-muted">
+                            <label
+                              htmlFor={`fo-opt-${c.cle}`}
+                              className="mb-1.5 block text-xs font-medium text-site-muted"
+                            >
                               Options (une par ligne, 2 minimum)
                             </label>
                             <textarea
@@ -498,7 +619,9 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
             disabled={occupe || echecChargement}
             className={cn(
               "inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
-              dejaPublie ? "v-gradient-btn" : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
+              dejaPublie
+                ? "v-gradient-btn"
+                : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
               (occupe || echecChargement) && "opacity-70",
             )}
           >
@@ -510,7 +633,10 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
               type="button"
               disabled={occupe || echecChargement}
               onClick={() => void soumettre(true)}
-              className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", (occupe || echecChargement) && "opacity-70")}
+              className={cn(
+                "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+                (occupe || echecChargement) && "opacity-70",
+              )}
             >
               {envoi === "publier" && <Loader2 size={16} className="animate-spin" aria-hidden />}
               Enregistrer et publier

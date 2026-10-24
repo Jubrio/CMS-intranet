@@ -43,7 +43,11 @@ export type OptionDepartement = { id: number; nom_departement: string; profondeu
 // ---- Aides ---------------------------------------------------------------------
 
 export const nombre = new Intl.NumberFormat("fr-FR");
-export const normaliser = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+export const normaliser = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 const jourLong = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -78,15 +82,32 @@ const TAILLES = {
   lg: "size-20 text-2xl",
 } as const;
 
-export function Avatar({ personne, taille = "md" }: { personne: { prenom: string; nom: string; photo?: string | null }; taille?: keyof typeof TAILLES }) {
+export function Avatar({
+  personne,
+  taille = "md",
+}: {
+  personne: { prenom: string; nom: string; photo?: string | null };
+  taille?: keyof typeof TAILLES;
+}) {
   const [echec, setEchec] = useState<string | null>(null);
   const afficher = personne.photo && echec !== personne.photo;
 
   return (
-    <span className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-violet/15 font-semibold text-brand-violet", TAILLES[taille])}>
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-violet/15 font-semibold text-brand-violet",
+        TAILLES[taille],
+      )}
+    >
       {afficher ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={urlStockage(personne.photo as string)} alt="" className="size-full object-cover" loading="lazy" onError={() => setEchec(personne.photo ?? null)} />
+        <img
+          src={urlStockage(personne.photo as string)}
+          alt=""
+          className="size-full object-cover"
+          loading="lazy"
+          onError={() => setEchec(personne.photo ?? null)}
+        />
       ) : (
         initiales(personne)
       )}

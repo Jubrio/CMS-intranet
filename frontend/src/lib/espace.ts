@@ -81,12 +81,19 @@ export type EntreeNav = {
 
 // Réponse de GET /menu : réglages de l'administrateur appliqués au rôle de l'appelant
 export type MenuConfig = {
-  modules: { code: string; libelle: string; ordre: number; libelle_perso?: string | null; ordre_perso?: number | null }[];
+  modules: {
+    code: string;
+    libelle: string;
+    ordre: number;
+    libelle_perso?: string | null;
+    ordre_perso?: number | null;
+  }[];
   liens: { id: number; libelle: string; url: string; ordre: number }[];
 };
 
 // Le Super-administrateur n'appartient à aucune entreprise
-export const estSuperAdmin = (p: Pick<Profil, "role" | "entreprise">) => p.role === "Super-administrateur" && p.entreprise === null;
+export const estSuperAdmin = (p: Pick<Profil, "role" | "entreprise">) =>
+  p.role === "Super-administrateur" && p.entreprise === null;
 
 export type GroupeNav = { titre: string | null; entrees: EntreeNav[] };
 
@@ -98,50 +105,198 @@ export const NAV: GroupeNav[] = [
       // Fil d'actualité de l'entreprise : visible par tous les rôles d'une entreprise
       { libelle: "Accueil", icone: Home, href: "/espace/accueil" },
       // Formulaires internes à remplir : tout rôle qui a le droit de répondre
-      { libelle: "Mes formulaires", icone: ClipboardCheck, href: "/espace/mes-formulaires", permission: "formulaires.repondre", module: "formulaires" },
+      {
+        libelle: "Mes formulaires",
+        icone: ClipboardCheck,
+        href: "/espace/mes-formulaires",
+        permission: "formulaires.repondre",
+        module: "formulaires",
+      },
     ],
   },
   {
     titre: "Mon entreprise",
     entrees: [
-      { libelle: "Annuaire", icone: Contact, href: "/espace/consulter-annuaire", permission: "annuaire.consulter", module: "annuaire", sauf: "annuaire.gerer" },
-      { libelle: "Organigramme", icone: Network, href: "/espace/organigramme", permission: "annuaire.consulter", module: "annuaire", sauf: "annuaire.gerer" },
-      { libelle: "Calendrier", icone: CalendarDays, href: "/espace/calendrier", permission: "evenements.consulter", module: "evenements", menu: "calendrier", sauf: "evenements.gerer" },
-      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/consulter-pages", permission: "pages.consulter", module: "pages", sauf: "pages.gerer", toujours: true },
-      { libelle: "Documents", icone: FolderOpen, href: "/espace/consulter-documents", permission: "documents.consulter", module: "documents", sauf: "documents.gerer" },
-      { libelle: "FAQ", icone: CircleHelp, href: "/espace/consulter-faq", permission: "faq.consulter", module: "faq", sauf: "faq.gerer" },
+      {
+        libelle: "Annuaire",
+        icone: Contact,
+        href: "/espace/consulter-annuaire",
+        permission: "annuaire.consulter",
+        module: "annuaire",
+        sauf: "annuaire.gerer",
+      },
+      {
+        libelle: "Organigramme",
+        icone: Network,
+        href: "/espace/organigramme",
+        permission: "annuaire.consulter",
+        module: "annuaire",
+        sauf: "annuaire.gerer",
+      },
+      {
+        libelle: "Calendrier",
+        icone: CalendarDays,
+        href: "/espace/calendrier",
+        permission: "evenements.consulter",
+        module: "evenements",
+        menu: "calendrier",
+        sauf: "evenements.gerer",
+      },
+      {
+        libelle: "Pages internes",
+        icone: LayoutTemplate,
+        href: "/espace/consulter-pages",
+        permission: "pages.consulter",
+        module: "pages",
+        sauf: "pages.gerer",
+        toujours: true,
+      },
+      {
+        libelle: "Documents",
+        icone: FolderOpen,
+        href: "/espace/consulter-documents",
+        permission: "documents.consulter",
+        module: "documents",
+        sauf: "documents.gerer",
+      },
+      {
+        libelle: "FAQ",
+        icone: CircleHelp,
+        href: "/espace/consulter-faq",
+        permission: "faq.consulter",
+        module: "faq",
+        sauf: "faq.gerer",
+      },
     ],
   },
   {
     titre: "Organisation",
     entrees: [
-      { libelle: "Utilisateurs", icone: Users, href: "/espace/utilisateurs", permission: "utilisateurs.gerer", module: "utilisateurs" },
-      { libelle: "Départements", icone: Building2, href: "/espace/departements", permission: "utilisateurs.departements", module: "utilisateurs" },
-      { libelle: "Rôles et permissions", icone: ShieldCheck, href: "/espace/roles", permission: "roles.gerer", module: "roles" },
+      {
+        libelle: "Utilisateurs",
+        icone: Users,
+        href: "/espace/utilisateurs",
+        permission: "utilisateurs.gerer",
+        module: "utilisateurs",
+      },
+      {
+        libelle: "Départements",
+        icone: Building2,
+        href: "/espace/departements",
+        permission: "utilisateurs.departements",
+        module: "utilisateurs",
+      },
+      {
+        libelle: "Rôles et permissions",
+        icone: ShieldCheck,
+        href: "/espace/roles",
+        permission: "roles.gerer",
+        module: "roles",
+      },
     ],
   },
   {
     titre: "Contenus",
     entrees: [
-      { libelle: "Actualités", icone: Newspaper, href: "/espace/actualites", permission: "actualites.publier", module: "actualites" },
-      { libelle: "Annonces", icone: Megaphone, href: "/espace/annonces", permission: "annonces.publier", module: "annonces" },
-      { libelle: "Articles", icone: FileText, href: "/espace/articles", permission: "articles.publier", module: "articles" },
-      { libelle: "Notes de service", icone: ScrollText, href: "/espace/notes-service", permission: "notes_service.publier", module: "notes_service" },
-      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/pages-internes", permission: "pages.gerer", module: "pages", toujours: true },
-      { libelle: "Documents", icone: FolderOpen, href: "/espace/documents", permission: "documents.gerer", module: "documents" },
-      { libelle: "Événements", icone: CalendarCheck, href: "/espace/evenements", permission: "evenements.gerer", module: "evenements" },
+      {
+        libelle: "Actualités",
+        icone: Newspaper,
+        href: "/espace/actualites",
+        permission: "actualites.publier",
+        module: "actualites",
+      },
+      {
+        libelle: "Annonces",
+        icone: Megaphone,
+        href: "/espace/annonces",
+        permission: "annonces.publier",
+        module: "annonces",
+      },
+      {
+        libelle: "Articles",
+        icone: FileText,
+        href: "/espace/articles",
+        permission: "articles.publier",
+        module: "articles",
+      },
+      {
+        libelle: "Notes de service",
+        icone: ScrollText,
+        href: "/espace/notes-service",
+        permission: "notes_service.publier",
+        module: "notes_service",
+      },
+      {
+        libelle: "Pages internes",
+        icone: LayoutTemplate,
+        href: "/espace/pages-internes",
+        permission: "pages.gerer",
+        module: "pages",
+        toujours: true,
+      },
+      {
+        libelle: "Documents",
+        icone: FolderOpen,
+        href: "/espace/documents",
+        permission: "documents.gerer",
+        module: "documents",
+      },
+      {
+        libelle: "Événements",
+        icone: CalendarCheck,
+        href: "/espace/evenements",
+        permission: "evenements.gerer",
+        module: "evenements",
+      },
       { libelle: "FAQ", icone: CircleHelp, href: "/espace/faq", permission: "faq.gerer", module: "faq" },
-      { libelle: "Formulaires", icone: ClipboardList, href: "/espace/formulaires", permission: "formulaires.gerer", module: "formulaires" },
-      { libelle: "Annuaire", icone: Contact, href: "/espace/annuaire", permission: "annuaire.gerer", module: "annuaire" },
+      {
+        libelle: "Formulaires",
+        icone: ClipboardList,
+        href: "/espace/formulaires",
+        permission: "formulaires.gerer",
+        module: "formulaires",
+      },
+      {
+        libelle: "Annuaire",
+        icone: Contact,
+        href: "/espace/annuaire",
+        permission: "annuaire.gerer",
+        module: "annuaire",
+      },
     ],
   },
   {
     titre: "Configuration",
     entrees: [
-      { libelle: "Modules", icone: Blocks, href: "/espace/modules", permission: "personnalisation.modules", menu: "personnalisation" },
-      { libelle: "Apparence", icone: Palette, href: "/espace/apparence", permission: "personnalisation.apparence", menu: "personnalisation" },
-      { libelle: "Menus", icone: ListTree, href: "/espace/menus", permission: "personnalisation.parametres", menu: "personnalisation", toujours: true },
-      { libelle: "Paramètres", icone: Settings, href: "/espace/parametres", permission: "personnalisation.parametres", menu: "personnalisation" },
+      {
+        libelle: "Modules",
+        icone: Blocks,
+        href: "/espace/modules",
+        permission: "personnalisation.modules",
+        menu: "personnalisation",
+      },
+      {
+        libelle: "Apparence",
+        icone: Palette,
+        href: "/espace/apparence",
+        permission: "personnalisation.apparence",
+        menu: "personnalisation",
+      },
+      {
+        libelle: "Menus",
+        icone: ListTree,
+        href: "/espace/menus",
+        permission: "personnalisation.parametres",
+        menu: "personnalisation",
+        toujours: true,
+      },
+      {
+        libelle: "Paramètres",
+        icone: Settings,
+        href: "/espace/parametres",
+        permission: "personnalisation.parametres",
+        menu: "personnalisation",
+      },
     ],
   },
 ];
@@ -194,10 +349,11 @@ function appliquerMenu(groupes: GroupeNav[], menu: MenuConfig): GroupeNav[] {
 
   // 2. Libellé personnalisé : seulement si le module n'a qu'une entrée dans le menu
   const nb = new Map<string, number>();
-  for (const g of res) for (const e of g.entrees) {
-    const c = cleMenu(e);
-    if (c) nb.set(c, (nb.get(c) ?? 0) + 1);
-  }
+  for (const g of res)
+    for (const e of g.entrees) {
+      const c = cleMenu(e);
+      if (c) nb.set(c, (nb.get(c) ?? 0) + 1);
+    }
   res = res.map((g) => ({
     ...g,
     entrees: g.entrees.map((e) => {
@@ -268,7 +424,9 @@ const ENTREES_ADRESSEES: EntreeAdressee[] = [...NAV, ...NAV_PLATEFORME]
 // null = accès permis. Les adresses hors menu (tableau de bord, inconnues) restent permises ici.
 export function refusRoute(chemin: string, profil: Profil, menu: MenuConfig | null): RaisonRefus | null {
   const adresse = chemin.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
-  const entree = ENTREES_ADRESSEES.filter((e) => adresse === e.href || adresse.startsWith(`${e.href}/`)).sort((a, b) => b.href.length - a.href.length)[0];
+  const entree = ENTREES_ADRESSEES.filter((e) => adresse === e.href || adresse.startsWith(`${e.href}/`)).sort(
+    (a, b) => b.href.length - a.href.length,
+  )[0];
   if (!entree) return null;
 
   // La plateforme et les intranets sont deux mondes : le Super-administrateur n'ouvre que les écrans de la plateforme

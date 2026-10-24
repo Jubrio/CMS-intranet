@@ -13,9 +13,7 @@ export function Avantages() {
     <section className="px-6 py-24 lg:px-10">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <h2 className="text-center font-display text-3xl font-bold sm:text-4xl">
-            Pourquoi choisir CMS Intranet ?
-          </h2>
+          <h2 className="text-center font-display text-3xl font-bold sm:text-4xl">Pourquoi choisir CMS Intranet ?</h2>
         </Reveal>
         <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {AVANTAGES.map(({ icone: Icone, titre, texte }, i) => (

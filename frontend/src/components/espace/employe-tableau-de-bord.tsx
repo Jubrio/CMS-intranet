@@ -66,7 +66,13 @@ type Donnees = {
       lues: number;
       a_lire: number;
       taux_lecture: number;
-      liste: { id: number; titre: string; numero_note: string | null; date_publication: string | null; auteur: Auteur }[];
+      liste: {
+        id: number;
+        titre: string;
+        numero_note: string | null;
+        date_publication: string | null;
+        auteur: Auteur;
+      }[];
     } | null;
   };
   evenements: {
@@ -80,7 +86,14 @@ type Donnees = {
   } | null;
   documents: {
     total: number;
-    recents: { id: number; nom_document: string; categorie: string | null; type_mime: string | null; taille_fichier: number | null; created_at: string | null }[];
+    recents: {
+      id: number;
+      nom_document: string;
+      categorie: string | null;
+      type_mime: string | null;
+      taille_fichier: number | null;
+      created_at: string | null;
+    }[];
   } | null;
 };
 
@@ -92,8 +105,7 @@ const initialesDe = (p: { prenom: string; nom: string }) => `${p.prenom.charAt(0
 // "2026-10-23 14:30:00" (heure locale, sans fuseau) -> Date
 const dateLocale = (s: string) => parseISO(s.replace(" ", "T"));
 
-const depuis = (iso: string | null) =>
-  iso ? formatDistanceToNow(new Date(iso), { addSuffix: true, locale: fr }) : "";
+const depuis = (iso: string | null) => (iso ? formatDistanceToNow(new Date(iso), { addSuffix: true, locale: fr }) : "");
 
 function taille(octets: number | null) {
   if (!octets) return null;
@@ -106,14 +118,17 @@ function anciennete(mois: number | null) {
   if (mois < 1) return "Moins d'un mois";
   const ans = Math.floor(mois / 12);
   const reste = mois % 12;
-  const morceaux = [
-    ans > 0 ? `${ans} ${pluriel(ans, "an", "ans")}` : null,
-    reste > 0 ? `${reste} mois` : null,
-  ].filter(Boolean);
+  const morceaux = [ans > 0 ? `${ans} ${pluriel(ans, "an", "ans")}` : null, reste > 0 ? `${reste} mois` : null].filter(
+    Boolean,
+  );
   return morceaux.join(" et ");
 }
 
-const LIBELLES_MANQUE: Record<string, string> = { poste: "votre poste", telephone: "votre téléphone", photo: "votre photo" };
+const LIBELLES_MANQUE: Record<string, string> = {
+  poste: "votre poste",
+  telephone: "votre téléphone",
+  photo: "votre photo",
+};
 
 const BOUTON_PETIT =
   "inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50";
@@ -160,14 +175,23 @@ function Vide({ children }: { children: ReactNode }) {
   return <p className="py-6 text-center text-sm text-site-muted">{children}</p>;
 }
 
-function Avatar({ personne, taille: t = "size-9" }: { personne: { prenom: string; nom: string; photo?: string | null }; taille?: string }) {
+function Avatar({
+  personne,
+  taille: t = "size-9",
+}: {
+  personne: { prenom: string; nom: string; photo?: string | null };
+  taille?: string;
+}) {
   return personne.photo ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={urlStockage(personne.photo)} alt="" className={cn("shrink-0 rounded-full object-cover", t)} />
   ) : (
     <span
       aria-hidden
-      className={cn("flex shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-xs font-semibold text-brand-violet", t)}
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-xs font-semibold text-brand-violet",
+        t,
+      )}
     >
       {initialesDe(personne)}
     </span>
@@ -192,7 +216,10 @@ function Kpi({
   const a = ACCENTS[accent];
   return (
     <section className="group relative overflow-hidden rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm transition-colors hover:border-brand-violet/40 sm:p-6">
-      <span aria-hidden className={cn("pointer-events-none absolute -right-8 -top-12 size-36 rounded-full blur-3xl", a.halo)} />
+      <span
+        aria-hidden
+        className={cn("pointer-events-none absolute -right-8 -top-12 size-36 rounded-full blur-3xl", a.halo)}
+      />
       <span aria-hidden className="v-gradient-btn absolute inset-x-0 top-0 h-px opacity-70" />
       <div className="relative flex items-center gap-3">
         <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl", a.tuile)}>
@@ -204,10 +231,15 @@ function Kpi({
         <p className="font-display text-[2.5rem] font-bold leading-none tabular-nums">{valeur}</p>
         {progression !== undefined && (
           <div aria-hidden className="mt-4 h-1.5 overflow-hidden rounded-full bg-site-line">
-            <div className="v-gradient-btn h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.min(100, progression)}%` }} />
+            <div
+              className="v-gradient-btn h-full rounded-full transition-[width] duration-700"
+              style={{ width: `${Math.min(100, progression)}%` }}
+            />
           </div>
         )}
-        {detail && <p className={cn("text-xs text-site-muted", progression !== undefined ? "mt-2.5" : "mt-4")}>{detail}</p>}
+        {detail && (
+          <p className={cn("text-xs text-site-muted", progression !== undefined ? "mt-2.5" : "mt-4")}>{detail}</p>
+        )}
       </div>
     </section>
   );
@@ -306,7 +338,10 @@ export function EmployeTableauDeBord() {
         valeur={nombre.format(nbNouveautes)}
         detail={
           nbNouveautes > 0
-            ? ct.types.filter((t) => t.nouveaux > 0).map((t) => `${t.nouveaux} ${t.libelle.toLowerCase()}`).join(" · ")
+            ? ct.types
+                .filter((t) => t.nouveaux > 0)
+                .map((t) => `${t.nouveaux} ${t.libelle.toLowerCase()}`)
+                .join(" · ")
             : "Rien de nouveau cette semaine"
         }
       />,
@@ -359,7 +394,8 @@ export function EmployeTableauDeBord() {
 
       {manque.length > 0 && (
         <p className="rounded-xl border border-dashed border-site-line px-4 py-3 text-sm text-site-muted">
-          Votre fiche est incomplète : ajoutez {manque.join(", ")} depuis votre profil pour que vos collègues puissent vous retrouver.
+          Votre fiche est incomplète : ajoutez {manque.join(", ")} depuis votre profil pour que vos collègues puissent
+          vous retrouver.
         </p>
       )}
 
@@ -385,12 +421,20 @@ export function EmployeTableauDeBord() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{n.titre}</p>
                         <p className="truncate text-xs text-site-muted">
-                          {[n.numero_note ? `N° ${n.numero_note}` : null, n.auteur ? nomComplet(n.auteur) : null, depuis(n.date_publication)]
+                          {[
+                            n.numero_note ? `N° ${n.numero_note}` : null,
+                            n.auteur ? nomComplet(n.auteur) : null,
+                            depuis(n.date_publication),
+                          ]
                             .filter(Boolean)
                             .join(" · ")}
                         </p>
                       </div>
-                      <button type="button" className={BOUTON_PETIT} onClick={() => setOuvert({ type: "note_service", id: n.id, titre: n.titre })}>
+                      <button
+                        type="button"
+                        className={BOUTON_PETIT}
+                        onClick={() => setOuvert({ type: "note_service", id: n.id, titre: n.titre })}
+                      >
                         Lire
                       </button>
                     </li>
@@ -399,7 +443,8 @@ export function EmployeTableauDeBord() {
               )}
               {notes.a_lire > notes.liste.length && (
                 <p className="mt-4 text-xs text-site-muted">
-                  Et {notes.a_lire - notes.liste.length} {pluriel(notes.a_lire - notes.liste.length, "autre", "autres")} après celles-ci.
+                  Et {notes.a_lire - notes.liste.length} {pluriel(notes.a_lire - notes.liste.length, "autre", "autres")}{" "}
+                  après celles-ci.
                 </p>
               )}
             </Carte>
@@ -408,7 +453,11 @@ export function EmployeTableauDeBord() {
           {/* Fil des publications */}
           {ct.types.length > 0 && (
             <Carte>
-              <EnteteCarte icone={Newspaper} titre="Dernières publications" meta={ct.types.map((t) => t.libelle).join(" · ")} />
+              <EnteteCarte
+                icone={Newspaper}
+                titre="Dernières publications"
+                meta={ct.types.map((t) => t.libelle).join(" · ")}
+              />
               {ct.fil.length === 0 ? (
                 <Vide>Aucune publication pour le moment.</Vide>
               ) : (
@@ -434,9 +483,13 @@ export function EmployeTableauDeBord() {
                                 </span>
                               )}
                             </span>
-                            {c.extrait && <span className="mt-0.5 line-clamp-2 block text-xs text-site-muted">{c.extrait}</span>}
+                            {c.extrait && (
+                              <span className="mt-0.5 line-clamp-2 block text-xs text-site-muted">{c.extrait}</span>
+                            )}
                             <span className="mt-1 block truncate text-[11px] text-site-muted">
-                              {[c.libelle_type, c.auteur ? nomComplet(c.auteur) : null, depuis(c.date_publication)].filter(Boolean).join(" · ")}
+                              {[c.libelle_type, c.auteur ? nomComplet(c.auteur) : null, depuis(c.date_publication)]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </span>
                           </span>
                         </button>
@@ -468,7 +521,9 @@ export function EmployeTableauDeBord() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{doc.nom_document}</p>
                         <p className="truncate text-xs text-site-muted">
-                          {[doc.categorie, taille(doc.taille_fichier), depuis(doc.created_at)].filter(Boolean).join(" · ")}
+                          {[doc.categorie, taille(doc.taille_fichier), depuis(doc.created_at)]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </p>
                       </div>
                       <button
@@ -509,14 +564,20 @@ export function EmployeTableauDeBord() {
                     return (
                       <li key={e.id} className="flex items-start gap-3">
                         <span className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-brand-violet/12 py-1 text-brand-violet">
-                          <span className="text-[10px] font-semibold uppercase">{format(debut, "MMM", { locale: fr })}</span>
+                          <span className="text-[10px] font-semibold uppercase">
+                            {format(debut, "MMM", { locale: fr })}
+                          </span>
                           <span className="text-base font-bold leading-none tabular-nums">{format(debut, "d")}</span>
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{e.titre_evenement}</p>
                           <p className="truncate text-xs text-site-muted">
                             {[
-                              enCours ? "En cours" : isSameDay(debut, maintenant) ? `Aujourd'hui à ${format(debut, "HH:mm")}` : format(debut, "EEEE à HH:mm", { locale: fr }),
+                              enCours
+                                ? "En cours"
+                                : isSameDay(debut, maintenant)
+                                  ? `Aujourd'hui à ${format(debut, "HH:mm")}`
+                                  : format(debut, "EEEE à HH:mm", { locale: fr }),
                               e.lieu,
                             ]
                               .filter(Boolean)
@@ -548,9 +609,17 @@ export function EmployeTableauDeBord() {
                     const urgent = limite !== null && limite.getTime() - maintenant.getTime() < 3 * 86_400_000;
                     return (
                       <li key={f.id}>
-                        <Link href="/espace/mes-formulaires" className="flex items-center gap-3 rounded-lg transition-colors hover:text-brand-violet">
+                        <Link
+                          href="/espace/mes-formulaires"
+                          className="flex items-center gap-3 rounded-lg transition-colors hover:text-brand-violet"
+                        >
                           <p className="min-w-0 flex-1 truncate text-sm font-medium">{f.titre_formulaire}</p>
-                          <span className={cn("shrink-0 text-xs", urgent ? "font-semibold text-site-danger" : "text-site-muted")}>
+                          <span
+                            className={cn(
+                              "shrink-0 text-xs",
+                              urgent ? "font-semibold text-site-danger" : "text-site-muted",
+                            )}
+                          >
                             {limite ? `Avant le ${format(limite, "d MMM", { locale: fr })}` : "Sans date limite"}
                           </span>
                         </Link>
@@ -575,19 +644,25 @@ export function EmployeTableauDeBord() {
               <div className="space-y-4">
                 {equipe.superieur && (
                   <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-site-muted">Mon supérieur</p>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-site-muted">
+                      Mon supérieur
+                    </p>
                     <div className="flex items-center gap-3">
                       <Avatar personne={equipe.superieur} />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{nomComplet(equipe.superieur)}</p>
-                        {equipe.superieur.poste && <p className="truncate text-xs text-site-muted">{equipe.superieur.poste}</p>}
+                        {equipe.superieur.poste && (
+                          <p className="truncate text-xs text-site-muted">{equipe.superieur.poste}</p>
+                        )}
                       </div>
                     </div>
                   </div>
                 )}
                 {equipe.departement?.responsable && equipe.departement.responsable.id !== equipe.superieur?.id && (
                   <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-site-muted">Responsable du département</p>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-site-muted">
+                      Responsable du département
+                    </p>
                     <div className="flex items-center gap-3">
                       <Avatar personne={{ ...equipe.departement.responsable, photo: null }} />
                       <div className="min-w-0">
@@ -617,7 +692,8 @@ export function EmployeTableauDeBord() {
                     </ul>
                     {equipe.nb_collegues > equipe.collegues.length && (
                       <p className="mt-2 text-xs text-site-muted">
-                        et {equipe.nb_collegues - equipe.collegues.length} {pluriel(equipe.nb_collegues - equipe.collegues.length, "autre", "autres")}
+                        et {equipe.nb_collegues - equipe.collegues.length}{" "}
+                        {pluriel(equipe.nb_collegues - equipe.collegues.length, "autre", "autres")}
                       </p>
                     )}
                   </div>
@@ -639,7 +715,8 @@ export function EmployeTableauDeBord() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{nomComplet(a)}</p>
                       <p className="truncate text-xs text-site-muted">
-                        {a.annees} {pluriel(a.annees, "an", "ans")} dans l&apos;entreprise · {format(parseISO(a.date), "d MMMM", { locale: fr })}
+                        {a.annees} {pluriel(a.annees, "an", "ans")} dans l&apos;entreprise ·{" "}
+                        {format(parseISO(a.date), "d MMMM", { locale: fr })}
                       </p>
                     </div>
                   </li>

@@ -16,7 +16,12 @@ type Vue = "calendrier" | "liste";
 const formatMois = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
 const formatJourLong = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 const formatJourCourt = new Intl.DateTimeFormat("fr-FR", { weekday: "short" });
-const formatDateLongue = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const formatDateLongue = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 const formatHeure = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -62,14 +67,29 @@ function Detail({ evenement: e, onFermer }: { evenement: Evenement; onFermer: ()
   const memeJour = cleJour(d) === cleJour(f);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="titre-evenement">
-      <button type="button" aria-label="Fermer" className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+    <div
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titre-evenement"
+    >
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative w-full max-w-lg rounded-2xl border border-site-line bg-site-surface shadow-2xl">
         <header className="flex items-start justify-between gap-3 border-b border-site-line px-5 py-4 sm:px-6">
           <h2 id="titre-evenement" className="font-display text-lg font-semibold">
             {e.titre_evenement}
           </h2>
-          <button type="button" onClick={onFermer} aria-label="Fermer" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-site-muted transition-colors hover:bg-site-surface2 hover:text-site-ink">
+          <button
+            type="button"
+            onClick={onFermer}
+            aria-label="Fermer"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-site-muted transition-colors hover:bg-site-surface2 hover:text-site-ink"
+          >
             <X size={18} aria-hidden />
           </button>
         </header>
@@ -105,10 +125,18 @@ function Detail({ evenement: e, onFermer }: { evenement: Evenement; onFermer: ()
             <Users size={16} aria-hidden className="mt-0.5 shrink-0 text-site-muted" />
             <span>
               {e.visibilite === "entreprise" ? "Toute l’entreprise" : "Mon département"}
-              {e.auteur && <span className="block text-site-muted">Organisé par {e.auteur.prenom} {e.auteur.nom}</span>}
+              {e.auteur && (
+                <span className="block text-site-muted">
+                  Organisé par {e.auteur.prenom} {e.auteur.nom}
+                </span>
+              )}
             </span>
           </p>
-          {e.description_evenement && <div className="whitespace-pre-wrap break-words rounded-xl border border-site-line bg-site-base/40 px-4 py-3 leading-relaxed">{e.description_evenement}</div>}
+          {e.description_evenement && (
+            <div className="whitespace-pre-wrap break-words rounded-xl border border-site-line bg-site-base/40 px-4 py-3 leading-relaxed">
+              {e.description_evenement}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -156,7 +184,10 @@ export function CalendrierConsultation() {
   );
   const liste = useDonnees(true, charger);
   const enChargement = liste.chargement || (liste.donnees !== null && liste.donnees.cle !== cleCourante);
-  const evenements = useMemo(() => (liste.donnees && liste.donnees.cle === cleCourante ? liste.donnees.res.evenements : null), [liste.donnees, cleCourante]);
+  const evenements = useMemo(
+    () => (liste.donnees && liste.donnees.cle === cleCourante ? liste.donnees.res.evenements : null),
+    [liste.donnees, cleCourante],
+  );
 
   const aujourdhui = cleJour(new Date());
   const moisCourant = cleJour(debutDuMois(new Date())) === cleJour(mois);
@@ -183,8 +214,18 @@ export function CalendrierConsultation() {
   }, [grille, evenements]);
 
   // Liste : seulement les jours du mois affiché
-  const joursDuMois = useMemo(() => grille.filter((g) => g.getMonth() === mois.getMonth()).map(cleJour).filter((c) => parJour.has(c)), [grille, mois, parJour]);
-  const nbEvenementsMois = useMemo(() => new Set(joursDuMois.flatMap((c) => (parJour.get(c) ?? []).map((e) => e.id))).size, [joursDuMois, parJour]);
+  const joursDuMois = useMemo(
+    () =>
+      grille
+        .filter((g) => g.getMonth() === mois.getMonth())
+        .map(cleJour)
+        .filter((c) => parJour.has(c)),
+    [grille, mois, parJour],
+  );
+  const nbEvenementsMois = useMemo(
+    () => new Set(joursDuMois.flatMap((c) => (parJour.get(c) ?? []).map((e) => e.id))).size,
+    [joursDuMois, parJour],
+  );
 
   const fermer = useCallback(() => setOuvert(null), []);
   const duJourChoisi = jourChoisi ? (parJour.get(jourChoisi) ?? []) : [];
@@ -198,23 +239,41 @@ export function CalendrierConsultation() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => allerMois(-1)} aria-label="Mois précédent" className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60">
+          <button
+            type="button"
+            onClick={() => allerMois(-1)}
+            aria-label="Mois précédent"
+            className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60"
+          >
             <ChevronLeft size={16} aria-hidden />
           </button>
           <h2 className="min-w-44 text-center font-display text-lg font-semibold" aria-live="polite">
             {majuscule(formatMois.format(mois))}
           </h2>
-          <button type="button" onClick={() => allerMois(1)} aria-label="Mois suivant" className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60">
+          <button
+            type="button"
+            onClick={() => allerMois(1)}
+            aria-label="Mois suivant"
+            className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60"
+          >
             <ChevronRight size={16} aria-hidden />
           </button>
           {!moisCourant && (
-            <button type="button" onClick={retourAujourdhui} className="ml-1 inline-flex h-9 items-center rounded-full border border-site-line px-4 text-xs font-semibold transition-colors hover:border-brand-violet/60">
+            <button
+              type="button"
+              onClick={retourAujourdhui}
+              className="ml-1 inline-flex h-9 items-center rounded-full border border-site-line px-4 text-xs font-semibold transition-colors hover:border-brand-violet/60"
+            >
               Aujourd’hui
             </button>
           )}
         </div>
 
-        <div role="tablist" aria-label="Affichage" className="inline-flex rounded-full border border-site-line bg-site-surface p-1">
+        <div
+          role="tablist"
+          aria-label="Affichage"
+          className="inline-flex rounded-full border border-site-line bg-site-surface p-1"
+        >
           {(
             [
               { code: "calendrier", libelle: "Calendrier", Icone: CalendarDays },
@@ -229,7 +288,10 @@ export function CalendrierConsultation() {
                 role="tab"
                 aria-selected={actif}
                 onClick={() => setVue(code)}
-                className={cn("inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors", actif ? "v-gradient-btn" : "text-site-muted hover:text-site-ink")}
+                className={cn(
+                  "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors",
+                  actif ? "v-gradient-btn" : "text-site-muted hover:text-site-ink",
+                )}
               >
                 <Icone size={14} aria-hidden />
                 {libelle}
@@ -242,13 +304,20 @@ export function CalendrierConsultation() {
       {liste.erreur ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
           <span>Impossible de charger les événements.</span>
-          <button type="button" onClick={liste.reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+          <button
+            type="button"
+            onClick={liste.reessayer}
+            className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+          >
             Réessayer
           </button>
         </div>
       ) : vue === "calendrier" ? (
         <>
-          <section className="overflow-hidden rounded-2xl border border-site-line bg-site-surface shadow-sm" aria-busy={enChargement}>
+          <section
+            className="overflow-hidden rounded-2xl border border-site-line bg-site-surface shadow-sm"
+            aria-busy={enChargement}
+          >
             <div className="grid grid-cols-7 border-b border-site-line bg-site-surface2/40 text-center text-[11px] font-semibold uppercase tracking-wide text-site-muted">
               {JOURS.map((j) => (
                 <span key={j} className="py-2">
@@ -276,18 +345,38 @@ export function CalendrierConsultation() {
                       choisi && "bg-brand-violet/10 ring-2 ring-inset ring-brand-violet/60",
                     )}
                   >
-                    <span className={cn("flex size-6 items-center justify-center self-start rounded-full text-xs font-semibold tabular-nums", cle === aujourdhui && "v-gradient-btn")}>{g.getDate()}</span>
+                    <span
+                      className={cn(
+                        "flex size-6 items-center justify-center self-start rounded-full text-xs font-semibold tabular-nums",
+                        cle === aujourdhui && "v-gradient-btn",
+                      )}
+                    >
+                      {g.getDate()}
+                    </span>
                     {enChargement ? null : (
                       <>
                         <span className="hidden flex-col gap-0.5 sm:flex">
                           {du.slice(0, 2).map((e) => (
-                            <span key={e.id} className="truncate rounded bg-brand-violet/15 px-1.5 py-0.5 text-[10px] font-medium text-brand-violet">
+                            <span
+                              key={e.id}
+                              className="truncate rounded bg-brand-violet/15 px-1.5 py-0.5 text-[10px] font-medium text-brand-violet"
+                            >
                               {e.titre_evenement}
                             </span>
                           ))}
-                          {du.length > 2 && <span className="px-1 text-[10px] text-site-muted">+{du.length - 2} autre{du.length - 2 > 1 ? "s" : ""}</span>}
+                          {du.length > 2 && (
+                            <span className="px-1 text-[10px] text-site-muted">
+                              +{du.length - 2} autre{du.length - 2 > 1 ? "s" : ""}
+                            </span>
+                          )}
                         </span>
-                        {du.length > 0 && <span className="flex gap-0.5 sm:hidden">{du.slice(0, 3).map((e) => <span key={e.id} className="size-1.5 rounded-full bg-brand-violet" />)}</span>}
+                        {du.length > 0 && (
+                          <span className="flex gap-0.5 sm:hidden">
+                            {du.slice(0, 3).map((e) => (
+                              <span key={e.id} className="size-1.5 rounded-full bg-brand-violet" />
+                            ))}
+                          </span>
+                        )}
                       </>
                     )}
                   </button>
@@ -298,7 +387,9 @@ export function CalendrierConsultation() {
 
           {jourChoisi && (
             <section className="rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
-              <h3 className="mb-3 font-display text-base font-semibold">{majuscule(formatJourLong.format(lireDate(`${jourChoisi} 00:00:00`)))}</h3>
+              <h3 className="mb-3 font-display text-base font-semibold">
+                {majuscule(formatJourLong.format(lireDate(`${jourChoisi} 00:00:00`)))}
+              </h3>
               {enChargement ? (
                 <Squelette className="h-14 w-full rounded-xl" />
               ) : duJourChoisi.length === 0 ? (
@@ -339,7 +430,9 @@ export function CalendrierConsultation() {
               <section key={cle} className="rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
                 <h3 className="mb-3 flex items-center gap-3 font-display text-base font-semibold">
                   <span className="flex size-10 flex-col items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
-                    <span className="text-[9px] font-semibold uppercase leading-none">{formatJourCourt.format(d).replace(".", "")}</span>
+                    <span className="text-[9px] font-semibold uppercase leading-none">
+                      {formatJourCourt.format(d).replace(".", "")}
+                    </span>
                     <span className="text-base font-bold leading-tight tabular-nums">{d.getDate()}</span>
                   </span>
                   {majuscule(formatJourLong.format(d))}

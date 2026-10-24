@@ -19,7 +19,13 @@ type Suivi = {
   };
 };
 
-const dateHeure = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateHeure = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 // Qui a confirmé avoir lu la note de service (RG24)
 export function SuiviLectures({ noteId, titre, onFermer }: { noteId: number; titre: string; onFermer: () => void }) {
@@ -38,16 +44,30 @@ export function SuiviLectures({ noteId, titre, onFermer }: { noteId: number; tit
     };
   }, [onFermer]);
 
-  const charger = useCallback(async (jeton: string) => ({ page, suivi: await api<Suivi>(`/contenus/note_service/${noteId}/lectures?page=${page}`, { token: jeton }) }), [noteId, page]);
+  const charger = useCallback(
+    async (jeton: string) => ({
+      page,
+      suivi: await api<Suivi>(`/contenus/note_service/${noteId}/lectures?page=${page}`, { token: jeton }),
+    }),
+    [noteId, page],
+  );
   const { donnees, chargement, erreur, reessayer } = useDonnees(true, charger);
 
   const enChargement = chargement || (donnees !== null && donnees.page !== page);
   const suivi = donnees?.suivi ?? null;
-  const part = suivi && suivi.nb_destinataires > 0 ? Math.min(100, Math.round((suivi.nb_lectures / suivi.nb_destinataires) * 100)) : 0;
+  const part =
+    suivi && suivi.nb_destinataires > 0
+      ? Math.min(100, Math.round((suivi.nb_lectures / suivi.nb_destinataires) * 100))
+      : 0;
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-suivi-lectures">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-site-line px-5">
           <div className="min-w-0">
@@ -90,27 +110,40 @@ export function SuiviLectures({ noteId, titre, onFermer }: { noteId: number; tit
               <div className="rounded-xl border border-site-line bg-site-base/40 p-4">
                 <p className="font-display text-2xl font-bold tabular-nums">
                   {suivi.nb_lectures}
-                  <span className="text-base font-normal text-site-muted"> / {suivi.nb_destinataires} destinataire{suivi.nb_destinataires > 1 ? "s" : ""}</span>
+                  <span className="text-base font-normal text-site-muted">
+                    {" "}
+                    / {suivi.nb_destinataires} destinataire{suivi.nb_destinataires > 1 ? "s" : ""}
+                  </span>
                 </p>
                 <p className="mt-0.5 text-xs text-site-muted">ont confirmé la lecture ({part} %)</p>
                 <div aria-hidden className="mt-3 h-2 overflow-hidden rounded-full bg-site-line/70">
-                  <div className="v-gradient-btn h-full rounded-full transition-[width] duration-700" style={{ width: `${part}%` }} />
+                  <div
+                    className="v-gradient-btn h-full rounded-full transition-[width] duration-700"
+                    style={{ width: `${part}%` }}
+                  />
                 </div>
               </div>
 
               {suivi.lecteurs.data.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-site-line px-4 py-8 text-center text-sm text-site-muted">Personne n’a encore confirmé la lecture.</p>
+                <p className="rounded-xl border border-dashed border-site-line px-4 py-8 text-center text-sm text-site-muted">
+                  Personne n’a encore confirmé la lecture.
+                </p>
               ) : (
                 <ul className="divide-y divide-site-line rounded-xl border border-site-line">
                   {suivi.lecteurs.data.map((l, i) => (
                     <li key={l.utilisateur?.id ?? `inconnu-${i}`} className="flex items-center gap-3 px-4 py-3">
-                      <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet">
+                      <span
+                        aria-hidden
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet"
+                      >
                         {l.utilisateur ? initiales(l.utilisateur) : "?"}
                       </span>
                       <span className={cn("min-w-0 flex-1 truncate text-sm", !l.utilisateur && "text-site-muted")}>
                         {l.utilisateur ? `${l.utilisateur.prenom} ${l.utilisateur.nom}` : "Compte supprimé"}
                       </span>
-                      <span className="shrink-0 text-xs tabular-nums text-site-muted">{dateHeure.format(new Date(l.date_lecture))}</span>
+                      <span className="shrink-0 text-xs tabular-nums text-site-muted">
+                        {dateHeure.format(new Date(l.date_lecture))}
+                      </span>
                     </li>
                   ))}
                 </ul>

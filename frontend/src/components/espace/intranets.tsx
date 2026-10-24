@@ -3,7 +3,21 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Ban, Building2, ChevronLeft, ChevronRight, CircleCheck, Lock, Mail, PauseCircle, Search, ShieldAlert, Users, X, type LucideIcon } from "lucide-react";
+import {
+  Ban,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
+  Lock,
+  Mail,
+  PauseCircle,
+  Search,
+  ShieldAlert,
+  Users,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { estSuperAdmin } from "@/lib/espace";
 import { iconeModule } from "@/lib/module-icons";
@@ -122,11 +136,18 @@ function Notification({ notice, onFermer }: { notice: Notice; onFermer: () => vo
       role={notice.type === "erreur" ? "alert" : "status"}
       className={cn(
         "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-        notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+        notice.type === "ok"
+          ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+          : "border-site-danger/40 bg-site-danger/10 text-site-danger",
       )}
     >
       {notice.texte}
-      <button type="button" aria-label="Masquer le message" onClick={onFermer} className="shrink-0 opacity-70 hover:opacity-100">
+      <button
+        type="button"
+        aria-label="Masquer le message"
+        onClick={onFermer}
+        className="shrink-0 opacity-70 hover:opacity-100"
+      >
         <X size={16} aria-hidden />
       </button>
     </p>
@@ -186,10 +207,17 @@ function Fiche({
     setEnCours(true);
     setErreurAction(null);
     try {
-      await api<Intranet>(`/super/intranets/${e.id}/statut`, { method: "PUT", token, body: JSON.stringify({ statut: cible }) });
+      await api<Intranet>(`/super/intranets/${e.id}/statut`, {
+        method: "PUT",
+        token,
+        body: JSON.stringify({ statut: cible }),
+      });
       onChangement({
         type: "ok",
-        texte: cible === "suspendue" ? `L'intranet « ${e.nom_entreprise} » est suspendu.` : `L'intranet « ${e.nom_entreprise} » est de nouveau actif.`,
+        texte:
+          cible === "suspendue"
+            ? `L'intranet « ${e.nom_entreprise} » est suspendu.`
+            : `L'intranet « ${e.nom_entreprise} » est de nouveau actif.`,
       });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -206,8 +234,18 @@ function Fiche({
   const modulesActifs = e?.modules.filter((m) => m.actif) ?? [];
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-labelledby="titre-fiche-intranet">
-      <button type="button" aria-label="Fermer la fiche" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+    <div
+      className="fixed inset-0 z-[60] flex justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titre-fiche-intranet"
+    >
+      <button
+        type="button"
+        aria-label="Fermer la fiche"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <aside className="relative flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <div className="flex items-center justify-between gap-3 border-b border-site-line px-5 py-4">
           <h2 id="titre-fiche-intranet" className="font-display text-base font-semibold">
@@ -266,7 +304,9 @@ function Fiche({
                   <p className="text-[11px] text-site-muted">Comptes</p>
                 </div>
                 <div className="rounded-xl border border-site-line p-3">
-                  <p className="font-display text-xl font-bold tabular-nums">{nombre.format(e.nb_utilisateurs_actifs)}</p>
+                  <p className="font-display text-xl font-bold tabular-nums">
+                    {nombre.format(e.nb_utilisateurs_actifs)}
+                  </p>
                   <p className="text-[11px] text-site-muted">Comptes actifs</p>
                 </div>
                 <div className="rounded-xl border border-site-line p-3">
@@ -293,13 +333,20 @@ function Fiche({
                     {e.administrateurs.map((a) => (
                       <li key={a.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                         <div className="min-w-0">
-                          <p className={cn("truncate text-sm font-medium", a.statut_compte !== "actif" && "text-site-muted")}>
+                          <p
+                            className={cn(
+                              "truncate text-sm font-medium",
+                              a.statut_compte !== "actif" && "text-site-muted",
+                            )}
+                          >
                             {a.prenom} {a.nom}
                           </p>
                           <p className="truncate text-xs text-site-muted">{a.email}</p>
                         </div>
                         {a.statut_compte !== "actif" && (
-                          <span className="shrink-0 rounded-full bg-site-line px-2 py-0.5 text-[10px] font-semibold text-site-muted">Inactif</span>
+                          <span className="shrink-0 rounded-full bg-site-line px-2 py-0.5 text-[10px] font-semibold text-site-muted">
+                            Inactif
+                          </span>
                         )}
                       </li>
                     ))}
@@ -309,7 +356,10 @@ function Fiche({
 
               <section>
                 <h3 className="mb-2 font-display text-sm font-semibold">
-                  Modules actifs <span className="font-normal text-site-muted">({modulesActifs.length} sur {e.modules.length})</span>
+                  Modules actifs{" "}
+                  <span className="font-normal text-site-muted">
+                    ({modulesActifs.length} sur {e.modules.length})
+                  </span>
                 </h3>
                 <ul className="flex flex-wrap gap-2">
                   {e.modules.map((m) => (
@@ -317,7 +367,9 @@ function Fiche({
                       key={m.code_module}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-                        m.actif ? "border-brand-violet/40 bg-brand-violet/10 text-brand-violet" : "border-site-line text-site-muted line-through opacity-70",
+                        m.actif
+                          ? "border-brand-violet/40 bg-brand-violet/10 text-brand-violet"
+                          : "border-site-line text-site-muted line-through opacity-70",
                       )}
                     >
                       <Ico de={m.module_obligatoire ? Lock : iconeModule(m.code_module)} size={12} />
@@ -328,7 +380,10 @@ function Fiche({
               </section>
 
               {erreurAction && (
-                <p role="alert" className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger">
+                <p
+                  role="alert"
+                  className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger"
+                >
                   {erreurAction}
                 </p>
               )}
@@ -364,16 +419,26 @@ function Fiche({
       </aside>
 
       {confirmer && e && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="titre-suspension">
-          <button type="button" aria-label="Annuler" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmer(false)} />
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suspension"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmer(false)}
+          />
           <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
             <h2 id="titre-suspension" className="flex items-start gap-2 font-display text-base font-semibold">
               <ShieldAlert size={18} aria-hidden className="mt-0.5 shrink-0 text-site-danger" />
               Suspendre « {e.nom_entreprise} » ?
             </h2>
             <p className="mt-2 text-sm text-site-muted">
-              Les {nombre.format(e.nb_utilisateurs)} comptes de cette entreprise seront déconnectés et ne pourront plus se connecter. Les données ne sont pas
-              supprimées : tout revient quand vous réactivez l’intranet.
+              Les {nombre.format(e.nb_utilisateurs)} comptes de cette entreprise seront déconnectés et ne pourront plus
+              se connecter. Les données ne sont pas supprimées : tout revient quand vous réactivez l’intranet.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -384,7 +449,11 @@ function Fiche({
               >
                 Annuler
               </button>
-              <button type="button" onClick={() => changerStatut("suspendue")} className="h-10 rounded-full bg-site-danger px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90">
+              <button
+                type="button"
+                onClick={() => changerStatut("suspendue")}
+                className="h-10 rounded-full bg-site-danger px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
                 Suspendre
               </button>
             </div>
@@ -460,7 +529,11 @@ export function Intranets() {
   const fermerFiche = useCallback(() => setSelection(null), []);
 
   if (!autorise) {
-    return <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">Cet écran est réservé au super-administrateur.</p>;
+    return (
+      <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
+        Cet écran est réservé au super-administrateur.
+      </p>
+    );
   }
 
   const debut = resultat && resultat.total > 0 ? (resultat.current_page - 1) * resultat.per_page + 1 : 0;
@@ -470,7 +543,9 @@ export function Intranets() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold">Intranets</h1>
-        <p className="mt-1 text-sm text-site-muted">Toutes les entreprises de la plateforme : consultez leur activité et suspendez ou réactivez leur intranet.</p>
+        <p className="mt-1 text-sm text-site-muted">
+          Toutes les entreprises de la plateforme : consultez leur activité et suspendez ou réactivez leur intranet.
+        </p>
       </div>
 
       {notice && <Notification notice={notice} onFermer={() => setNotice(null)} />}
@@ -485,7 +560,11 @@ export function Intranets() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-col gap-3 border-b border-site-line p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -538,7 +617,9 @@ export function Intranets() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <Building2 size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtresActifs ? "Aucun intranet ne correspond à ces critères." : "Aucun intranet pour le moment."}</p>
+            <p className="mt-4 text-sm font-medium">
+              {filtresActifs ? "Aucun intranet ne correspond à ces critères." : "Aucun intranet pour le moment."}
+            </p>
             {filtresActifs && (
               <button
                 type="button"
@@ -552,7 +633,12 @@ export function Intranets() {
         ) : (
           resultat && (
             <div className={cn("transition-opacity", rafraichit && "opacity-60")} aria-busy={rafraichit}>
-              <div className={cn("hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid", COLONNES)}>
+              <div
+                className={cn(
+                  "hidden gap-4 border-b border-site-line px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted md:grid",
+                  COLONNES,
+                )}
+              >
                 <span>Entreprise</span>
                 <span>Contact</span>
                 <span>Statut</span>
@@ -577,11 +663,15 @@ export function Intranets() {
                         <div className="flex min-w-0 items-center gap-3">
                           <Logo nom={e.nom_entreprise} suspendue={suspendue} />
                           <div className="min-w-0">
-                            <p className={cn("truncate text-sm font-semibold", suspendue && "text-site-muted")}>{e.nom_entreprise}</p>
+                            <p className={cn("truncate text-sm font-semibold", suspendue && "text-site-muted")}>
+                              {e.nom_entreprise}
+                            </p>
                             <p className="truncate text-xs text-site-muted">{e.slug}</p>
                           </div>
                         </div>
-                        <p className="min-w-0 truncate text-sm">{e.email_contact ?? <span className="text-site-muted">—</span>}</p>
+                        <p className="min-w-0 truncate text-sm">
+                          {e.email_contact ?? <span className="text-site-muted">—</span>}
+                        </p>
                         <div>
                           <PastilleStatut statut={e.statut_entreprise} />
                         </div>

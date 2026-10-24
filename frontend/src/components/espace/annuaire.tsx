@@ -7,7 +7,15 @@ import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
-import { Avatar, aplatirOrga, libelleDepartement, nombre, type Employe, type NoeudOrga, type Pagination } from "./annuaire-commun";
+import {
+  Avatar,
+  aplatirOrga,
+  libelleDepartement,
+  nombre,
+  type Employe,
+  type NoeudOrga,
+  type Pagination,
+} from "./annuaire-commun";
 import { AnnuaireFiche } from "./annuaire-fiche";
 import { Organigramme } from "./organigramme";
 import { OrganigrammePersonnes, type PersonneOrga } from "./organigramme-personnes";
@@ -59,7 +67,8 @@ export function Annuaire() {
   const orga = useDonnees(autorise, chargerOrga);
   const departements = useMemo(() => (orga.donnees ? aplatirOrga(orga.donnees) : []), [orga.donnees]);
   // Un département qui n'existe plus ne filtre plus
-  const departementActif = orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
+  const departementActif =
+    orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
 
   // Organigramme des personnes : chargé seulement quand on l'affiche
   const chargerPersonnes = useCallback(
@@ -106,7 +115,11 @@ export function Annuaire() {
   }, []);
 
   if (!autorise) {
-    return <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">Vous n’avez pas accès à la gestion de l’annuaire.</p>;
+    return (
+      <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
+        Vous n’avez pas accès à la gestion de l’annuaire.
+      </p>
+    );
   }
 
   const filtre = q !== "" || departementActif !== "";
@@ -115,19 +128,33 @@ export function Annuaire() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold">Annuaire et organigramme</h1>
-        <p className="mt-1 text-sm text-site-muted">Retrouvez vos collègues, tenez leurs fiches à jour et visualisez l’organisation de l’entreprise.</p>
+        <p className="mt-1 text-sm text-site-muted">
+          Retrouvez vos collègues, tenez leurs fiches à jour et visualisez l’organisation de l’entreprise.
+        </p>
       </div>
 
       {notice && (
-        <p role="status" className="flex items-center justify-between gap-3 rounded-xl border border-brand-cyan/40 bg-brand-cyan/10 px-4 py-3 text-sm text-brand-cyan">
+        <p
+          role="status"
+          className="flex items-center justify-between gap-3 rounded-xl border border-brand-cyan/40 bg-brand-cyan/10 px-4 py-3 text-sm text-brand-cyan"
+        >
           {notice}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
       )}
 
-      <div role="tablist" aria-label="Affichage" className="inline-flex rounded-full border border-site-line bg-site-surface p-1">
+      <div
+        role="tablist"
+        aria-label="Affichage"
+        className="inline-flex rounded-full border border-site-line bg-site-surface p-1"
+      >
         {(
           [
             { cle: "annuaire", libelle: "Annuaire", icone: Contact },
@@ -167,7 +194,9 @@ export function Annuaire() {
                 onClick={() => setVueOrga(cle)}
                 className={cn(
                   "h-8 rounded-full border px-4 text-xs font-semibold transition-colors",
-                  vueOrga === cle ? "border-brand-violet/60 bg-brand-violet/15 text-brand-violet" : "border-site-line text-site-muted hover:text-site-ink",
+                  vueOrga === cle
+                    ? "border-brand-violet/60 bg-brand-violet/15 text-brand-violet"
+                    : "border-site-line text-site-muted hover:text-site-ink",
                 )}
               >
                 {libelle}
@@ -175,16 +204,31 @@ export function Annuaire() {
             ))}
           </div>
           {vueOrga === "personnes" ? (
-            <OrganigrammePersonnes personnes={personnes.donnees} erreur={personnes.erreur} onReessayer={personnes.reessayer} onOuvrir={setFicheId} />
+            <OrganigrammePersonnes
+              personnes={personnes.donnees}
+              erreur={personnes.erreur}
+              onReessayer={personnes.reessayer}
+              onOuvrir={setFicheId}
+            />
           ) : (
-            <Organigramme noeuds={orga.donnees} erreur={orga.erreur} onReessayer={orga.reessayer} onOuvrirPersonne={setFicheId} onVoirEquipe={voirEquipe} />
+            <Organigramme
+              noeuds={orga.donnees}
+              erreur={orga.erreur}
+              onReessayer={orga.reessayer}
+              onOuvrirPersonne={setFicheId}
+              onVoirEquipe={voirEquipe}
+            />
           )}
         </div>
       ) : (
         <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
             <div className="relative min-w-52 max-w-md flex-1">
-              <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+              <Search
+                size={16}
+                aria-hidden
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+              />
               <input
                 type="search"
                 value={saisie}
@@ -231,7 +275,11 @@ export function Annuaire() {
           {liste.erreur ? (
             <div className="flex flex-wrap items-center gap-3 p-6 text-sm text-site-muted">
               <span>Impossible de charger l’annuaire. Votre rôle doit aussi pouvoir consulter l’annuaire.</span>
-              <button type="button" onClick={liste.reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+              <button
+                type="button"
+                onClick={liste.reessayer}
+                className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+              >
                 Réessayer
               </button>
             </div>
@@ -252,8 +300,14 @@ export function Annuaire() {
               <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
                 <Contact size={22} aria-hidden />
               </span>
-              <p className="mt-4 text-sm font-medium">{filtre ? "Aucune personne ne correspond à cette recherche." : "Aucun employé dans l’annuaire."}</p>
-              {filtre && <p className="mt-1 text-xs text-site-muted">Essayez un seul mot, ou retirez le filtre de département.</p>}
+              <p className="mt-4 text-sm font-medium">
+                {filtre ? "Aucune personne ne correspond à cette recherche." : "Aucun employé dans l’annuaire."}
+              </p>
+              {filtre && (
+                <p className="mt-1 text-xs text-site-muted">
+                  Essayez un seul mot, ou retirez le filtre de département.
+                </p>
+              )}
             </div>
           ) : (
             <div>
@@ -270,7 +324,9 @@ export function Annuaire() {
                         <span className="block truncate text-sm font-semibold">
                           {e.prenom} {e.nom}
                         </span>
-                        <span className="block truncate text-xs text-site-muted">{e.poste || "Poste non renseigné"}</span>
+                        <span className="block truncate text-xs text-site-muted">
+                          {e.poste || "Poste non renseigné"}
+                        </span>
                         {e.nom_departement && (
                           <span className="mt-1.5 inline-flex max-w-full rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">
                             <span className="truncate">{e.nom_departement}</span>
@@ -292,7 +348,10 @@ export function Annuaire() {
                 ))}
               </ul>
 
-              <nav aria-label="Pagination" className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-between gap-3 border-t border-site-line px-5 py-3"
+              >
                 <p className="text-xs text-site-muted">
                   {res.last_page > 1 && `Page ${res.current_page} sur ${res.last_page} · `}
                   {nombre.format(res.total)} personne{res.total > 1 ? "s" : ""}
@@ -326,7 +385,15 @@ export function Annuaire() {
       )}
 
       {ficheId !== null && (
-        <AnnuaireFiche key={ficheId} id={ficheId} departements={departements} onFermer={fermerFiche} onOuvrir={setFicheId} onVoirEquipe={voirEquipe} onModifie={apresModification} />
+        <AnnuaireFiche
+          key={ficheId}
+          id={ficheId}
+          departements={departements}
+          onFermer={fermerFiche}
+          onOuvrir={setFicheId}
+          onVoirEquipe={voirEquipe}
+          onModifie={apresModification}
+        />
       )}
     </div>
   );

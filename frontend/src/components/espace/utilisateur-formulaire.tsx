@@ -155,7 +155,12 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <form
         onSubmit={soumettre}
         noValidate
@@ -177,22 +182,48 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
 
           <div className="grid grid-cols-2 gap-3">
             <Champ id="f-prenom" label="Prénom" requis erreur={err("prenom")}>
-              <input id="f-prenom" ref={premierChamp} className={CHAMP} value={valeurs.prenom} onChange={maj("prenom")} maxLength={100} autoComplete="off" />
+              <input
+                id="f-prenom"
+                ref={premierChamp}
+                className={CHAMP}
+                value={valeurs.prenom}
+                onChange={maj("prenom")}
+                maxLength={100}
+                autoComplete="off"
+              />
             </Champ>
             <Champ id="f-nom" label="Nom" requis erreur={err("nom")}>
-              <input id="f-nom" className={CHAMP} value={valeurs.nom} onChange={maj("nom")} maxLength={100} autoComplete="off" />
+              <input
+                id="f-nom"
+                className={CHAMP}
+                value={valeurs.nom}
+                onChange={maj("nom")}
+                maxLength={100}
+                autoComplete="off"
+              />
             </Champ>
           </div>
 
           <Champ id="f-email" label="Adresse e-mail" requis erreur={err("email")}>
-            <input id="f-email" type="email" className={CHAMP} value={valeurs.email} onChange={maj("email")} maxLength={255} autoComplete="off" />
+            <input
+              id="f-email"
+              type="email"
+              className={CHAMP}
+              value={valeurs.email}
+              onChange={maj("email")}
+              maxLength={255}
+              autoComplete="off"
+            />
           </Champ>
 
           <Champ
@@ -202,7 +233,15 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
             erreur={err("mot_de_passe")}
             aide={edition ? "Laissez vide pour conserver le mot de passe actuel." : "8 caractères minimum."}
           >
-            <input id="f-mdp" type="password" className={CHAMP} value={valeurs.mot_de_passe} onChange={maj("mot_de_passe")} maxLength={72} autoComplete="new-password" />
+            <input
+              id="f-mdp"
+              type="password"
+              className={CHAMP}
+              value={valeurs.mot_de_passe}
+              onChange={maj("mot_de_passe")}
+              maxLength={72}
+              autoComplete="new-password"
+            />
           </Champ>
 
           <div className="grid grid-cols-2 gap-3">
@@ -234,10 +273,23 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
 
           <div className="grid grid-cols-2 gap-3">
             <Champ id="f-tel" label="Téléphone" erreur={err("telephone")}>
-              <input id="f-tel" type="tel" className={CHAMP} value={valeurs.telephone} onChange={maj("telephone")} maxLength={30} />
+              <input
+                id="f-tel"
+                type="tel"
+                className={CHAMP}
+                value={valeurs.telephone}
+                onChange={maj("telephone")}
+                maxLength={30}
+              />
             </Champ>
             <Champ id="f-date" label="Date d’embauche" erreur={err("date_embauche")}>
-              <input id="f-date" type="date" className={CHAMP} value={valeurs.date_embauche} onChange={maj("date_embauche")} />
+              <input
+                id="f-date"
+                type="date"
+                className={CHAMP}
+                value={valeurs.date_embauche}
+                onChange={maj("date_embauche")}
+              />
             </Champ>
           </div>
         </div>
@@ -253,7 +305,10 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
           <button
             type="submit"
             disabled={envoi}
-            className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}
+            className={cn(
+              "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+              envoi && "opacity-70",
+            )}
           >
             {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
             {edition ? "Enregistrer" : "Créer le compte"}

@@ -1,7 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, File, FileImage, FileSpreadsheet, FileText, FolderOpen, Loader2, Presentation, Search, type LucideIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  File,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FolderOpen,
+  Loader2,
+  Presentation,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
 import { api, ApiError, messageErreur, telechargerFichier } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -21,7 +34,8 @@ function famille(mime: string): { icone: LucideIcon; etiquette: string } {
   if (mime === "application/pdf") return { icone: FileText, etiquette: "PDF" };
   if (mime.includes("word") || mime === "application/msword") return { icone: FileText, etiquette: "Word" };
   if (mime.includes("sheet") || mime.includes("excel")) return { icone: FileSpreadsheet, etiquette: "Excel" };
-  if (mime.includes("presentation") || mime.includes("powerpoint")) return { icone: Presentation, etiquette: "PowerPoint" };
+  if (mime.includes("presentation") || mime.includes("powerpoint"))
+    return { icone: Presentation, etiquette: "PowerPoint" };
   if (mime.startsWith("image/")) return { icone: FileImage, etiquette: "Image" };
   if (mime.startsWith("text/")) return { icone: FileText, etiquette: "Texte" };
   return { icone: File, etiquette: "Fichier" };
@@ -55,7 +69,10 @@ export function DocumentsConsultation() {
     return () => clearTimeout(t);
   }, [erreurTelechargement]);
 
-  const chargerCategories = useCallback((jeton: string) => api<string[]>("/documents/categories", { token: jeton }), []);
+  const chargerCategories = useCallback(
+    (jeton: string) => api<string[]>("/documents/categories", { token: jeton }),
+    [],
+  );
   const cats = useDonnees(true, chargerCategories);
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
   // Une catégorie qui n'existe plus ne filtre plus
@@ -98,11 +115,16 @@ export function DocumentsConsultation() {
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <header>
         <h1 className="font-display text-2xl font-bold">Documents</h1>
-        <p className="mt-1 text-sm text-site-muted">Les documents partagés avec vous : procédures, modèles, règlements…</p>
+        <p className="mt-1 text-sm text-site-muted">
+          Les documents partagés avec vous : procédures, modèles, règlements…
+        </p>
       </header>
 
       {erreurTelechargement && (
-        <p role="alert" className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger">
+        <p
+          role="alert"
+          className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger"
+        >
           {erreurTelechargement}
         </p>
       )}
@@ -110,7 +132,11 @@ export function DocumentsConsultation() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
           <div className="relative min-w-52 max-w-md flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -180,7 +206,9 @@ export function DocumentsConsultation() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <FolderOpen size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtre ? "Aucun document ne correspond à cette recherche." : "Aucun document partagé pour le moment."}</p>
+            <p className="mt-4 text-sm font-medium">
+              {filtre ? "Aucun document ne correspond à cette recherche." : "Aucun document partagé pour le moment."}
+            </p>
           </div>
         ) : (
           <div>
@@ -190,7 +218,10 @@ export function DocumentsConsultation() {
                 const Icone = f.icone;
                 const occupe = enCoursId === d.id;
                 return (
-                  <li key={d.id} className="flex flex-wrap items-center gap-4 px-5 py-4 transition-colors hover:bg-site-surface2/50">
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center gap-4 px-5 py-4 transition-colors hover:bg-site-surface2/50"
+                  >
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-violet/15 text-brand-violet">
                       <Icone size={18} aria-hidden />
                     </span>
@@ -211,7 +242,11 @@ export function DocumentsConsultation() {
                       aria-label={`Télécharger ${d.nom_document}`}
                       className="inline-flex h-9 items-center gap-2 rounded-full border border-site-line px-4 text-sm font-medium transition-colors hover:border-brand-violet/60 disabled:opacity-60"
                     >
-                      {occupe ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Download size={14} aria-hidden />}
+                      {occupe ? (
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                      ) : (
+                        <Download size={14} aria-hidden />
+                      )}
                       Télécharger
                     </button>
                   </li>
@@ -220,7 +255,10 @@ export function DocumentsConsultation() {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-center gap-3 border-t border-site-line px-5 py-3 text-sm">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-center gap-3 border-t border-site-line px-5 py-3 text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}

@@ -66,7 +66,8 @@ function dateAffichee(iso: string | null) {
   return format(d, isSameYear(d, new Date()) ? "d MMMM, HH:mm" : "d MMMM yyyy, HH:mm", { locale: fr });
 }
 
-const ilYA = (iso: string | null) => (iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "");
+const ilYA = (iso: string | null) =>
+  iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "";
 
 // ---- Éléments d'affichage ----------------------------------------------------------
 
@@ -75,7 +76,11 @@ function Squelette({ className }: { className?: string }) {
 }
 
 function Carte({ children, className }: { children: ReactNode; className?: string }) {
-  return <article className={cn("rounded-2xl border border-site-line bg-site-surface shadow-sm", className)}>{children}</article>;
+  return (
+    <article className={cn("rounded-2xl border border-site-line bg-site-surface shadow-sm", className)}>
+      {children}
+    </article>
+  );
 }
 
 function SqueletteCarte() {
@@ -104,7 +109,10 @@ function Avatar({ auteur }: { auteur: Post["auteur"] }) {
     // eslint-disable-next-line @next/next/no-img-element
     <img src={urlStockage(auteur.photo)} alt="" className="size-11 shrink-0 rounded-full object-cover" />
   ) : (
-    <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-sm font-semibold text-brand-violet">
+    <span
+      aria-hidden
+      className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-sm font-semibold text-brand-violet"
+    >
       {initialesDe(auteur)}
     </span>
   );
@@ -135,9 +143,16 @@ function Galerie({ images, onOuvrir }: { images: ImageContenu[]; onOuvrir: () =>
         >
           {/* Adresse signée temporaire : next/image n'est pas adapté */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={i.url} alt={i.texte_alternatif ?? i.nom_image} loading="lazy" className={cn("w-full object-cover", n === 1 ? "max-h-[34rem]" : "h-full")} />
+          <img
+            src={i.url}
+            alt={i.texte_alternatif ?? i.nom_image}
+            loading="lazy"
+            className={cn("w-full object-cover", n === 1 ? "max-h-[34rem]" : "h-full")}
+          />
           {reste > 0 && idx === visibles.length - 1 && (
-            <span className="absolute inset-0 flex items-center justify-center bg-black/55 font-display text-3xl font-bold text-white">+{reste}</span>
+            <span className="absolute inset-0 flex items-center justify-center bg-black/55 font-display text-3xl font-bold text-white">
+              +{reste}
+            </span>
           )}
         </button>
       ))}
@@ -169,7 +184,9 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
         <Avatar auteur={post.auteur} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="truncate text-[15px] font-semibold">{post.auteur ? nomComplet(post.auteur) : "Ancien membre"}</span>
+            <span className="truncate text-[15px] font-semibold">
+              {post.auteur ? nomComplet(post.auteur) : "Ancien membre"}
+            </span>
             {post.auteur?.role && (
               <span className="inline-flex items-center gap-1 rounded-md bg-site-surface2 px-1.5 py-0.5 text-[11px] font-semibold text-site-muted">
                 <ShieldCheck size={11} aria-hidden /> {post.auteur.role}
@@ -186,7 +203,12 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
             </span>
           </p>
         </div>
-        <span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold", COULEUR_TYPE[post.type])}>
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+            COULEUR_TYPE[post.type],
+          )}
+        >
           <Icone size={12} aria-hidden /> {SINGULIER[post.type]}
         </span>
       </header>
@@ -200,10 +222,19 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
         >
           {post.images[0] && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.images[0].url} alt={post.images[0].texte_alternatif ?? post.images[0].nom_image} loading="lazy" className="aspect-[1.91/1] w-full object-cover" />
+            <img
+              src={post.images[0].url}
+              alt={post.images[0].texte_alternatif ?? post.images[0].nom_image}
+              loading="lazy"
+              className="aspect-[1.91/1] w-full object-cover"
+            />
           )}
           <span className="block bg-site-base/40 p-4">
-            {repere.length > 0 && <span className="block text-[11px] font-semibold uppercase tracking-wide text-site-muted">{repere.join(" · ")}</span>}
+            {repere.length > 0 && (
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-site-muted">
+                {repere.join(" · ")}
+              </span>
+            )}
             <span className="mt-1 block font-display text-lg font-semibold leading-snug">{post.titre}</span>
             {post.extrait && <span className="mt-1 line-clamp-2 block text-sm text-site-muted">{post.extrait}</span>}
             <span className="mt-2 block text-xs font-semibold text-brand-violet">Lire l&apos;article</span>
@@ -212,7 +243,9 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
       ) : (
         <>
           <div className="mt-4 space-y-2">
-            {repere.length > 0 && <p className="text-[11px] font-semibold uppercase tracking-wide text-site-muted">{repere.join(" · ")}</p>}
+            {repere.length > 0 && (
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-site-muted">{repere.join(" · ")}</p>
+            )}
             <h3 className="font-display text-[17px] font-semibold leading-snug">{post.titre}</h3>
             {texte && (
               <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
@@ -220,7 +253,11 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
                 {long && (
                   <>
                     {" "}
-                    <button type="button" onClick={onOuvrir} className="font-semibold text-site-muted hover:text-brand-violet hover:underline">
+                    <button
+                      type="button"
+                      onClick={onOuvrir}
+                      className="font-semibold text-site-muted hover:text-brand-violet hover:underline"
+                    >
                       Voir plus
                     </button>
                   </>
@@ -245,7 +282,11 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
           ) : (
             <>
               <p className="text-xs text-site-muted">Cette note attend votre confirmation de lecture.</p>
-              <button type="button" onClick={onOuvrir} className="v-gradient-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white">
+              <button
+                type="button"
+                onClick={onOuvrir}
+                className="v-gradient-btn inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white"
+              >
                 <BookCheck size={13} aria-hidden /> Lire et confirmer
               </button>
             </>
@@ -269,7 +310,10 @@ function Flux({ type }: { type: Filtre }) {
   const sentinelle = useRef<HTMLDivElement>(null);
 
   const filtreUrl = type === "tous" ? "" : `&type=${type}`;
-  const chargerPremiere = useCallback((jeton: string) => api<Reponse>(`/fil?page=1${filtreUrl}`, { token: jeton }), [filtreUrl]);
+  const chargerPremiere = useCallback(
+    (jeton: string) => api<Reponse>(`/fil?page=1${filtreUrl}`, { token: jeton }),
+    [filtreUrl],
+  );
   const premiere = useDonnees(true, chargerPremiere);
 
   const posts = useMemo(() => {
@@ -351,7 +395,9 @@ function Flux({ type }: { type: Filtre }) {
           <Newspaper size={22} aria-hidden />
         </span>
         <p className="font-display text-base font-semibold">Rien à afficher pour le moment</p>
-        <p className="max-w-xs text-sm text-site-muted">Les actualités, annonces et notes de votre entreprise apparaîtront ici dès leur publication.</p>
+        <p className="max-w-xs text-sm text-site-muted">
+          Les actualités, annonces et notes de votre entreprise apparaîtront ici dès leur publication.
+        </p>
       </Carte>
     );
   }
@@ -405,7 +451,10 @@ export function FilActualite() {
   const [version, setVersion] = useState(0);
 
   const disponibles = useMemo(
-    () => TYPES.filter((t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.consulter`)),
+    () =>
+      TYPES.filter(
+        (t) => profil.modules_actifs.includes(t.module) && profil.permissions.includes(`${t.module}.consulter`),
+      ),
     [profil],
   );
 
@@ -432,7 +481,9 @@ export function FilActualite() {
               onClick={() => setFiltre(t.type)}
               className={cn(
                 "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
-                filtre === t.type ? "v-gradient-btn border-transparent text-white" : "border-site-line text-site-ink hover:border-brand-violet/60",
+                filtre === t.type
+                  ? "v-gradient-btn border-transparent text-white"
+                  : "border-site-line text-site-ink hover:border-brand-violet/60",
               )}
             >
               {t.libelle}
@@ -442,7 +493,9 @@ export function FilActualite() {
       )}
 
       {disponibles.length === 0 ? (
-        <Carte className="p-6 text-center text-sm text-site-muted">Aucun module de publication n&apos;est activé pour votre entreprise.</Carte>
+        <Carte className="p-6 text-center text-sm text-site-muted">
+          Aucun module de publication n&apos;est activé pour votre entreprise.
+        </Carte>
       ) : (
         <Flux key={`${filtre}-${version}`} type={filtre} />
       )}

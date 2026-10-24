@@ -58,7 +58,10 @@ export function FormulaireConnexion() {
         </Champ>
 
         {erreur && (
-          <p role="alert" className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger">
+          <p
+            role="alert"
+            className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger"
+          >
             {erreur}
           </p>
         )}

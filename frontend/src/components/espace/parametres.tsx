@@ -9,7 +9,21 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -83,11 +97,18 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
           role={notice.type === "erreur" ? "alert" : "status"}
           className={cn(
             "flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
-            notice.type === "ok" ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan" : "border-site-danger/40 bg-site-danger/10 text-site-danger",
+            notice.type === "ok"
+              ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
+              : "border-site-danger/40 bg-site-danger/10 text-site-danger",
           )}
         >
           {notice.texte}
-          <button type="button" aria-label="Masquer le message" onClick={() => setNotice(null)} className="shrink-0 opacity-70 hover:opacity-100">
+          <button
+            type="button"
+            aria-label="Masquer le message"
+            onClick={() => setNotice(null)}
+            className="shrink-0 opacity-70 hover:opacity-100"
+          >
             <X size={16} aria-hidden />
           </button>
         </p>
@@ -96,18 +117,50 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
       <section className="max-w-2xl space-y-5 rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
         <div>
           <h2 className="font-display text-sm font-semibold">Informations de l’entreprise</h2>
-          <p className="mt-1 text-xs text-site-muted">Le nom s’affiche en haut du menu et dans l’en-tête de l’espace.</p>
+          <p className="mt-1 text-xs text-site-muted">
+            Le nom s’affiche en haut du menu et dans l’en-tête de l’espace.
+          </p>
         </div>
 
-        <Champ id="p-nom" label="Nom de l’entreprise" requis erreur={err("nom_entreprise")} aide={`${nom.length} / 100`}>
-          <input id="p-nom" className={CHAMP} value={nom} onChange={(e) => setNom(e.target.value)} maxLength={100} autoComplete="organization" />
+        <Champ
+          id="p-nom"
+          label="Nom de l’entreprise"
+          requis
+          erreur={err("nom_entreprise")}
+          aide={`${nom.length} / 100`}
+        >
+          <input
+            id="p-nom"
+            className={CHAMP}
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            maxLength={100}
+            autoComplete="organization"
+          />
         </Champ>
 
-        <Champ id="p-email" label="E-mail de contact" erreur={err("email_contact")} aide="Facultatif. Adresse à laquelle vos équipes peuvent joindre l’entreprise.">
-          <input id="p-email" type="email" className={CHAMP} value={email} onChange={(e) => setEmail(e.target.value)} maxLength={100} autoComplete="email" />
+        <Champ
+          id="p-email"
+          label="E-mail de contact"
+          erreur={err("email_contact")}
+          aide="Facultatif. Adresse à laquelle vos équipes peuvent joindre l’entreprise."
+        >
+          <input
+            id="p-email"
+            type="email"
+            className={CHAMP}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            maxLength={100}
+            autoComplete="email"
+          />
         </Champ>
 
-        <Champ id="p-slug" label="Identifiant de l’intranet" aide="Défini à la création de l’intranet, il ne peut pas être modifié.">
+        <Champ
+          id="p-slug"
+          label="Identifiant de l’intranet"
+          aide="Défini à la création de l’intranet, il ne peut pas être modifié."
+        >
           <input id="p-slug" className={cn(CHAMP, "font-mono")} value={base.slug} readOnly />
         </Champ>
 
@@ -124,7 +177,11 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
           >
             Annuler les modifications
           </button>
-          <button type="submit" disabled={!modifie || envoi} className="v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold disabled:pointer-events-none disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={!modifie || envoi}
+            className="v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold disabled:pointer-events-none disabled:opacity-50"
+          >
             {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
             Enregistrer
           </button>
@@ -142,7 +199,11 @@ export function Parametres() {
   const { donnees, erreur, reessayer } = useDonnees(autorise, charger);
 
   if (!autorise) {
-    return <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">Vous n’avez pas accès aux paramètres de l’entreprise.</p>;
+    return (
+      <p className="rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
+        Vous n’avez pas accès aux paramètres de l’entreprise.
+      </p>
+    );
   }
 
   return (
@@ -155,7 +216,11 @@ export function Parametres() {
       {erreur ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted shadow-sm">
           <span>Impossible de charger les paramètres.</span>
-          <button type="button" onClick={reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+          <button
+            type="button"
+            onClick={reessayer}
+            className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+          >
             Réessayer
           </button>
         </div>

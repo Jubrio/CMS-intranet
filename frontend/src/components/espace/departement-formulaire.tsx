@@ -21,7 +21,21 @@ export type Departement = {
 type Personne = { id: number; nom: string; prenom: string; poste: string | null; email: string };
 type PageUtilisateurs = { data: Personne[] };
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -82,7 +96,10 @@ function SelecteurResponsable({
 
       {choisi ? (
         <div className="flex items-center gap-3 rounded-lg border border-site-line bg-site-base/60 px-3 py-2">
-          <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet">
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet"
+          >
             {choisi.libelle
               .split(" ")
               .map((m) => m.charAt(0))
@@ -107,7 +124,11 @@ function SelecteurResponsable({
       ) : (
         <div>
           <div className="relative">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -139,7 +160,10 @@ function SelecteurResponsable({
                       }}
                       className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-site-line/50"
                     >
-                      <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet">
+                      <span
+                        aria-hidden
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-[11px] font-bold text-brand-violet"
+                      >
                         {initiales(p)}
                       </span>
                       <span className="min-w-0">
@@ -190,9 +214,13 @@ export function DepartementFormulaire({ departement, tous, onFermer, onEnregistr
 
   const [nom, setNom] = useState(departement?.nom_departement ?? "");
   const [description, setDescription] = useState(departement?.description_departement ?? "");
-  const [parentId, setParentId] = useState(departement?.departement_parent_id ? String(departement.departement_parent_id) : "");
+  const [parentId, setParentId] = useState(
+    departement?.departement_parent_id ? String(departement.departement_parent_id) : "",
+  );
   const [responsable, setResponsable] = useState<{ id: number; libelle: string } | null>(
-    departement?.responsable ? { id: departement.responsable.id, libelle: `${departement.responsable.prenom} ${departement.responsable.nom}` } : null,
+    departement?.responsable
+      ? { id: departement.responsable.id, libelle: `${departement.responsable.prenom} ${departement.responsable.nom}` }
+      : null,
   );
   const [envoi, setEnvoi] = useState(false);
   const [erreurs, setErreurs] = useState<Record<string, string[]>>({});
@@ -255,8 +283,17 @@ export function DepartementFormulaire({ departement, tous, onFermer, onEnregistr
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-dep">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={soumettre} noValidate className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={soumettre}
+        noValidate
+        className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-formulaire-dep" className="font-display text-base font-semibold">
             {edition ? "Modifier le département" : "Nouveau département"}
@@ -273,16 +310,32 @@ export function DepartementFormulaire({ departement, tous, onFermer, onEnregistr
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
 
           <Champ id="d-nom" label="Nom du département" requis erreur={err("nom_departement")}>
-            <input id="d-nom" ref={premierChamp} className={CHAMP} value={nom} onChange={(e) => setNom(e.target.value)} maxLength={150} autoComplete="off" />
+            <input
+              id="d-nom"
+              ref={premierChamp}
+              className={CHAMP}
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              maxLength={150}
+              autoComplete="off"
+            />
           </Champ>
 
-          <Champ id="d-desc" label="Description" erreur={err("description_departement")} aide={`${description.length} / 1000`}>
+          <Champ
+            id="d-desc"
+            label="Description"
+            erreur={err("description_departement")}
+            aide={`${description.length} / 1000`}
+          >
             <textarea
               id="d-desc"
               rows={4}
@@ -293,7 +346,12 @@ export function DepartementFormulaire({ departement, tous, onFermer, onEnregistr
             />
           </Champ>
 
-          <Champ id="d-parent" label="Département parent" erreur={err("departement_parent_id")} aide="Laissez vide pour un département de premier niveau.">
+          <Champ
+            id="d-parent"
+            label="Département parent"
+            erreur={err("departement_parent_id")}
+            aide="Laissez vide pour un département de premier niveau."
+          >
             <select id="d-parent" className={CHAMP} value={parentId} onChange={(e) => setParentId(e.target.value)}>
               <option value="">Aucun (premier niveau)</option>
               {parentsPossibles.map((d) => (
@@ -318,7 +376,10 @@ export function DepartementFormulaire({ departement, tous, onFermer, onEnregistr
           <button
             type="submit"
             disabled={envoi}
-            className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}
+            className={cn(
+              "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+              envoi && "opacity-70",
+            )}
           >
             {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
             {edition ? "Enregistrer" : "Créer le département"}

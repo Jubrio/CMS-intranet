@@ -27,7 +27,21 @@ export type Actualite = {
 
 export type DepartementOption = { id: number; nom_departement: string };
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -59,7 +73,9 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
   const [categorie, setCategorie] = useState(actualite?.categorie ?? "");
   const [corps, setCorps] = useState("");
   const [images, setImages] = useState<ImageContenu[]>([]);
-  const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(manager ? "departement" : (actualite?.visibilite ?? "entreprise"));
+  const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(
+    manager ? "departement" : (actualite?.visibilite ?? "entreprise"),
+  );
   const [departementId, setDepartementId] = useState(actualite?.departement_id ? String(actualite.departement_id) : "");
   const [chargement, setChargement] = useState(edition);
   const [echecChargement, setEchecChargement] = useState(false);
@@ -174,8 +190,17 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-actu">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={(e) => soumettre(e, false)} noValidate className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-site-line bg-site-surface shadow-2xl">
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={(e) => soumettre(e, false)}
+        noValidate
+        className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-formulaire-actu" className="font-display text-base font-semibold">
             {edition ? "Modifier l’actualité" : "Nouvelle actualité"}
@@ -192,7 +217,10 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
@@ -206,11 +234,31 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
           ) : echecChargement ? null : (
             <>
               <Champ id="a-titre" label="Titre" requis erreur={err("titre")}>
-                <input id="a-titre" ref={premierChamp} className={CHAMP} value={titre} onChange={(e) => setTitre(e.target.value)} maxLength={150} autoComplete="off" />
+                <input
+                  id="a-titre"
+                  ref={premierChamp}
+                  className={CHAMP}
+                  value={titre}
+                  onChange={(e) => setTitre(e.target.value)}
+                  maxLength={150}
+                  autoComplete="off"
+                />
               </Champ>
 
-              <Champ id="a-cat" label="Catégorie" erreur={err("categorie")} aide="Facultatif, par exemple « Vie de l’entreprise ».">
-                <input id="a-cat" className={CHAMP} value={categorie} onChange={(e) => setCategorie(e.target.value)} maxLength={50} autoComplete="off" />
+              <Champ
+                id="a-cat"
+                label="Catégorie"
+                erreur={err("categorie")}
+                aide="Facultatif, par exemple « Vie de l’entreprise »."
+              >
+                <input
+                  id="a-cat"
+                  className={CHAMP}
+                  value={categorie}
+                  onChange={(e) => setCategorie(e.target.value)}
+                  maxLength={50}
+                  autoComplete="off"
+                />
               </Champ>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -235,8 +283,16 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
                     erreur={err("departement_id")}
                     aide={manager ? "En tant que Manager, vous publiez pour votre département." : undefined}
                   >
-                    <select id="a-dep" className={CHAMP} value={departementId} disabled={manager} onChange={(e) => setDepartementId(e.target.value)}>
-                      <option value="">{departements.length === 0 ? "Aucun département disponible" : "Choisir…"}</option>
+                    <select
+                      id="a-dep"
+                      className={CHAMP}
+                      value={departementId}
+                      disabled={manager}
+                      onChange={(e) => setDepartementId(e.target.value)}
+                    >
+                      <option value="">
+                        {departements.length === 0 ? "Aucun département disponible" : "Choisir…"}
+                      </option>
                       {departements.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.nom_departement}
@@ -248,13 +304,22 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
               </div>
 
               <Champ id="a-corps" label="Contenu" requis erreur={err("corps")}>
-                <textarea id="a-corps" rows={12} value={corps} onChange={(e) => setCorps(e.target.value)} className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")} />
+                <textarea
+                  id="a-corps"
+                  rows={12}
+                  value={corps}
+                  onChange={(e) => setCorps(e.target.value)}
+                  className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")}
+                />
               </Champ>
 
               {edition && actualite ? (
                 <ImagesContenu type="actualite" contenuId={actualite.id} images={images} onChange={setImages} />
               ) : (
-                <p className="text-[11px] text-site-muted">Les images peuvent être ajoutées une fois l’actualité enregistrée en brouillon : rouvrez-la pour les joindre.</p>
+                <p className="text-[11px] text-site-muted">
+                  Les images peuvent être ajoutées une fois l’actualité enregistrée en brouillon : rouvrez-la pour les
+                  joindre.
+                </p>
               )}
             </>
           )}
@@ -273,7 +338,9 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
             disabled={occupe || echecChargement}
             className={cn(
               "inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
-              dejaPubliee ? "v-gradient-btn" : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
+              dejaPubliee
+                ? "v-gradient-btn"
+                : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
               (occupe || echecChargement) && "opacity-70",
             )}
           >
@@ -285,7 +352,10 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
               type="button"
               disabled={occupe || echecChargement}
               onClick={(e) => soumettre(e, true)}
-              className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", (occupe || echecChargement) && "opacity-70")}
+              className={cn(
+                "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+                (occupe || echecChargement) && "opacity-70",
+              )}
             >
               {envoi === "publier" && <Loader2 size={16} className="animate-spin" aria-hidden />}
               Enregistrer et publier

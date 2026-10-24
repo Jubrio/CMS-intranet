@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Building2, CalendarDays, Camera, Loader2, Mail, Pencil, Phone, Search, UserRound, Users, X } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  Camera,
+  Loader2,
+  Mail,
+  Pencil,
+  Phone,
+  Search,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -22,7 +34,21 @@ import {
 const TYPES_PHOTO = ["image/jpeg", "image/png", "image/webp"];
 const POIDS_MAX_PHOTO = 2 * 1024 * 1024; // RG25 : 2 Mo
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -38,7 +64,15 @@ function Champ({ id, label, erreur, requis, aide, children }: { id: string; labe
 
 // ---- Choix du supérieur : recherche dans l'annuaire -----------------------------------
 
-function ChoixSuperieur({ soiId, valeur, onChoisir }: { soiId: number; valeur: LienEmploye | null; onChoisir: (p: LienEmploye | null) => void }) {
+function ChoixSuperieur({
+  soiId,
+  valeur,
+  onChoisir,
+}: {
+  soiId: number;
+  valeur: LienEmploye | null;
+  onChoisir: (p: LienEmploye | null) => void;
+}) {
   const { token, expirer } = useEspace();
   const [saisie, setSaisie] = useState("");
   const [resultats, setResultats] = useState<Employe[]>([]);
@@ -115,7 +149,11 @@ function ChoixSuperieur({ soiId, valeur, onChoisir }: { soiId: number; valeur: L
   return (
     <div>
       <div className="relative">
-        <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+        <Search
+          size={16}
+          aria-hidden
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+        />
         <input
           id="f-superieur"
           type="search"
@@ -150,7 +188,9 @@ function ChoixSuperieur({ soiId, valeur, onChoisir }: { soiId: number; valeur: L
                     <span className="block truncate text-sm font-medium">
                       {e.prenom} {e.nom}
                     </span>
-                    <span className="block truncate text-xs text-site-muted">{[e.poste, e.nom_departement].filter(Boolean).join(" · ") || "—"}</span>
+                    <span className="block truncate text-xs text-site-muted">
+                      {[e.poste, e.nom_departement].filter(Boolean).join(" · ") || "—"}
+                    </span>
                   </span>
                 </button>
               </li>
@@ -219,7 +259,11 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
     try {
       const donnees = new FormData();
       donnees.append("photo", fichier);
-      const res = await api<{ photo: string; url: string }>(`/annuaire/${fiche.id}/photo`, { method: "POST", token, body: donnees });
+      const res = await api<{ photo: string; url: string }>(`/annuaire/${fiche.id}/photo`, {
+        method: "POST",
+        token,
+        body: donnees,
+      });
       setPhoto(res.photo);
       onPhoto(res.photo);
     } catch (e) {
@@ -283,7 +327,10 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
     <form onSubmit={soumettre} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
         {message && (
-          <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+          <p
+            role="alert"
+            className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+          >
             {message}
           </p>
         )}
@@ -297,29 +344,76 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
               disabled={televersement}
               className="inline-flex h-9 items-center gap-2 rounded-full border border-site-line px-4 text-xs font-semibold transition-colors hover:border-brand-violet/60 disabled:opacity-60"
             >
-              {televersement ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Camera size={14} aria-hidden />}
+              {televersement ? (
+                <Loader2 size={14} className="animate-spin" aria-hidden />
+              ) : (
+                <Camera size={14} aria-hidden />
+              )}
               {photo ? "Changer la photo" : "Ajouter une photo"}
             </button>
-            <input ref={champPhoto} type="file" accept={TYPES_PHOTO.join(",")} className="sr-only" aria-label="Choisir une photo" onChange={(e) => choisirPhoto(e.target.files?.[0])} />
-            {erreurPhoto ? <p className="mt-1.5 text-xs text-site-danger">{erreurPhoto}</p> : <p className="mt-1.5 text-[11px] text-site-muted">JPG, PNG ou WebP, 2 Mo au maximum. Enregistrée aussitôt.</p>}
+            <input
+              ref={champPhoto}
+              type="file"
+              accept={TYPES_PHOTO.join(",")}
+              className="sr-only"
+              aria-label="Choisir une photo"
+              onChange={(e) => choisirPhoto(e.target.files?.[0])}
+            />
+            {erreurPhoto ? (
+              <p className="mt-1.5 text-xs text-site-danger">{erreurPhoto}</p>
+            ) : (
+              <p className="mt-1.5 text-[11px] text-site-muted">
+                JPG, PNG ou WebP, 2 Mo au maximum. Enregistrée aussitôt.
+              </p>
+            )}
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Champ id="f-prenom" label="Prénom" requis erreur={err("prenom")}>
-            <input id="f-prenom" ref={premierChamp} className={CHAMP} value={prenom} onChange={(e) => setPrenom(e.target.value)} maxLength={60} autoComplete="off" />
+            <input
+              id="f-prenom"
+              ref={premierChamp}
+              className={CHAMP}
+              value={prenom}
+              onChange={(e) => setPrenom(e.target.value)}
+              maxLength={60}
+              autoComplete="off"
+            />
           </Champ>
           <Champ id="f-nom" label="Nom" requis erreur={err("nom")}>
-            <input id="f-nom" className={CHAMP} value={nom} onChange={(e) => setNom(e.target.value)} maxLength={50} autoComplete="off" />
+            <input
+              id="f-nom"
+              className={CHAMP}
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              maxLength={50}
+              autoComplete="off"
+            />
           </Champ>
         </div>
 
         <Champ id="f-poste" label="Poste" erreur={err("poste")}>
-          <input id="f-poste" className={CHAMP} value={poste} onChange={(e) => setPoste(e.target.value)} maxLength={100} autoComplete="off" />
+          <input
+            id="f-poste"
+            className={CHAMP}
+            value={poste}
+            onChange={(e) => setPoste(e.target.value)}
+            maxLength={100}
+            autoComplete="off"
+          />
         </Champ>
 
         <Champ id="f-tel" label="Téléphone" erreur={err("telephone")}>
-          <input id="f-tel" type="tel" className={CHAMP} value={telephone} onChange={(e) => setTelephone(e.target.value)} maxLength={20} autoComplete="off" />
+          <input
+            id="f-tel"
+            type="tel"
+            className={CHAMP}
+            value={telephone}
+            onChange={(e) => setTelephone(e.target.value)}
+            maxLength={20}
+            autoComplete="off"
+          />
         </Champ>
 
         <Champ id="f-dep" label="Département" erreur={err("departement_id")}>
@@ -333,7 +427,12 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
           </select>
         </Champ>
 
-        <Champ id="f-superieur" label="Supérieur hiérarchique" erreur={err("superieur_id")} aide="Une personne ne peut pas dépendre d’un de ses subordonnés.">
+        <Champ
+          id="f-superieur"
+          label="Supérieur hiérarchique"
+          erreur={err("superieur_id")}
+          aide="Une personne ne peut pas dépendre d’un de ses subordonnés."
+        >
           <ChoixSuperieur soiId={fiche.id} valeur={superieur} onChoisir={setSuperieur} />
         </Champ>
 
@@ -343,10 +442,21 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
       </div>
 
       <footer className="flex shrink-0 items-center justify-end gap-3 border-t border-site-line px-5 py-4">
-        <button type="button" onClick={onAnnuler} className="h-10 rounded-full border border-site-line px-5 text-sm font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+        <button
+          type="button"
+          onClick={onAnnuler}
+          className="h-10 rounded-full border border-site-line px-5 text-sm font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+        >
           Annuler
         </button>
-        <button type="submit" disabled={envoi} className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}>
+        <button
+          type="submit"
+          disabled={envoi}
+          className={cn(
+            "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+            envoi && "opacity-70",
+          )}
+        >
           {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
           Enregistrer
         </button>
@@ -426,7 +536,12 @@ export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEqui
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-fiche">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-fiche" className="font-display text-base font-semibold">
@@ -457,7 +572,11 @@ export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEqui
         {erreur ? (
           <div className="flex flex-wrap items-center gap-3 p-6 text-sm text-site-muted">
             <span>Cette fiche n’est pas disponible. La personne a peut-être été désactivée.</span>
-            <button type="button" onClick={reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+            <button
+              type="button"
+              onClick={reessayer}
+              className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+            >
               Réessayer
             </button>
           </div>
@@ -502,7 +621,11 @@ export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEqui
                 {fiche.departement_id && fiche.nom_departement ? (
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     {fiche.nom_departement}
-                    <button type="button" onClick={() => onVoirEquipe(fiche.departement_id as number)} className="text-xs font-semibold text-brand-violet hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => onVoirEquipe(fiche.departement_id as number)}
+                      className="text-xs font-semibold text-brand-violet hover:underline"
+                    >
                       Voir l’équipe
                     </button>
                   </span>
@@ -534,7 +657,11 @@ export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEqui
                 <UserRound size={14} aria-hidden />
                 Supérieur hiérarchique
               </h3>
-              {fiche.superieur ? <BoutonPersonne p={fiche.superieur} onClick={() => onOuvrir(fiche.superieur!.id)} /> : <p className="text-sm text-site-muted">Aucun supérieur renseigné.</p>}
+              {fiche.superieur ? (
+                <BoutonPersonne p={fiche.superieur} onClick={() => onOuvrir(fiche.superieur!.id)} />
+              ) : (
+                <p className="text-sm text-site-muted">Aucun supérieur renseigné.</p>
+              )}
             </section>
 
             <section>

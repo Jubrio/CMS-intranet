@@ -40,7 +40,14 @@ export function Anneau({
   return (
     <div role="img" aria-label={description} className="relative mx-auto size-48 shrink-0">
       <svg viewBox="0 0 200 200" className="size-full -rotate-90">
-        <circle cx="100" cy="100" r={rayon} fill="none" strokeWidth={epaisseur} style={{ stroke: "var(--site-line)" }} />
+        <circle
+          cx="100"
+          cy="100"
+          r={rayon}
+          fill="none"
+          strokeWidth={epaisseur}
+          style={{ stroke: "var(--site-line)" }}
+        />
         {total > 0 &&
           visibles.map((s, i) => {
             const longueur = (s.valeur / total) * circ;
@@ -129,7 +136,13 @@ export function CourbeAire({
           {/* repères horizontaux */}
           <div aria-hidden className="absolute inset-0 flex flex-col justify-between">
             {graduations.map((g, i) => (
-              <span key={g} className={cn("block border-t", i === graduations.length - 1 ? "border-site-line" : "border-dashed border-site-line/70")} />
+              <span
+                key={g}
+                className={cn(
+                  "block border-t",
+                  i === graduations.length - 1 ? "border-site-line" : "border-dashed border-site-line/70",
+                )}
+              />
             ))}
           </div>
 
@@ -145,7 +158,14 @@ export function CourbeAire({
               </linearGradient>
             </defs>
             <path d={aire} fill={`url(#a-${id})`} />
-            <path d={ligne} fill="none" stroke={`url(#l-${id})`} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <path
+              d={ligne}
+              fill="none"
+              stroke={`url(#l-${id})`}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
           </svg>
 
           {/* guide vertical + point actif */}
@@ -163,7 +183,10 @@ export function CourbeAire({
           {survol !== null && (
             <div
               className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-site-line bg-site-surface2 px-3 py-1.5 text-xs shadow-lg"
-              style={{ left: `${Math.min(86, Math.max(14, x(survol)))}%`, top: `calc(${y(donnees[survol].valeur)}% - 14px)` }}
+              style={{
+                left: `${Math.min(86, Math.max(14, x(survol)))}%`,
+                top: `calc(${y(donnees[survol].valeur)}% - 14px)`,
+              }}
             >
               <span className="font-display font-semibold tabular-nums">{donnees[survol].valeur}</span>{" "}
               <span className="text-site-muted">{donnees[survol].valeur > 1 ? unite.plusieurs : unite.un}</span>

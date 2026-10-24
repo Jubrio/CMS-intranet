@@ -18,7 +18,11 @@ const schema = z
     nom_entreprise: z.string().trim().min(2, "Indiquez le nom de l'entreprise.").max(100, "100 caractères maximum."),
     prenom: z.string().trim().min(1, "Indiquez votre prénom.").max(60, "60 caractères maximum."),
     nom: z.string().trim().min(1, "Indiquez votre nom.").max(50, "50 caractères maximum."),
-    email: z.string().trim().pipe(z.email("Adresse e-mail invalide.")).pipe(z.string().max(100, "100 caractères maximum.")),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.email("Adresse e-mail invalide."))
+      .pipe(z.string().max(100, "100 caractères maximum.")),
     mot_de_passe: z.string().min(8, "8 caractères minimum."),
     confirmation: z.string().min(1, "Confirmez le mot de passe."),
     modules: z.array(z.string()),
@@ -227,7 +231,8 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
 
       <section className="rounded-2xl border border-site-line bg-site-surface p-6 sm:p-8">
         <p className="mb-6 text-sm text-site-muted">
-          Étape {etape + 1} sur {ETAPES.length} · <span className="font-medium text-site-ink">{ETAPES[etape].titre}</span>
+          Étape {etape + 1} sur {ETAPES.length} ·{" "}
+          <span className="font-medium text-site-ink">{ETAPES[etape].titre}</span>
         </p>
 
         <form onSubmit={surEnvoi} noValidate className="space-y-5">
@@ -247,7 +252,12 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
             <>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Champ id="prenom" label="Prénom" erreur={errors.prenom?.message}>
-                  <Saisie id="prenom" autoComplete="given-name" erreur={errors.prenom?.message} {...register("prenom")} />
+                  <Saisie
+                    id="prenom"
+                    autoComplete="given-name"
+                    erreur={errors.prenom?.message}
+                    {...register("prenom")}
+                  />
                 </Champ>
                 <Champ id="nom" label="Nom" erreur={errors.nom?.message}>
                   <Saisie id="nom" autoComplete="family-name" erreur={errors.nom?.message} {...register("nom")} />
@@ -319,7 +329,9 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
                       <label
                         key={m.code_module}
                         className={`relative flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-violet ${
-                          actif ? "border-brand-violet bg-brand-violet/10" : "border-site-line hover:border-brand-violet/50"
+                          actif
+                            ? "border-brand-violet bg-brand-violet/10"
+                            : "border-site-line hover:border-brand-violet/50"
                         }`}
                       >
                         <input
@@ -351,7 +363,10 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
           )}
 
           {erreurGlobale && (
-            <p role="alert" className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-xl border border-site-danger/40 bg-site-danger/10 px-4 py-3 text-sm text-site-danger"
+            >
               {erreurGlobale}
             </p>
           )}

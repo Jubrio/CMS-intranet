@@ -40,13 +40,23 @@ function LecteurPage({ page, onFermer }: { page: { id: number; titre: string }; 
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-page">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <div className="relative ml-auto flex h-full w-full max-w-2xl flex-col border-l border-site-line bg-site-surface shadow-2xl">
         <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-site-line px-5">
           <h2 id="titre-page" className="truncate font-display text-base font-semibold">
             {d?.titre ?? page.titre}
           </h2>
-          <button type="button" onClick={onFermer} aria-label="Fermer" className="flex size-8 shrink-0 items-center justify-center rounded-lg text-site-muted transition-colors hover:bg-site-surface2 hover:text-site-ink">
+          <button
+            type="button"
+            onClick={onFermer}
+            aria-label="Fermer"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-site-muted transition-colors hover:bg-site-surface2 hover:text-site-ink"
+          >
             <X size={18} aria-hidden />
           </button>
         </header>
@@ -55,7 +65,11 @@ function LecteurPage({ page, onFermer }: { page: { id: number; titre: string }; 
           {erreur ? (
             <div className="flex flex-wrap items-center gap-3 text-sm text-site-muted">
               <span>Impossible de charger cette page. Elle a peut-être été retirée.</span>
-              <button type="button" onClick={reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+              <button
+                type="button"
+                onClick={reessayer}
+                className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+              >
                 Réessayer
               </button>
             </div>
@@ -69,7 +83,13 @@ function LecteurPage({ page, onFermer }: { page: { id: number; titre: string }; 
           ) : (
             <>
               <p className="text-xs text-site-muted">
-                {[d.emplacement_menu, d.auteur ? `Par ${d.auteur.prenom} ${d.auteur.nom}` : null, publie ? `Publiée le ${publie}` : null].filter(Boolean).join(" · ")}
+                {[
+                  d.emplacement_menu,
+                  d.auteur ? `Par ${d.auteur.prenom} ${d.auteur.nom}` : null,
+                  publie ? `Publiée le ${publie}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
               <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">{d.corps}</div>
               {d.images.length > 0 && (
@@ -78,7 +98,12 @@ function LecteurPage({ page, onFermer }: { page: { id: number; titre: string }; 
                     <li key={i.id} className="overflow-hidden rounded-xl border border-site-line">
                       {/* Adresse signée temporaire : next/image n'est pas adapté */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={i.url} alt={i.texte_alternatif ?? i.nom_image} className="w-full object-cover" loading="lazy" />
+                      <img
+                        src={i.url}
+                        alt={i.texte_alternatif ?? i.nom_image}
+                        className="w-full object-cover"
+                        loading="lazy"
+                      />
                     </li>
                   ))}
                 </ul>
@@ -137,18 +162,35 @@ export function PagesConsultation() {
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <header>
         <h1 className="font-display text-2xl font-bold">Pages internes</h1>
-        <p className="mt-1 text-sm text-site-muted">Les pages d’information de votre entreprise : présentation, procédures, guides…</p>
+        <p className="mt-1 text-sm text-site-muted">
+          Les pages d’information de votre entreprise : présentation, procédures, guides…
+        </p>
       </header>
 
       <div className="relative max-w-md">
-        <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
-        <input type="search" value={saisie} onChange={(e) => setSaisie(e.target.value)} placeholder="Rechercher une page" aria-label="Rechercher une page" className={cn(CHAMP, "pl-9")} />
+        <Search
+          size={16}
+          aria-hidden
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+        />
+        <input
+          type="search"
+          value={saisie}
+          onChange={(e) => setSaisie(e.target.value)}
+          placeholder="Rechercher une page"
+          aria-label="Rechercher une page"
+          className={cn(CHAMP, "pl-9")}
+        />
       </div>
 
       {liste.erreur ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted">
           <span>Impossible de charger les pages.</span>
-          <button type="button" onClick={liste.reessayer} className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60">
+          <button
+            type="button"
+            onClick={liste.reessayer}
+            className="inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60"
+          >
             Réessayer
           </button>
         </div>
@@ -163,7 +205,9 @@ export function PagesConsultation() {
           <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
             <LayoutTemplate size={22} aria-hidden />
           </span>
-          <p className="mt-4 text-sm font-medium">{q ? "Aucune page ne correspond à cette recherche." : "Aucune page publiée pour le moment."}</p>
+          <p className="mt-4 text-sm font-medium">
+            {q ? "Aucune page ne correspond à cette recherche." : "Aucune page publiée pour le moment."}
+          </p>
         </div>
       ) : (
         <>
@@ -186,7 +230,9 @@ export function PagesConsultation() {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-semibold">{p.titre}</span>
                           <span className="block truncate text-xs text-site-muted">
-                            {[p.auteur ? `${p.auteur.prenom} ${p.auteur.nom}` : null, maj ? `Publiée le ${maj}` : null].filter(Boolean).join(" · ")}
+                            {[p.auteur ? `${p.auteur.prenom} ${p.auteur.nom}` : null, maj ? `Publiée le ${maj}` : null]
+                              .filter(Boolean)
+                              .join(" · ")}
                           </span>
                         </span>
                         <ChevronRight size={16} aria-hidden className="shrink-0 text-site-muted" />
@@ -200,13 +246,25 @@ export function PagesConsultation() {
 
           {res.last_page > 1 && (
             <nav aria-label="Pagination" className="flex items-center justify-center gap-3 text-sm">
-              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={res.current_page <= 1} aria-label="Page précédente" className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60 disabled:opacity-40">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={res.current_page <= 1}
+                aria-label="Page précédente"
+                className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60 disabled:opacity-40"
+              >
                 <ChevronLeft size={16} aria-hidden />
               </button>
               <span className="text-site-muted">
                 Page {res.current_page} sur {res.last_page}
               </span>
-              <button type="button" onClick={() => setPage((p) => Math.min(res.last_page, p + 1))} disabled={res.current_page >= res.last_page} aria-label="Page suivante" className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60 disabled:opacity-40">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(res.last_page, p + 1))}
+                disabled={res.current_page >= res.last_page}
+                aria-label="Page suivante"
+                className="flex size-9 items-center justify-center rounded-lg border border-site-line transition-colors hover:border-brand-violet/60 disabled:opacity-40"
+              >
                 <ChevronRight size={16} aria-hidden />
               </button>
             </nav>

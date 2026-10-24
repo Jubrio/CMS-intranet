@@ -1,19 +1,13 @@
-import {
-  Bell,
-  CheckCircle2,
-  FolderOpen,
-  Layers,
-  LayoutDashboard,
-  Newspaper,
-  Settings,
-  Users,
-} from "lucide-react";
+import { Bell, CheckCircle2, FolderOpen, Layers, LayoutDashboard, Newspaper, Settings, Users } from "lucide-react";
 
 // Maquette illustrative d'un intranet : aucune donnée réelle
 export function DashboardPreview({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <div aria-hidden="true" className="v-glass rounded-2xl border border-site-line p-4 shadow-2xl shadow-brand-violet/10">
+      <div
+        aria-hidden="true"
+        className="v-glass rounded-2xl border border-site-line p-4 shadow-2xl shadow-brand-violet/10"
+      >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2 font-display text-sm font-semibold">
             <span className="v-gradient-btn flex size-5 items-center justify-center rounded">
@@ -56,7 +50,10 @@ export function DashboardPreview({ compact = false }: { compact?: boolean }) {
   ];
 
   return (
-    <div aria-hidden="true" className="v-glass overflow-hidden rounded-2xl border border-site-line text-left shadow-2xl shadow-brand-violet/10">
+    <div
+      aria-hidden="true"
+      className="v-glass overflow-hidden rounded-2xl border border-site-line text-left shadow-2xl shadow-brand-violet/10"
+    >
       <div className="flex">
         <aside className="hidden w-52 flex-col gap-1 border-r border-site-line bg-site-surface px-4 py-6 text-sm md:flex">
           <div className="mb-6 flex items-center gap-2 px-2 font-display font-semibold">

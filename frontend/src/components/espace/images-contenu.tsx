@@ -50,7 +50,11 @@ export function ImagesContenu({
     corps.append("image", fichier);
     if (alt.trim()) corps.append("texte_alternatif", alt.trim());
     try {
-      const image = await api<ImageContenu>(`/contenus/${type}/${contenuId}/images`, { method: "POST", token, body: corps });
+      const image = await api<ImageContenu>(`/contenus/${type}/${contenuId}/images`, {
+        method: "POST",
+        token,
+        body: corps,
+      });
       onChange([...images, image]);
       setAlt("");
     } catch (e) {
@@ -58,7 +62,9 @@ export function ImagesContenu({
         expirer();
         return;
       }
-      setErreur(e instanceof ApiError && e.errors ? (Object.values(e.errors)[0]?.[0] ?? messageErreur(e)) : messageErreur(e));
+      setErreur(
+        e instanceof ApiError && e.errors ? (Object.values(e.errors)[0]?.[0] ?? messageErreur(e)) : messageErreur(e),
+      );
     } finally {
       setEnvoi(false);
       if (entree.current) entree.current.value = "";
@@ -97,7 +103,12 @@ export function ImagesContenu({
             <li key={i.id} className="overflow-hidden rounded-xl border border-site-line bg-site-base/40">
               {/* Adresse signée temporaire : next/image n'est pas adapté */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={i.url} alt={i.texte_alternatif ?? i.nom_image} className="aspect-video w-full object-cover" loading="lazy" />
+              <img
+                src={i.url}
+                alt={i.texte_alternatif ?? i.nom_image}
+                className="aspect-video w-full object-cover"
+                loading="lazy"
+              />
               <div className="flex items-center gap-2 px-2.5 py-2">
                 <span className="min-w-0 flex-1 truncate text-[11px] text-site-muted" title={i.nom_image}>
                   {i.nom_image}
@@ -110,7 +121,11 @@ export function ImagesContenu({
                   title="Supprimer l’image"
                   className="flex size-7 shrink-0 items-center justify-center rounded-md text-site-muted transition-colors hover:bg-site-danger/10 hover:text-site-danger disabled:opacity-50"
                 >
-                  {suppressionId === i.id ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Trash2 size={14} aria-hidden />}
+                  {suppressionId === i.id ? (
+                    <Loader2 size={14} className="animate-spin" aria-hidden />
+                  ) : (
+                    <Trash2 size={14} aria-hidden />
+                  )}
                 </button>
               </div>
             </li>
@@ -151,7 +166,9 @@ export function ImagesContenu({
           {envoi ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <ImagePlus size={16} aria-hidden />}
           {pleine ? "Limite atteinte" : "Ajouter une image"}
         </label>
-        <p className="text-[11px] text-site-muted">JPG, PNG ou WebP, 5 Mo au maximum, {MAX_IMAGES} images par publication.</p>
+        <p className="text-[11px] text-site-muted">
+          JPG, PNG ou WebP, 5 Mo au maximum, {MAX_IMAGES} images par publication.
+        </p>
         {erreur && (
           <p role="alert" className="text-xs text-site-danger">
             {erreur}

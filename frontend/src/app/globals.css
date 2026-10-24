@@ -218,7 +218,9 @@ html:has(.visiteur) {
   .v-gradient-btn {
     background: linear-gradient(90deg, var(--grad-btn-a), var(--grad-btn-b));
     color: #fff;
-    transition: background 0.25s ease, opacity 0.25s ease;
+    transition:
+      background 0.25s ease,
+      opacity 0.25s ease;
   }
   .v-gradient-btn:hover {
     background: linear-gradient(90deg, var(--grad-btn-ha), var(--grad-btn-hb));
@@ -237,7 +239,9 @@ html:has(.visiteur) {
   }
 
   .v-card-hover {
-    transition: transform 0.35s ease, border-color 0.35s ease;
+    transition:
+      transform 0.35s ease,
+      border-color 0.35s ease;
   }
   .v-card-hover:hover {
     transform: translateY(-6px);
@@ -247,7 +251,9 @@ html:has(.visiteur) {
   .v-reveal {
     opacity: 0;
     transform: translateY(24px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
   }
   .v-reveal.is-visible {
     opacity: 1;

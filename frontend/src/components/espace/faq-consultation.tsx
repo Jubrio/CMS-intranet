@@ -33,11 +33,15 @@ export function FaqConsultation() {
     return () => clearTimeout(t);
   }, [saisie]);
 
-  const chargerCategories = useCallback((jeton: string) => api<CategorieFaq[]>("/faq/categories", { token: jeton }), []);
+  const chargerCategories = useCallback(
+    (jeton: string) => api<CategorieFaq[]>("/faq/categories", { token: jeton }),
+    [],
+  );
   const cats = useDonnees(true, chargerCategories);
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
   // Une catégorie qui n'existe plus ne filtre plus
-  const categorie = cats.donnees === null || categories.some((c) => c.categorie === categorieChoisie) ? categorieChoisie : "";
+  const categorie =
+    cats.donnees === null || categories.some((c) => c.categorie === categorieChoisie) ? categorieChoisie : "";
 
   const cleCourante = `${page}|${q}|${categorie}`;
   const chargerListe = useCallback(
@@ -75,7 +79,11 @@ export function FaqConsultation() {
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
           <div className="relative min-w-52 max-w-md flex-1">
-            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <Search
+              size={16}
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted"
+            />
             <input
               type="search"
               value={saisie}
@@ -145,7 +153,9 @@ export function FaqConsultation() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
               <CircleHelp size={22} aria-hidden />
             </span>
-            <p className="mt-4 text-sm font-medium">{filtre ? "Aucune question ne correspond à cette recherche." : "Aucune question pour le moment."}</p>
+            <p className="mt-4 text-sm font-medium">
+              {filtre ? "Aucune question ne correspond à cette recherche." : "Aucune question pour le moment."}
+            </p>
           </div>
         ) : (
           <div>
@@ -163,7 +173,11 @@ export function FaqConsultation() {
                       className="flex w-full items-start gap-3 rounded-lg py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40"
                     >
                       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-violet/15 text-brand-violet">
-                        <ChevronDown size={16} aria-hidden className={cn("transition-transform", ouverte && "rotate-180")} />
+                        <ChevronDown
+                          size={16}
+                          aria-hidden
+                          className={cn("transition-transform", ouverte && "rotate-180")}
+                        />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className={cn("block text-sm font-semibold", !ouverte && "truncate")}>{f.question}</span>
@@ -174,7 +188,10 @@ export function FaqConsultation() {
                     </button>
 
                     {ouverte && (
-                      <div id={`reponse-${f.id}`} className="ml-11 mt-2 rounded-xl border border-site-line bg-site-base/40 px-4 py-3">
+                      <div
+                        id={`reponse-${f.id}`}
+                        className="ml-11 mt-2 rounded-xl border border-site-line bg-site-base/40 px-4 py-3"
+                      >
                         <p className="whitespace-pre-wrap text-sm leading-relaxed">{f.reponse}</p>
                         {miseAJour && <p className="mt-2 text-xs text-site-muted">Mise à jour le {miseAJour}</p>}
                       </div>
@@ -185,7 +202,10 @@ export function FaqConsultation() {
             </ul>
 
             {res.last_page > 1 && (
-              <nav aria-label="Pagination" className="flex items-center justify-center gap-3 border-t border-site-line px-5 py-3 text-sm">
+              <nav
+                aria-label="Pagination"
+                className="flex items-center justify-center gap-3 border-t border-site-line px-5 py-3 text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}

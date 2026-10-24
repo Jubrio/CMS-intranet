@@ -36,7 +36,21 @@ const MAX_IMAGES = 10; // RG39
 const MAX_KO = 5120;
 const TYPES_ACCEPTES = ["image/jpeg", "image/png", "image/webp"];
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -51,7 +65,15 @@ function Champ({ id, label, erreur, requis, aide, children }: { id: string; labe
 }
 
 // Images de la page : ajout et suppression directs (la page doit déjà exister)
-function Images({ pageId, images, onChange }: { pageId: number; images: ImagePage[]; onChange: (liste: ImagePage[]) => void }) {
+function Images({
+  pageId,
+  images,
+  onChange,
+}: {
+  pageId: number;
+  images: ImagePage[];
+  onChange: (liste: ImagePage[]) => void;
+}) {
   const { token, expirer } = useEspace();
   const [alt, setAlt] = useState("");
   const [envoi, setEnvoi] = useState(false);
@@ -83,7 +105,9 @@ function Images({ pageId, images, onChange }: { pageId: number; images: ImagePag
         expirer();
         return;
       }
-      setErreur(e instanceof ApiError && e.errors ? Object.values(e.errors)[0]?.[0] ?? messageErreur(e) : messageErreur(e));
+      setErreur(
+        e instanceof ApiError && e.errors ? (Object.values(e.errors)[0]?.[0] ?? messageErreur(e)) : messageErreur(e),
+      );
     } finally {
       setEnvoi(false);
       if (entree.current) entree.current.value = "";
@@ -119,12 +143,23 @@ function Images({ pageId, images, onChange }: { pageId: number; images: ImagePag
       {images.length > 0 && (
         <ul className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {images.map((i) => (
-            <li key={i.id} className="group relative overflow-hidden rounded-xl border border-site-line bg-site-base/40">
+            <li
+              key={i.id}
+              className="group relative overflow-hidden rounded-xl border border-site-line bg-site-base/40"
+            >
               {/* Adresse signée temporaire : next/image n'est pas adapté */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={i.url} alt={i.texte_alternatif ?? i.nom_image} className="aspect-video w-full object-cover" loading="lazy" />
+              <img
+                src={i.url}
+                alt={i.texte_alternatif ?? i.nom_image}
+                className="aspect-video w-full object-cover"
+                loading="lazy"
+              />
               <div className="flex items-center gap-2 px-2.5 py-2">
-                <span className="min-w-0 flex-1 truncate text-[11px] text-site-muted" title={i.texte_alternatif ? `${i.nom_image} — ${i.texte_alternatif}` : i.nom_image}>
+                <span
+                  className="min-w-0 flex-1 truncate text-[11px] text-site-muted"
+                  title={i.texte_alternatif ? `${i.nom_image} — ${i.texte_alternatif}` : i.nom_image}
+                >
                   {i.nom_image}
                 </span>
                 <button
@@ -135,7 +170,11 @@ function Images({ pageId, images, onChange }: { pageId: number; images: ImagePag
                   title="Supprimer l’image"
                   className="flex size-7 shrink-0 items-center justify-center rounded-md text-site-muted transition-colors hover:bg-site-danger/10 hover:text-site-danger disabled:opacity-50"
                 >
-                  {suppressionId === i.id ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Trash2 size={14} aria-hidden />}
+                  {suppressionId === i.id ? (
+                    <Loader2 size={14} className="animate-spin" aria-hidden />
+                  ) : (
+                    <Trash2 size={14} aria-hidden />
+                  )}
                 </button>
               </div>
             </li>
@@ -303,7 +342,8 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
     // Création : tout est fait. Brouillon : on rouvre la page pour permettre l'ajout d'images.
     if (creee) {
       if (publier) onEnregistre("Page publiée.");
-      else onEnregistre("Page enregistrée en brouillon. Vous pouvez maintenant y ajouter des images.", { rouvrir: creee });
+      else
+        onEnregistre("Page enregistrée en brouillon. Vous pouvez maintenant y ajouter des images.", { rouvrir: creee });
       return;
     }
 
@@ -328,7 +368,12 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-page">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -353,7 +398,10 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
@@ -367,7 +415,15 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
           ) : echecChargement ? null : (
             <>
               <Champ id="p-titre" label="Titre" requis erreur={err("titre")}>
-                <input id="p-titre" ref={premierChamp} className={CHAMP} value={titre} onChange={(e) => setTitre(e.target.value)} maxLength={150} autoComplete="off" />
+                <input
+                  id="p-titre"
+                  ref={premierChamp}
+                  className={CHAMP}
+                  value={titre}
+                  onChange={(e) => setTitre(e.target.value)}
+                  maxLength={150}
+                  autoComplete="off"
+                />
               </Champ>
 
               <Champ
@@ -376,12 +432,24 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
                 erreur={err("emplacement_menu")}
                 aide="Les pages sont rangées par rubrique dans le menu de l’intranet. Sans rubrique, la page est classée sous « Pages »."
               >
-                <input id="p-emplacement" className={CHAMP} value={emplacement} onChange={(e) => setEmplacement(e.target.value)} maxLength={50} autoComplete="off" />
+                <input
+                  id="p-emplacement"
+                  className={CHAMP}
+                  value={emplacement}
+                  onChange={(e) => setEmplacement(e.target.value)}
+                  maxLength={50}
+                  autoComplete="off"
+                />
               </Champ>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Champ id="p-visi" label="Destinataires" requis erreur={err("visibilite")}>
-                  <select id="p-visi" className={CHAMP} value={visibilite} onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}>
+                  <select
+                    id="p-visi"
+                    className={CHAMP}
+                    value={visibilite}
+                    onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}
+                  >
                     <option value="entreprise">Toute l’entreprise</option>
                     <option value="departement">Un département</option>
                   </select>
@@ -389,8 +457,15 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
 
                 {visibilite === "departement" && (
                   <Champ id="p-dep" label="Département" requis erreur={err("departement_id")}>
-                    <select id="p-dep" className={CHAMP} value={departementId} onChange={(e) => setDepartementId(e.target.value)}>
-                      <option value="">{departements.length === 0 ? "Aucun département disponible" : "Choisir…"}</option>
+                    <select
+                      id="p-dep"
+                      className={CHAMP}
+                      value={departementId}
+                      onChange={(e) => setDepartementId(e.target.value)}
+                    >
+                      <option value="">
+                        {departements.length === 0 ? "Aucun département disponible" : "Choisir…"}
+                      </option>
                       {departements.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.nom_departement}
@@ -402,7 +477,14 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
               </div>
 
               <Champ id="p-corps" label="Contenu" requis erreur={err("corps")}>
-                <textarea id="p-corps" rows={12} value={corps} onChange={(e) => setCorps(e.target.value)} maxLength={100000} className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")} />
+                <textarea
+                  id="p-corps"
+                  rows={12}
+                  value={corps}
+                  onChange={(e) => setCorps(e.target.value)}
+                  maxLength={100000}
+                  className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")}
+                />
               </Champ>
 
               {edition ? (
@@ -429,7 +511,9 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
             disabled={occupe || echecChargement}
             className={cn(
               "inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
-              dejaPubliee ? "v-gradient-btn" : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
+              dejaPubliee
+                ? "v-gradient-btn"
+                : "border border-site-line text-site-ink transition-colors hover:border-brand-violet/60",
               (occupe || echecChargement) && "opacity-70",
             )}
           >
@@ -441,7 +525,10 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
               type="button"
               disabled={occupe || echecChargement}
               onClick={() => void soumettre(true)}
-              className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", (occupe || echecChargement) && "opacity-70")}
+              className={cn(
+                "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+                (occupe || echecChargement) && "opacity-70",
+              )}
             >
               {envoi === "publier" && <Loader2 size={16} className="animate-spin" aria-hidden />}
               Enregistrer et publier

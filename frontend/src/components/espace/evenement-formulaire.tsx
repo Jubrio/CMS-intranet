@@ -28,7 +28,21 @@ export const cleJour = (d: Date) => `${d.getFullYear()}-${zero(d.getMonth() + 1)
 export const versChampDate = (d: Date) => `${cleJour(d)}T${zero(d.getHours())}:${zero(d.getMinutes())}`;
 const versServeur = (champ: string) => `${champ.replace("T", " ")}:00`;
 
-function Champ({ id, label, erreur, requis, aide, children }: { id: string; label: string; erreur?: string; requis?: boolean; aide?: string; children: ReactNode }) {
+function Champ({
+  id,
+  label,
+  erreur,
+  requis,
+  aide,
+  children,
+}: {
+  id: string;
+  label: string;
+  erreur?: string;
+  requis?: boolean;
+  aide?: string;
+  children: ReactNode;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-site-muted">
@@ -56,9 +70,13 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
 
   const [titre, setTitre] = useState(evenement?.titre_evenement ?? "");
   const [lieu, setLieu] = useState(evenement?.lieu ?? "");
-  const [debut, setDebut] = useState(evenement ? versChampDate(lireDate(evenement.date_debut)) : versChampDate(debutParDefaut));
+  const [debut, setDebut] = useState(
+    evenement ? versChampDate(lireDate(evenement.date_debut)) : versChampDate(debutParDefaut),
+  );
   const [fin, setFin] = useState(
-    evenement ? versChampDate(lireDate(evenement.date_fin)) : versChampDate(new Date(debutParDefaut.getTime() + 60 * 60 * 1000)),
+    evenement
+      ? versChampDate(lireDate(evenement.date_fin))
+      : versChampDate(new Date(debutParDefaut.getTime() + 60 * 60 * 1000)),
   );
   const [description, setDescription] = useState(evenement?.description_evenement ?? "");
   const [visibilite, setVisibilite] = useState<"entreprise" | "departement">(evenement?.visibilite ?? "entreprise");
@@ -89,7 +107,8 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
     if (valeur && debut && fin) {
       const duree = new Date(fin).getTime() - new Date(debut).getTime();
       const nouveau = new Date(valeur).getTime();
-      if (!Number.isNaN(duree) && !Number.isNaN(nouveau) && duree >= 0) setFin(versChampDate(new Date(nouveau + duree)));
+      if (!Number.isNaN(duree) && !Number.isNaN(nouveau) && duree >= 0)
+        setFin(versChampDate(new Date(nouveau + duree)));
     }
     setDebut(valeur);
   }
@@ -142,8 +161,17 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
 
   return (
     <div className="fixed inset-0 z-[60] flex" role="dialog" aria-modal="true" aria-labelledby="titre-formulaire-evt">
-      <button type="button" aria-label="Fermer" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onFermer} />
-      <form onSubmit={soumettre} noValidate className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl">
+      <button
+        type="button"
+        aria-label="Fermer"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onFermer}
+      />
+      <form
+        onSubmit={soumettre}
+        noValidate
+        className="relative ml-auto flex h-full w-full max-w-md flex-col border-l border-site-line bg-site-surface shadow-2xl"
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-site-line px-5">
           <h2 id="titre-formulaire-evt" className="font-display text-base font-semibold">
             {edition ? "Modifier l’événement" : "Nouvel événement"}
@@ -160,31 +188,67 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {message && (
-            <p role="alert" className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger">
+            <p
+              role="alert"
+              className="rounded-lg border border-site-danger/40 bg-site-danger/10 px-3 py-2 text-sm text-site-danger"
+            >
               {message}
             </p>
           )}
 
           <Champ id="e-titre" label="Titre" requis erreur={err("titre_evenement")}>
-            <input id="e-titre" ref={premierChamp} className={CHAMP} value={titre} onChange={(e) => setTitre(e.target.value)} maxLength={150} autoComplete="off" />
+            <input
+              id="e-titre"
+              ref={premierChamp}
+              className={CHAMP}
+              value={titre}
+              onChange={(e) => setTitre(e.target.value)}
+              maxLength={150}
+              autoComplete="off"
+            />
           </Champ>
 
           <Champ id="e-lieu" label="Lieu" erreur={err("lieu")}>
-            <input id="e-lieu" className={CHAMP} value={lieu} onChange={(e) => setLieu(e.target.value)} maxLength={100} autoComplete="off" />
+            <input
+              id="e-lieu"
+              className={CHAMP}
+              value={lieu}
+              onChange={(e) => setLieu(e.target.value)}
+              maxLength={100}
+              autoComplete="off"
+            />
           </Champ>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Champ id="e-debut" label="Début" requis erreur={err("date_debut")}>
-              <input id="e-debut" type="datetime-local" className={CHAMP} value={debut} onChange={(e) => changerDebut(e.target.value)} />
+              <input
+                id="e-debut"
+                type="datetime-local"
+                className={CHAMP}
+                value={debut}
+                onChange={(e) => changerDebut(e.target.value)}
+              />
             </Champ>
             <Champ id="e-fin" label="Fin" requis erreur={err("date_fin")}>
-              <input id="e-fin" type="datetime-local" className={CHAMP} value={fin} min={debut || undefined} onChange={(e) => setFin(e.target.value)} />
+              <input
+                id="e-fin"
+                type="datetime-local"
+                className={CHAMP}
+                value={fin}
+                min={debut || undefined}
+                onChange={(e) => setFin(e.target.value)}
+              />
             </Champ>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Champ id="e-visi" label="Destinataires" requis erreur={err("visibilite")}>
-              <select id="e-visi" className={CHAMP} value={visibilite} onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}>
+              <select
+                id="e-visi"
+                className={CHAMP}
+                value={visibilite}
+                onChange={(e) => setVisibilite(e.target.value as "entreprise" | "departement")}
+              >
                 <option value="entreprise">Toute l’entreprise</option>
                 <option value="departement">Un département</option>
               </select>
@@ -192,7 +256,12 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
 
             {visibilite === "departement" && (
               <Champ id="e-dep" label="Département" requis erreur={err("departement_id")}>
-                <select id="e-dep" className={CHAMP} value={departementId} onChange={(e) => setDepartementId(e.target.value)}>
+                <select
+                  id="e-dep"
+                  className={CHAMP}
+                  value={departementId}
+                  onChange={(e) => setDepartementId(e.target.value)}
+                >
                   <option value="">{departements.length === 0 ? "Aucun département disponible" : "Choisir…"}</option>
                   {departements.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -205,7 +274,13 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
           </div>
 
           <Champ id="e-desc" label="Description" erreur={err("description_evenement")}>
-            <textarea id="e-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")} />
+            <textarea
+              id="e-desc"
+              rows={5}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={cn(CHAMP, "h-auto resize-y py-2 leading-relaxed")}
+            />
           </Champ>
         </div>
 
@@ -220,7 +295,10 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
           <button
             type="submit"
             disabled={envoi}
-            className={cn("v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold", envoi && "opacity-70")}
+            className={cn(
+              "v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold",
+              envoi && "opacity-70",
+            )}
           >
             {envoi && <Loader2 size={16} className="animate-spin" aria-hidden />}
             {edition ? "Enregistrer" : "Créer l’événement"}
