@@ -20,6 +20,11 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuGestionController;
 use App\Http\Controllers\Api\PageImageController;
 use App\Http\Controllers\Api\LectureNoteController;
+use App\Http\Controllers\Api\ManagerTableauDeBordController;
+use App\Http\Controllers\Api\RhTableauDeBordController;
+use App\Http\Controllers\Api\SuperIntranetController;
+use App\Http\Controllers\Api\SuperModuleController;
+use App\Http\Controllers\Api\SuperTableauDeBordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +49,23 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::put('/me', [ProfilController::class, 'modifier']);
     Route::post('/me/photo', [ProfilController::class, 'photo']);
     Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
+
+    // Ressources humaines : effectifs et suivi des fiches de l'entreprise
+    Route::get('/rh/tableau-de-bord', RhTableauDeBordController::class)
+        ->middleware('permission:utilisateurs.gerer');
+
+    // Manager : son équipe, son département et ses publications (le contrôleur vérifie le rôle)
+    Route::get('/manager/tableau-de-bord', ManagerTableauDeBordController::class);
+
+    // Plateforme : réservé au Super-administrateur (intranets de toutes les entreprises)
+    Route::middleware('super.admin')->prefix('super')->group(function () {
+        Route::get('/tableau-de-bord', SuperTableauDeBordController::class);
+        Route::get('/intranets', [SuperIntranetController::class, 'index']);
+        Route::get('/intranets/{id}', [SuperIntranetController::class, 'show'])->whereNumber('id');
+        Route::put('/intranets/{id}/statut', [SuperIntranetController::class, 'changerStatut'])->whereNumber('id');
+        Route::get('/modules', [SuperModuleController::class, 'index']);
+        Route::get('/modules/{code}', [SuperModuleController::class, 'show'])->where('code', '[a-z_]+');
+    });
 
     // Modules (étape 22)
     Route::get('/modules', [ModuleEntrepriseController::class, 'index'])

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\VerifierPermission::class,
             'module' => \App\Http\Middleware\VerifierModule::class,
             'compte.actif' => \App\Http\Middleware\VerifierCompteActif::class,
+            'super.admin' => \App\Http\Middleware\VerifierSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
