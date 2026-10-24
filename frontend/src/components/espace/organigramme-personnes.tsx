@@ -108,9 +108,11 @@ type Props = {
   erreur: boolean;
   onReessayer: () => void;
   onOuvrir: (id: number) => void;
+  // Consultation : les messages ne renvoient pas vers des écrans de gestion
+  lectureSeule?: boolean;
 };
 
-export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir }: Props) {
+export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir, lectureSeule }: Props) {
   const { arbres, isoles } = useMemo(() => (personnes ? construire(personnes) : { arbres: [], isoles: [] }), [personnes]);
 
   if (erreur) {
@@ -150,14 +152,18 @@ export function OrganigrammePersonnes({ personnes, erreur, onReessayer, onOuvrir
       ) : (
         <div className="rounded-2xl border border-site-line bg-site-surface px-6 py-14 text-center shadow-sm">
           <p className="text-sm font-medium">Aucun lien hiérarchique renseigné pour le moment.</p>
-          <p className="mt-1 text-xs text-site-muted">Ouvrez la fiche d’un employé et choisissez son supérieur hiérarchique pour construire l’organigramme.</p>
+          <p className="mt-1 text-xs text-site-muted">
+            {lectureSeule ? "Les liens hiérarchiques n’ont pas encore été renseignés." : "Ouvrez la fiche d’un employé et choisissez son supérieur hiérarchique pour construire l’organigramme."}
+          </p>
         </div>
       )}
 
       {isoles.length > 0 && (
         <section className="rounded-2xl border border-site-line bg-site-surface p-5 shadow-sm">
           <h2 className="font-display text-sm font-semibold">Sans rattachement hiérarchique ({isoles.length})</h2>
-          <p className="mt-1 text-xs text-site-muted">Ces personnes n’ont ni supérieur ni subordonné renseigné. Ouvrez leur fiche pour les placer dans l’organigramme.</p>
+          <p className="mt-1 text-xs text-site-muted">
+            {lectureSeule ? "Ces personnes n’ont ni supérieur ni subordonné renseigné." : "Ces personnes n’ont ni supérieur ni subordonné renseigné. Ouvrez leur fiche pour les placer dans l’organigramme."}
+          </p>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {isoles.map((p) => (
               <li key={p.id}>

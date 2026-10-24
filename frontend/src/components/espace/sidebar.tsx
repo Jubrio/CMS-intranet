@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Layers } from "lucide-react";
-import { estSuperAdmin, menuPour, type Personnalisation, type Profil } from "@/lib/espace";
+import { estSuperAdmin, menuPour, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({
   profil,
   perso,
+  menu = null,
   onNavigate,
 }: {
   profil: Profil;
   perso: Personnalisation | null;
+  menu?: MenuConfig | null;
   onNavigate?: () => void;
 }) {
   const chemin = usePathname();
@@ -36,7 +38,7 @@ export function Sidebar({
       </div>
 
       <nav aria-label="Navigation principale" className="flex-1 overflow-y-auto px-3 py-4">
-        {menuPour(profil).map((groupe, i) => (
+        {menuPour(profil, menu).map((groupe, i) => (
           <div key={groupe.titre ?? i} className={cn(i > 0 && "mt-6")}>
             {groupe.titre && (
               <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-site-muted">{groupe.titre}</p>
@@ -63,8 +65,26 @@ export function Sidebar({
                   );
                 }
 
+                const classe = cn(
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  actif ? "bg-brand-violet/15 text-brand-violet" : "text-site-muted hover:bg-site-surface2 hover:text-site-ink",
+                );
+
+                // Lien vers un site externe (liens personnalisés) : nouvel onglet
+                if (e.externe) {
+                  return (
+                    <li key={`${e.libelle}-${e.href}`}>
+                      <a href={e.href} target="_blank" rel="noopener noreferrer" onClick={onNavigate} className={classe}>
+                        <Icone size={18} aria-hidden className="shrink-0" />
+                        <span className="truncate">{e.libelle}</span>
+                        <span className="sr-only"> (s’ouvre dans un nouvel onglet)</span>
+                      </a>
+                    </li>
+                  );
+                }
+
                 return (
-                  <li key={e.libelle}>
+                  <li key={`${e.libelle}-${e.href}`}>
                     <Link
                       href={e.href}
                       onClick={onNavigate}

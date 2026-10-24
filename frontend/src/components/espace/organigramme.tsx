@@ -100,9 +100,11 @@ type Props = {
   onReessayer: () => void;
   onOuvrirPersonne: (id: number) => void;
   onVoirEquipe: (departementId: number) => void;
+  // Consultation : les messages ne renvoient pas vers des écrans de gestion
+  lectureSeule?: boolean;
 };
 
-export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, onVoirEquipe }: Props) {
+export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, onVoirEquipe, lectureSeule }: Props) {
   const [repliees, setRepliees] = useState<Set<number>>(new Set());
   const repliables = useMemo(() => (noeuds ? idsAvecEnfants(noeuds) : []), [noeuds]);
 
@@ -143,7 +145,9 @@ export function Organigramme({ noeuds, erreur, onReessayer, onOuvrirPersonne, on
           <Building2 size={22} aria-hidden />
         </span>
         <p className="mt-4 text-sm font-medium">Aucun département pour le moment.</p>
-        <p className="mt-1 text-xs text-site-muted">Créez vos départements depuis l’écran Départements pour construire l’organigramme.</p>
+        <p className="mt-1 text-xs text-site-muted">
+          {lectureSeule ? "L’organigramme apparaîtra dès que les départements auront été créés." : "Créez vos départements depuis l’écran Départements pour construire l’organigramme."}
+        </p>
       </div>
     );
   }

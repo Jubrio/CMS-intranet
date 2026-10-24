@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import type { Personnalisation, Profil } from "@/lib/espace";
+import type { MenuConfig, Personnalisation, Profil } from "@/lib/espace";
 import { variablesTheme } from "@/lib/apparence";
 import { effacerToken, lireToken } from "@/lib/session";
 import { ThemeToggle } from "@/components/visiteur/theme";
@@ -12,7 +12,7 @@ import { EspaceContext } from "./espace-context";
 import { Sidebar } from "./sidebar";
 import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
 
-type Session = { token: string; profil: Profil; perso: Personnalisation | null };
+type Session = { token: string; profil: Profil; perso: Personnalisation | null; menu: MenuConfig | null };
 
 export function EspaceShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -35,8 +35,12 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   const actualiser = useCallback(async () => {
     if (!jeton) return;
     try {
-      const profil = await api<Profil>("/me", { token: jeton });
-      setSession((s) => (s ? { ...s, profil } : s));
+      const [profil, menu] = await Promise.all([
+        api<Profil>("/me", { token: jeton }),
+        // Les réglages du menu sont un plus : sans eux, le menu par défaut s'affiche
+        api<MenuConfig>("/menu", { token: jeton }).catch(() => null),
+      ]);
+      setSession((s) => (s ? { ...s, profil, menu } : s));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) expirer();
     }
@@ -53,9 +57,10 @@ export function EspaceShell({ children }: { children: ReactNode }) {
       api<Profil>("/me", { token }),
       // La personnalisation est un plus (logo, nom) : son échec ne bloque pas l'espace
       api<Personnalisation>("/personnalisation", { token }).catch(() => null),
+      api<MenuConfig>("/menu", { token }).catch(() => null),
     ])
-      .then(([profil, perso]) => {
-        if (!annule) setSession({ token, profil, perso });
+      .then(([profil, perso, menu]) => {
+        if (!annule) setSession({ token, profil, perso, menu });
       })
       .catch((err) => {
         if (annule) return;
@@ -103,7 +108,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const { profil, perso } = session;
+  const { profil, perso, menu } = session;
 
   return (
     <EspaceContext.Provider value={valeur}>
@@ -111,7 +116,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
       <div className="contents" style={variablesTheme(perso?.couleur_principale, perso?.couleur_secondaire)}>
       {/* Menu latéral (bureau) */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-site-line bg-site-surface lg:block">
-        <Sidebar profil={profil} perso={perso} />
+        <Sidebar profil={profil} perso={perso} menu={menu} />
       </aside>
 
       {/* Tiroir (mobile) */}
@@ -132,7 +137,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
             >
               <X size={18} />
             </button>
-            <Sidebar profil={profil} perso={perso} onNavigate={() => setMenuOuvert(false)} />
+            <Sidebar profil={profil} perso={perso} menu={menu} onNavigate={() => setMenuOuvert(false)} />
           </aside>
         </div>
       )}

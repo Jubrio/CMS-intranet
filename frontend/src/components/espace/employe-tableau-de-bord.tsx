@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { format, formatDistanceToNow, isSameDay, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -546,11 +547,13 @@ export function EmployeTableauDeBord() {
                     const limite = echeance(f.date_limite);
                     const urgent = limite !== null && limite.getTime() - maintenant.getTime() < 3 * 86_400_000;
                     return (
-                      <li key={f.id} className="flex items-center gap-3">
-                        <p className="min-w-0 flex-1 truncate text-sm font-medium">{f.titre_formulaire}</p>
-                        <span className={cn("shrink-0 text-xs", urgent ? "font-semibold text-site-danger" : "text-site-muted")}>
-                          {limite ? `Avant le ${format(limite, "d MMM", { locale: fr })}` : "Sans date limite"}
-                        </span>
+                      <li key={f.id}>
+                        <Link href="/espace/mes-formulaires" className="flex items-center gap-3 rounded-lg transition-colors hover:text-brand-violet">
+                          <p className="min-w-0 flex-1 truncate text-sm font-medium">{f.titre_formulaire}</p>
+                          <span className={cn("shrink-0 text-xs", urgent ? "font-semibold text-site-danger" : "text-site-muted")}>
+                            {limite ? `Avant le ${format(limite, "d MMM", { locale: fr })}` : "Sans date limite"}
+                          </span>
+                        </Link>
                       </li>
                     );
                   })}

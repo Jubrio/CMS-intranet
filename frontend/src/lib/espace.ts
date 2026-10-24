@@ -1,17 +1,22 @@
 import {
   Blocks,
   CalendarCheck,
+  CalendarDays,
   CircleHelp,
+  ClipboardCheck,
   ClipboardList,
   Contact,
+  ExternalLink,
   FileText,
   FolderOpen,
   Home,
   Landmark,
   LayoutDashboard,
   LayoutTemplate,
+  Link2,
   ListTree,
   Megaphone,
+  Network,
   Newspaper,
   Palette,
   ScrollText,
@@ -63,8 +68,20 @@ export type EntreeNav = {
   module?: string;
   // Entrée de la plateforme : visible uniquement par le Super-administrateur
   superAdmin?: boolean;
-  // Entrée réservée à certains rôles (ex. fil d'accueil de l'Employé)
-  roles?: string[];
+  // Entrée masquée si le rôle a cette permission (ex. la consultation cède la place à la gestion)
+  sauf?: string;
+  // Code du module du menu configurable (« Menus ») dont dépend l'entrée, si différent de `module`
+  menu?: string;
+  // Jamais masquée par la configuration des menus (évite de s'enfermer dehors)
+  toujours?: boolean;
+  // Lien vers un site externe : s'ouvre dans un nouvel onglet
+  externe?: boolean;
+};
+
+// Réponse de GET /menu : réglages de l'administrateur appliqués au rôle de l'appelant
+export type MenuConfig = {
+  modules: { code: string; libelle: string; ordre: number; libelle_perso?: string | null; ordre_perso?: number | null }[];
+  liens: { id: number; libelle: string; url: string; ordre: number }[];
 };
 
 // Le Super-administrateur n'appartient à aucune entreprise
@@ -76,8 +93,21 @@ export const NAV: GroupeNav[] = [
   {
     titre: null,
     entrees: [
-      { libelle: "Accueil", icone: Home, href: "/espace/accueil", roles: ["Employé"] },
       { libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace" },
+      // Fil d'actualité de l'entreprise : visible par tous les rôles d'une entreprise
+      { libelle: "Accueil", icone: Home, href: "/espace/accueil" },
+      // Formulaires internes à remplir : tout rôle qui a le droit de répondre
+      { libelle: "Mes formulaires", icone: ClipboardCheck, href: "/espace/mes-formulaires", permission: "formulaires.repondre", module: "formulaires" },
+    ],
+  },
+  {
+    titre: "Mon entreprise",
+    entrees: [
+      { libelle: "Organigramme", icone: Network, href: "/espace/organigramme", permission: "annuaire.consulter", module: "annuaire", sauf: "annuaire.gerer" },
+      { libelle: "Calendrier", icone: CalendarDays, href: "/espace/calendrier", permission: "evenements.consulter", module: "evenements", menu: "calendrier", sauf: "evenements.gerer" },
+      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/consulter-pages", permission: "pages.consulter", module: "pages", sauf: "pages.gerer" },
+      { libelle: "Documents", icone: FolderOpen, href: "/espace/consulter-documents", permission: "documents.consulter", module: "documents", sauf: "documents.gerer" },
+      { libelle: "FAQ", icone: CircleHelp, href: "/espace/consulter-faq", permission: "faq.consulter", module: "faq", sauf: "faq.gerer" },
     ],
   },
   {
@@ -106,10 +136,10 @@ export const NAV: GroupeNav[] = [
   {
     titre: "Configuration",
     entrees: [
-      { libelle: "Modules", icone: Blocks, href: "/espace/modules", permission: "personnalisation.modules" },
-      { libelle: "Apparence", icone: Palette, href: "/espace/apparence", permission: "personnalisation.apparence" },
-      { libelle: "Menus", icone: ListTree, permission: "personnalisation.menus" },
-      { libelle: "Paramètres", icone: Settings, href: "/espace/parametres", permission: "personnalisation.parametres" },
+      { libelle: "Modules", icone: Blocks, href: "/espace/modules", permission: "personnalisation.modules", menu: "personnalisation" },
+      { libelle: "Apparence", icone: Palette, href: "/espace/apparence", permission: "personnalisation.apparence", menu: "personnalisation" },
+      { libelle: "Menus", icone: ListTree, href: "/espace/menus", permission: "personnalisation.parametres", menu: "personnalisation", toujours: true },
+      { libelle: "Paramètres", icone: Settings, href: "/espace/parametres", permission: "personnalisation.parametres", menu: "personnalisation" },
     ],
   },
 ];
@@ -139,15 +169,73 @@ export const estManager = (p: Pick<Profil, "role" | "entreprise">) => p.role ===
 const ENTREES_RH = ["Utilisateurs", "Départements", "Annuaire"];
 
 // Menu filtré selon le profil ; les groupes vides disparaissent
-export function menuPour(profil: Profil): GroupeNav[] {
+export function menuPour(profil: Profil, menu: MenuConfig | null = null): GroupeNav[] {
   if (estSuperAdmin(profil)) return NAV_PLATEFORME;
+  const base = menuDeBase(profil);
+  return menu ? appliquerMenu(base, menu) : base;
+}
+
+const cleMenu = (e: EntreeNav) => e.menu ?? e.module;
+
+// Réglages de l'administrateur (écran « Menus ») : visibilité et rôles, libellés, ordre, liens
+function appliquerMenu(groupes: GroupeNav[], menu: MenuConfig): GroupeNav[] {
+  const modules = new Map(menu.modules.map((m) => [m.code, m]));
+  const reglage = (e: EntreeNav) => {
+    const c = cleMenu(e);
+    return c ? modules.get(c) : undefined;
+  };
+
+  // 1. Une entrée liée à un module que /menu ne renvoie pas pour ce rôle est masquée
+  let res = groupes
+    .map((g) => ({ ...g, entrees: g.entrees.filter((e) => !cleMenu(e) || e.toujours || modules.has(cleMenu(e)!)) }))
+    .filter((g) => g.entrees.length > 0);
+
+  // 2. Libellé personnalisé : seulement si le module n'a qu'une entrée dans le menu
+  const nb = new Map<string, number>();
+  for (const g of res) for (const e of g.entrees) {
+    const c = cleMenu(e);
+    if (c) nb.set(c, (nb.get(c) ?? 0) + 1);
+  }
+  res = res.map((g) => ({
+    ...g,
+    entrees: g.entrees.map((e) => {
+      const r = reglage(e);
+      return r?.libelle_perso && nb.get(cleMenu(e)!) === 1 ? { ...e, libelle: r.libelle_perso } : e;
+    }),
+  }));
+
+  // 3. Ordre : un groupe où l'administrateur a réglé l'ordre se trie sur l'ordre des modules
+  //    (les entrées sans module, comme le tableau de bord, restent en tête)
+  res = res.map((g) => {
+    if (!g.entrees.some((e) => reglage(e)?.ordre_perso != null)) return g;
+    const rang = (e: EntreeNav) => (cleMenu(e) ? (reglage(e)?.ordre ?? Number.MAX_SAFE_INTEGER) : -1);
+    return { ...g, entrees: [...g.entrees].sort((a, b) => rang(a) - rang(b)) };
+  });
+
+  // 4. Liens personnalisés, dans un groupe à la fin
+  if (menu.liens.length > 0) {
+    res = [
+      ...res,
+      {
+        titre: "Liens",
+        entrees: menu.liens.map((l) => {
+          const externe = l.url.startsWith("https://");
+          return { libelle: l.libelle, icone: externe ? ExternalLink : Link2, href: l.url, externe };
+        }),
+      },
+    ];
+  }
+  return res;
+}
+
+function menuDeBase(profil: Profil): GroupeNav[] {
   const groupes = NAV.map((g) => ({
     ...g,
     entrees: g.entrees.filter(
       (e) =>
         (!e.permission || profil.permissions.includes(e.permission)) &&
         (!e.module || profil.modules_actifs.includes(e.module)) &&
-        (!e.roles || e.roles.includes(profil.role)),
+        (!e.sauf || !profil.permissions.includes(e.sauf)),
     ),
   })).filter((g) => g.entrees.length > 0);
 

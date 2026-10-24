@@ -31,14 +31,9 @@ export function FormulaireConnexion() {
   async function envoyer(v: Valeurs) {
     setErreur(null);
     try {
-      const reponse = await api<{ token: string; utilisateur: { role: string; entreprise: string | null } }>("/login", {
-        method: "POST",
-        body: JSON.stringify(v),
-      });
+      const reponse = await api<{ token: string }>("/login", { method: "POST", body: JSON.stringify(v) });
       enregistrerToken(reponse.token);
-      // L'employé arrive directement sur le fil d'accueil, les autres profils sur leur tableau de bord
-      const estEmploye = reponse.utilisateur.role === "Employé" && reponse.utilisateur.entreprise !== null;
-      router.push(estEmploye ? "/espace/accueil" : "/espace");
+      router.push("/espace");
     } catch (err) {
       setErreur(messageErreur(err));
     }

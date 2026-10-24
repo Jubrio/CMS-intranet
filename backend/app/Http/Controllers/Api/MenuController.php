@@ -42,6 +42,9 @@ class MenuController extends Controller
                     'code' => $m->code_module,
                     'libelle' => $l?->libelle_menu ?? $m->nom_module,
                     'ordre' => $l?->ordre_menu ?? $m->id * 10,
+                    // Réglages de l'administrateur seuls (null = comportement par défaut)
+                    'libelle_perso' => $l?->libelle_menu,
+                    'ordre_perso' => $l?->ordre_menu,
                 ];
             })
             ->filter()->sortBy('ordre')->values();
