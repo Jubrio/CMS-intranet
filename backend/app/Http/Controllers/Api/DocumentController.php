@@ -7,6 +7,7 @@ use App\Http\Requests\EnregistrerDocumentRequest;
 use App\Models\Document;
 use App\Models\Utilisateur;
 use App\Services\AccesContenus;
+use App\Services\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,8 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
+    public function __construct(private NotificationService $notifications) {}
+
     public function index(Request $request): JsonResponse
     {
         $request->validate(['q' => 'nullable|string|max:100', 'categorie' => 'nullable|string|max:50']);
@@ -112,6 +115,9 @@ class DocumentController extends Controller
             'visibilite' => $d['visibilite'],
         ]);
 
+        // Notifie toute l'entreprise, ou seulement le département ciblé
+        $this->notifications->publier($u, 'depose', 'document', $doc->id, $doc->nom_document, $doc->departement_id);
+
         return response()->json($this->formater($doc->load('auteur:id,nom,prenom')), 201);
     }
 
@@ -150,6 +156,7 @@ class DocumentController extends Controller
 
         Storage::disk('local')->delete($doc->fichier);
         $doc->delete();
+        $this->notifications->retirer('document', $id);
 
         return response()->json(['message' => 'Document supprimé.']);
     }

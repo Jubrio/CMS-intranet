@@ -7,6 +7,7 @@ use App\Http\Requests\EnregistrerEvenementRequest;
 use App\Models\Evenement;
 use App\Models\Utilisateur;
 use App\Services\AccesContenus;
+use App\Services\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ use Illuminate\Support\Carbon;
 
 class EvenementController extends Controller
 {
+    public function __construct(private NotificationService $notifications) {}
+
     // Vue calendrier : événements qui chevauchent la période demandée (mois courant par défaut)
     public function index(Request $request): JsonResponse
     {
@@ -76,6 +79,9 @@ class EvenementController extends Controller
             'visibilite' => $d['visibilite'],
         ]);
 
+        // Notifie toute l'entreprise, ou seulement le département ciblé
+        $this->notifications->publier($u, 'cree', 'evenement', $e->id, $e->titre_evenement, $e->departement_id);
+
         return response()->json($this->formater($e->load('auteur:id,nom,prenom')), 201);
     }
 
@@ -120,6 +126,7 @@ class EvenementController extends Controller
         $e = Evenement::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
         $this->verifierPortee($u, $e->visibilite, $e->departement_id);
         $e->delete();
+        $this->notifications->retirer('evenement', $id);
 
         return response()->json(['message' => 'Événement annulé.']);
     }

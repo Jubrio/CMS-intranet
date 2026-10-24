@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuGestionController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\ModuleEntrepriseController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\PageImageController;
 use App\Http\Controllers\Api\PersonnalisationController;
@@ -50,6 +51,12 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::put('/me', [ProfilController::class, 'modifier']);
     Route::post('/me/photo', [ProfilController::class, 'photo']);
     Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
+
+    // Notifications de l'utilisateur : publications, événements, documents (ciblage entreprise ou département)
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/non-lues', [NotificationController::class, 'nonLues']);
+    Route::post('/notifications/tout-lire', [NotificationController::class, 'toutLire']);
+    Route::post('/notifications/{id}/lire', [NotificationController::class, 'lire'])->whereNumber('id');
 
     // Ressources humaines : effectifs et suivi des fiches de l'entreprise
     Route::get('/rh/tableau-de-bord', RhTableauDeBordController::class)

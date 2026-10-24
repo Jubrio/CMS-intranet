@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import { refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
+import { estSuperAdmin, refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { variablesTheme } from "@/lib/apparence";
 import { effacerToken, lireToken } from "@/lib/session";
 import { ThemeToggle } from "@/components/visiteur/theme";
@@ -12,6 +12,7 @@ import { EspaceContext } from "./espace-context";
 import { Sidebar } from "./sidebar";
 import { AccesRefuse } from "./acces-refuse";
 import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
+import { NotificationsCloche } from "./notifications-cloche";
 
 type Session = { token: string; profil: Profil; perso: Personnalisation | null; menu: MenuConfig | null };
 
@@ -168,6 +169,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="ml-auto flex items-center gap-3">
+              {/* Le Super-administrateur n'appartient à aucune entreprise : pas de notifications */}
+              {!estSuperAdmin(profil) && <NotificationsCloche />}
               <ThemeToggle />
               <span aria-hidden className="hidden h-6 w-px bg-site-line sm:block" />
               <button

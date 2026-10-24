@@ -8,6 +8,7 @@ use App\Models\Contenu;
 use App\Models\LectureNote;
 use App\Models\Utilisateur;
 use App\Services\AccesContenus;
+use App\Services\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Illuminate\Support\Str;
 
 class ContenuController extends Controller
 {
-    public function __construct(private AccesContenus $acces) {}
+    public function __construct(private AccesContenus $acces, private NotificationService $notifications) {}
 
     public function index(Request $request, string $type): JsonResponse
     {
@@ -137,6 +138,12 @@ class ContenuController extends Controller
             'date_publication' => $c->date_publication ?? now(),
         ]);
 
+        // Notifie toute l'entreprise, ou seulement le département ciblé
+        $this->notifications->publier(
+            $request->user(), 'publie', $type, $c->id, $c->titre,
+            $c->visibilite === 'departement' ? $c->departement_id : null,
+        );
+
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
 
@@ -147,6 +154,7 @@ class ContenuController extends Controller
             return response()->json(['message' => 'Seul un contenu publié peut être archivé.'], 422);
         }
         $c->update(['statut_contenu' => 'archive']);
+        $this->notifications->retirer($type, $c->id);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
@@ -156,6 +164,7 @@ class ContenuController extends Controller
         $c = $this->gerer($request, $type, $id);
         $fichiers = $c->images()->pluck('fichier')->all();
         $c->delete(); // les lignes images partent en cascade
+        $this->notifications->retirer($type, $c->id);
         Storage::disk('local')->delete($fichiers);
 
         return response()->json(['message' => 'Contenu supprimé.']);
