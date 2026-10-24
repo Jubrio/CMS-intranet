@@ -8,7 +8,7 @@ class EnregistrerQuestionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     public function rules(): array
@@ -18,7 +18,7 @@ class EnregistrerQuestionRequest extends FormRequest
         return [
             'question' => [$p, 'string', 'max:250'],
             'reponse' => [$p, 'string'],
-            'categorie' => [$p, 'string', 'max:50'], 
+            'categorie' => [$p, 'string', 'max:50'],
         ];
     }
 }

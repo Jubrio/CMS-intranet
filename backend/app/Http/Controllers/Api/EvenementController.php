@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerEvenementRequest;
 use App\Models\Evenement;
 use App\Models\Utilisateur;
+use App\Services\AccesContenus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +42,15 @@ class EvenementController extends Controller
         ]);
     }
 
+    // RG21 : un Manager ne gère que les événements de son département
+    private function verifierPortee(Utilisateur $u, string $visibilite, $departementId): void
+    {
+        $dept = $departementId ? (int) $departementId : null;
+        if (! app(AccesContenus::class)->peutCibler($u, $visibilite, $dept)) {
+            abort(403, 'Un Manager ne gère que les événements de son département.');
+        }
+    }
+
     public function show(Request $request, int $id): JsonResponse
     {
         $e = $this->visibles($request->user())->with('auteur:id,nom,prenom')->findOrFail($id);
@@ -52,6 +62,7 @@ class EvenementController extends Controller
     {
         $u = $request->user();
         $d = $request->validated();
+        $this->verifierPortee($u, $d['visibilite'], $d['departement_id'] ?? null);
 
         $e = Evenement::create([
             'entreprise_id' => $u->entreprise_id, // RG05
@@ -70,7 +81,10 @@ class EvenementController extends Controller
 
     public function update(EnregistrerEvenementRequest $request, int $id): JsonResponse
     {
-        $e = Evenement::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id);
+        $u = $request->user();
+        $e = Evenement::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
+        $this->verifierPortee($u, $e->visibilite, $e->departement_id); // l'existant
+
         $d = $request->validated();
         if (empty($d)) {
             return response()->json(['message' => 'Aucun champ à modifier.'], 422);
@@ -92,6 +106,7 @@ class EvenementController extends Controller
             return response()->json(['message' => 'Un département est requis.',
                 'errors' => ['departement_id' => ['Un département est requis.']]], 422);
         }
+        $this->verifierPortee($u, $visibilite, $dept); // la nouvelle valeur
 
         $e->update(array_diff_key($d, ['visibilite' => 1, 'departement_id' => 1])
             + ['visibilite' => $visibilite, 'departement_id' => $dept]);
@@ -101,7 +116,10 @@ class EvenementController extends Controller
 
     public function destroy(Request $request, int $id): JsonResponse
     {
-        Evenement::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id)->delete();
+        $u = $request->user();
+        $e = Evenement::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
+        $this->verifierPortee($u, $e->visibilite, $e->departement_id);
+        $e->delete();
 
         return response()->json(['message' => 'Événement annulé.']);
     }

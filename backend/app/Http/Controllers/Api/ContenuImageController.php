@@ -19,9 +19,7 @@ class ContenuImageController extends Controller
 {
     private const MAX_IMAGES = 6; // par contenu
 
-    public function __construct(private AccesContenus $acces)
-    {
-    }
+    public function __construct(private AccesContenus $acces) {}
 
     public function store(EnregistrerImagePageRequest $request, string $type, int $id): JsonResponse
     {
@@ -29,7 +27,7 @@ class ContenuImageController extends Controller
         $contenu = $this->contenu($request, $type, $id);
 
         if ($contenu->images()->count() >= self::MAX_IMAGES) {
-            return response()->json(['message' => 'Limite de ' . self::MAX_IMAGES . ' images par publication atteinte.'], 422);
+            return response()->json(['message' => 'Limite de '.self::MAX_IMAGES.' images par publication atteinte.'], 422);
         }
 
         $fichier = $request->file('image');
@@ -37,7 +35,7 @@ class ContenuImageController extends Controller
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
         // disque privé, nom aléatoire : jamais le nom envoyé par l'utilisateur
-        $chemin = $fichier->store('contenus/' . $u->entreprise_id, 'local');
+        $chemin = $fichier->store('contenus/'.$u->entreprise_id, 'local');
 
         $image = Image::create([
             'entreprise_id' => $u->entreprise_id, // RG05

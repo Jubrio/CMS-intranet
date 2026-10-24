@@ -16,8 +16,11 @@ use Illuminate\Http\Request;
 class RhTableauDeBordController extends Controller
 {
     private const NB_MOIS = 12;
+
     private const LIMITE_LISTES = 5;
+
     private const HORIZON_ANNIVERSAIRES_JOURS = 30;
+
     private const LIMITE_FICHES = 6;
 
     public function __invoke(Request $request, AnniversairesEmbauche $anniversaires): JsonResponse

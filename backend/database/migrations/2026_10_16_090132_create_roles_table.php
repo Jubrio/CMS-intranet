@@ -10,16 +10,16 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('roles', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('entreprise_id')->nullable()->constrained('entreprises')->cascadeOnDelete();
-        $table->string('nom_role', 50);
-        $table->boolean('role_par_defaut')->default(false);
-        $table->timestamps();
-        $table->unique(['entreprise_id', 'nom_role']);
-    });
-}
+    {
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('entreprise_id')->nullable()->constrained('entreprises')->cascadeOnDelete();
+            $table->string('nom_role', 50);
+            $table->boolean('role_par_defaut')->default(false);
+            $table->timestamps();
+            $table->unique(['entreprise_id', 'nom_role']);
+        });
+    }
 
     /**
      * Reverse the migrations.

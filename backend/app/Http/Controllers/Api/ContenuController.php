@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerContenuRequest;
 use App\Models\Contenu;
+use App\Models\LectureNote;
 use App\Models\Utilisateur;
 use App\Services\AccesContenus;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\LectureNote;
 
 class ContenuController extends Controller
 {
@@ -62,13 +62,13 @@ class ContenuController extends Controller
         }
 
         $x = $this->formater($c, true);
-if ($type === 'note_service') {
-    $l = LectureNote::where('contenu_id', $c->id)->where('utilisateur_id', $u->id)->first();
-    $x['lu'] = (bool) $l;
-    $x['date_lecture'] = $l?->date_lecture;
-}
+        if ($type === 'note_service') {
+            $l = LectureNote::where('contenu_id', $c->id)->where('utilisateur_id', $u->id)->first();
+            $x['lu'] = (bool) $l;
+            $x['date_lecture'] = $l?->date_lecture;
+        }
 
-return response()->json($x);
+        return response()->json($x);
     }
 
     public function store(EnregistrerContenuRequest $request, string $type): JsonResponse
@@ -133,9 +133,9 @@ return response()->json($x);
             return response()->json(['message' => "La date d'expiration est dépassée."], 422);
         }
         $c->update([
-    'statut_contenu' => 'publie',
-    'date_publication' => $c->date_publication ?? now(),
-]);
+            'statut_contenu' => 'publie',
+            'date_publication' => $c->date_publication ?? now(),
+        ]);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }

@@ -24,12 +24,13 @@ class FilController extends Controller
     ];
 
     private const PAR_PAGE = 10;
+
     private const LONGUEUR_EXTRAIT = 600;
 
     public function __invoke(Request $request, AccesContenus $acces): JsonResponse
     {
         $request->validate([
-            'type' => 'nullable|in:' . implode(',', array_keys(self::TYPES)),
+            'type' => 'nullable|in:'.implode(',', array_keys(self::TYPES)),
             'page' => 'nullable|integer|min:1',
         ]);
 

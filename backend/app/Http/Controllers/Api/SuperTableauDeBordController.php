@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 class SuperTableauDeBordController extends Controller
 {
     private const NB_MOIS = 12;
+
     private const LIMITE_LISTES = 5;
 
     public function __invoke(): JsonResponse

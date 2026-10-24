@@ -12,7 +12,7 @@ class EnregistrerContenuRequest extends FormRequest
     {
         return app(AccesContenus::class)->autorise($this->user(), $this->route('type'), 'publier');
     }
-    
+
     protected function failedAuthorization()
     {
         abort(403, 'Action non autorisée.');

@@ -13,9 +13,7 @@ use Illuminate\Http\Request;
 
 class LectureNoteController extends Controller
 {
-    public function __construct(private AccesContenus $acces)
-    {
-    }
+    public function __construct(private AccesContenus $acces) {}
 
     // Un destinataire confirme avoir lu une note publiee (RG24). Idempotent.
     public function confirmer(Request $request, int $id): JsonResponse

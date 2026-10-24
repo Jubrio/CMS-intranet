@@ -10,10 +10,10 @@ class RolesParDefautService
 {
     public function creerPour(Entreprise $entreprise): void
     {
-        $ids = Permission::pluck('id', 'code_permission'); 
+        $ids = Permission::pluck('id', 'code_permission');
 
         $consulter = $ids->keys()->filter(fn ($code) => str_ends_with($code, '.consulter'))->values()->all();
-               $employe = array_merge($consulter, ['formulaires.repondre']);
+        $employe = array_merge($consulter, ['formulaires.repondre']);
         $contenus = ['actualites.publier', 'annonces.publier', 'articles.publier', 'notes_service.publier'];
 
         $manager = array_merge($employe, $contenus, ['documents.gerer', 'evenements.gerer']);

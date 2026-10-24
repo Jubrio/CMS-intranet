@@ -28,7 +28,9 @@ class ManagerTableauDeBordController extends Controller
     ];
 
     private const LIMITE_EQUIPE = 12;
+
     private const LIMITE_NOTES = 5;
+
     private const HORIZON_ANNIVERSAIRES_JOURS = 30;
 
     public function __invoke(Request $request, AccesContenus $acces, AnniversairesEmbauche $anniversaires): JsonResponse

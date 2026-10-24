@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -16,6 +17,7 @@ class VerifierPermission
         if (! $autorise) {
             return response()->json(['message' => 'Action non autorisée pour votre rôle.'], 403);
         }
+
         return $next($request);
     }
 }

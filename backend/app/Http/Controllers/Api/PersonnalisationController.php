@@ -1,8 +1,8 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Personnalisation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +15,7 @@ class PersonnalisationController extends Controller
         if (! $entreprise) {
             return response()->json(['message' => 'Aucune entreprise associée.'], 403);
         }
+
         return response()->json($this->donnees($entreprise));
     }
 
@@ -45,7 +46,7 @@ class PersonnalisationController extends Controller
         }
 
         $request->validate([
-            'logo' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:2048'], 
+            'logo' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
         ]);
 
         $perso = $entreprise->personnalisation()->firstOrCreate([]);
@@ -53,7 +54,7 @@ class PersonnalisationController extends Controller
             Storage::disk('public')->delete($perso->logo);
         }
         $perso->update([
-            'logo' => $request->file('logo')->store('logos/' . $entreprise->id, 'public'),
+            'logo' => $request->file('logo')->store('logos/'.$entreprise->id, 'public'),
         ]);
 
         return response()->json($this->donnees($entreprise->fresh()));
@@ -78,11 +79,12 @@ class PersonnalisationController extends Controller
     private function donnees($entreprise): array
     {
         $p = $entreprise->personnalisation;
+
         return [
             'nom_entreprise' => $entreprise->nom_entreprise,
             'slug' => $entreprise->slug,
             'email_contact' => $entreprise->email_contact,
-            'logo_url' => $p?->logo ? asset('storage/' . $p->logo) : null,
+            'logo_url' => $p?->logo ? asset('storage/'.$p->logo) : null,
             'couleur_principale' => $p?->couleur_principale ?? '#1D4ED8',
             'couleur_secondaire' => $p?->couleur_secondaire ?? '#475569',
         ];

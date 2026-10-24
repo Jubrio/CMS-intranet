@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Contenu extends Model
 {
     public const TYPES = ['page', 'actualite', 'annonce', 'article', 'note_service'];
-    public const MODULES = ['page' => 'pages', 'actualite' => 'actualites', 'annonce' => 'annonces','article' => 'articles', 'note_service' => 'notes_service',];
+
+    public const MODULES = ['page' => 'pages', 'actualite' => 'actualites', 'annonce' => 'annonces', 'article' => 'articles', 'note_service' => 'notes_service'];
 
     protected $fillable = [
         'entreprise_id', 'auteur_id', 'departement_id', 'type_contenu', 'titre', 'corps',
@@ -31,6 +32,7 @@ class Contenu extends Model
     {
         return $this->belongsTo(Departement::class);
     }
+
     public function images(): HasMany
     {
         return $this->hasMany(Image::class, 'contenu_id')->orderBy('id');

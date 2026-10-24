@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Entreprise;
@@ -12,16 +13,14 @@ use Illuminate\Support\Str;
 
 class CreationIntranetService
 {
-    public function __construct(private RolesParDefautService $rolesParDefaut)
-    {
-    }
+    public function __construct(private RolesParDefautService $rolesParDefaut) {}
 
     public function creer(array $data): array
     {
         return DB::transaction(function () use ($data) {
             $entreprise = Entreprise::create([
                 'nom_entreprise' => $data['nom_entreprise'],
-                'slug' => $this->slugUnique($data['nom_entreprise']), 
+                'slug' => $this->slugUnique($data['nom_entreprise']),
                 'email_contact' => $data['email'],
                 'statut_entreprise' => 'active',
             ]);
@@ -49,7 +48,7 @@ class CreationIntranetService
                 'nom' => $data['nom'],
                 'prenom' => $data['prenom'],
                 'email' => $data['email'],
-                'mot_de_passe' => $data['mot_de_passe'], 
+                'mot_de_passe' => $data['mot_de_passe'],
                 'statut_compte' => 'actif',
             ]);
 
@@ -63,8 +62,9 @@ class CreationIntranetService
         $slug = $base;
         $i = 2;
         while (Entreprise::where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
+
         return $slug;
     }
 }

@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerPageRequest;
 use App\Models\Contenu;
+use App\Models\Image;
 use App\Models\Utilisateur;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Image;
 use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
@@ -32,7 +32,7 @@ class PageController extends Controller
             $requete->where('statut_contenu', $request->query('statut'));
         }
         if ($q = trim((string) $request->query('q'))) {
-            $requete->where('titre', 'ilike', '%' . addcslashes($q, '%_\\') . '%');
+            $requete->where('titre', 'ilike', '%'.addcslashes($q, '%_\\').'%');
         }
 
         $page = $requete->with('auteur:id,nom,prenom')

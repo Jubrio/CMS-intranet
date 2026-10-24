@@ -25,7 +25,18 @@ class Utilisateur extends Authenticatable
         return 'mot_de_passe';
     }
 
-    public function entreprise(): BelongsTo { return $this->belongsTo(Entreprise::class); }
-    public function role(): BelongsTo { return $this->belongsTo(Role::class); }
-    public function departement(): BelongsTo { return $this->belongsTo(Departement::class); }
+    public function entreprise(): BelongsTo
+    {
+        return $this->belongsTo(Entreprise::class);
+    }
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function departement(): BelongsTo
+    {
+        return $this->belongsTo(Departement::class);
+    }
 }

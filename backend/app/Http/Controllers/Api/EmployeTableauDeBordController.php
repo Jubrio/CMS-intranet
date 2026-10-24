@@ -36,10 +36,15 @@ class EmployeTableauDeBordController extends Controller
     ];
 
     private const LIMITE_FIL = 8;
+
     private const LIMITE_LISTES = 5;
+
     private const LIMITE_COLLEGUES = 8;
+
     private const HORIZON_JOURS = 30;
+
     private const NOUVEAU_JOURS = 7;
+
     private const NOTES_JOURS = 90;
 
     public function __invoke(Request $request, AccesContenus $acces, AnniversairesEmbauche $anniversaires): JsonResponse

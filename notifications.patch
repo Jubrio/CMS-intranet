@@ -1,0 +1,1073 @@
+diff --git a/backend/app/Http/Controllers/Api/ContenuController.php b/backend/app/Http/Controllers/Api/ContenuController.php
+index 74eeceb..bbc60dd 100644
+--- a/backend/app/Http/Controllers/Api/ContenuController.php
++++ b/backend/app/Http/Controllers/Api/ContenuController.php
+@@ -7,6 +7,7 @@
+ use App\Models\Contenu;
+ use App\Models\Utilisateur;
+ use App\Services\AccesContenus;
++use App\Services\NotificationService;
+ use Illuminate\Database\Eloquent\Builder;
+ use Illuminate\Http\JsonResponse;
+ use Illuminate\Http\Request;
+@@ -17,7 +18,7 @@
+ 
+ class ContenuController extends Controller
+ {
+-    public function __construct(private AccesContenus $acces) {}
++    public function __construct(private AccesContenus $acces, private NotificationService $notifications) {}
+ 
+     public function index(Request $request, string $type): JsonResponse
+     {
+@@ -137,6 +138,12 @@ public function publier(Request $request, string $type, int $id): JsonResponse
+     'date_publication' => $c->date_publication ?? now(),
+ ]);
+ 
++        // Notifie toute l'entreprise, ou seulement le département ciblé
++        $this->notifications->publier(
++            $request->user(), 'publie', $type, $c->id, $c->titre,
++            $c->visibilite === 'departement' ? $c->departement_id : null,
++        );
++
+         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
+     }
+ 
+@@ -147,6 +154,7 @@ public function archiver(Request $request, string $type, int $id): JsonResponse
+             return response()->json(['message' => 'Seul un contenu publié peut être archivé.'], 422);
+         }
+         $c->update(['statut_contenu' => 'archive']);
++        $this->notifications->retirer($type, $c->id);
+ 
+         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
+     }
+@@ -156,6 +164,7 @@ public function destroy(Request $request, string $type, int $id): JsonResponse
+         $c = $this->gerer($request, $type, $id);
+         $fichiers = $c->images()->pluck('fichier')->all();
+         $c->delete(); // les lignes images partent en cascade
++        $this->notifications->retirer($type, $c->id);
+         Storage::disk('local')->delete($fichiers);
+ 
+         return response()->json(['message' => 'Contenu supprimé.']);
+diff --git a/backend/app/Http/Controllers/Api/DocumentController.php b/backend/app/Http/Controllers/Api/DocumentController.php
+index fec114a..33cb8f7 100644
+--- a/backend/app/Http/Controllers/Api/DocumentController.php
++++ b/backend/app/Http/Controllers/Api/DocumentController.php
+@@ -6,6 +6,7 @@
+ use App\Http\Requests\EnregistrerDocumentRequest;
+ use App\Models\Document;
+ use App\Models\Utilisateur;
++use App\Services\NotificationService;
+ use Illuminate\Database\Eloquent\Builder;
+ use Illuminate\Http\JsonResponse;
+ use Illuminate\Http\Request;
+@@ -16,6 +17,8 @@
+ 
+ class DocumentController extends Controller
+ {
++    public function __construct(private NotificationService $notifications) {}
++
+     public function index(Request $request): JsonResponse
+     {
+         $request->validate(['q' => 'nullable|string|max:100', 'categorie' => 'nullable|string|max:50']);
+@@ -102,6 +105,9 @@ public function store(EnregistrerDocumentRequest $request): JsonResponse
+             'visibilite' => $d['visibilite'],
+         ]);
+ 
++        // Notifie toute l'entreprise, ou seulement le département ciblé
++        $this->notifications->publier($u, 'depose', 'document', $doc->id, $doc->nom_document, $doc->departement_id);
++
+         return response()->json($this->formater($doc->load('auteur:id,nom,prenom')), 201);
+     }
+ 
+@@ -133,6 +139,7 @@ public function destroy(Request $request, int $id): JsonResponse
+         $doc = Document::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id);
+         Storage::disk('local')->delete($doc->fichier);
+         $doc->delete();
++        $this->notifications->retirer('document', $id);
+ 
+         return response()->json(['message' => 'Document supprimé.']);
+     }
+diff --git a/backend/app/Http/Controllers/Api/EvenementController.php b/backend/app/Http/Controllers/Api/EvenementController.php
+index a067c37..bd0ec9c 100644
+--- a/backend/app/Http/Controllers/Api/EvenementController.php
++++ b/backend/app/Http/Controllers/Api/EvenementController.php
+@@ -6,6 +6,7 @@
+ use App\Http\Requests\EnregistrerEvenementRequest;
+ use App\Models\Evenement;
+ use App\Models\Utilisateur;
++use App\Services\NotificationService;
+ use Illuminate\Database\Eloquent\Builder;
+ use Illuminate\Http\JsonResponse;
+ use Illuminate\Http\Request;
+@@ -13,6 +14,8 @@
+ 
+ class EvenementController extends Controller
+ {
++    public function __construct(private NotificationService $notifications) {}
++
+     // Vue calendrier : événements qui chevauchent la période demandée (mois courant par défaut)
+     public function index(Request $request): JsonResponse
+     {
+@@ -65,6 +68,9 @@ public function store(EnregistrerEvenementRequest $request): JsonResponse
+             'visibilite' => $d['visibilite'],
+         ]);
+ 
++        // Notifie toute l'entreprise, ou seulement le département ciblé
++        $this->notifications->publier($u, 'cree', 'evenement', $e->id, $e->titre_evenement, $e->departement_id);
++
+         return response()->json($this->formater($e->load('auteur:id,nom,prenom')), 201);
+     }
+ 
+@@ -102,6 +108,7 @@ public function update(EnregistrerEvenementRequest $request, int $id): JsonRespo
+     public function destroy(Request $request, int $id): JsonResponse
+     {
+         Evenement::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id)->delete();
++        $this->notifications->retirer('evenement', $id);
+ 
+         return response()->json(['message' => 'Événement annulé.']);
+     }
+diff --git a/backend/app/Http/Controllers/Api/NotificationController.php b/backend/app/Http/Controllers/Api/NotificationController.php
+new file mode 100644
+index 0000000..a2b5cee
+--- /dev/null
++++ b/backend/app/Http/Controllers/Api/NotificationController.php
+@@ -0,0 +1,73 @@
++<?php
++
++namespace App\Http\Controllers\Api;
++
++use App\Http\Controllers\Controller;
++use App\Models\NotificationUtilisateur;
++use Illuminate\Http\JsonResponse;
++use Illuminate\Http\Request;
++
++// Notifications de l'utilisateur connecté. Chaque ligne n'existe que pour ses destinataires :
++// un utilisateur ne voit jamais celles d'un département qui n'est pas le sien.
++class NotificationController extends Controller
++{
++    public function index(Request $request): JsonResponse
++    {
++        $request->validate(['non_lues' => 'nullable|boolean']);
++
++        $requete = NotificationUtilisateur::where('utilisateur_id', $request->user()->id);
++        if ($request->boolean('non_lues')) {
++            $requete->whereNull('lu_at');
++        }
++
++        $page = $requete
++            ->with(['notification.acteur:id,nom,prenom,photo', 'notification.departement:id,nom_departement'])
++            ->orderByDesc('notification_id')
++            ->paginate(20);
++
++        return response()->json($page->through(fn ($n) => $this->formater($n)));
++    }
++
++    public function nonLues(Request $request): JsonResponse
++    {
++        return response()->json([
++            'non_lues' => NotificationUtilisateur::where('utilisateur_id', $request->user()->id)
++                ->whereNull('lu_at')->count(),
++        ]);
++    }
++
++    public function lire(Request $request, int $id): JsonResponse
++    {
++        $n = NotificationUtilisateur::where('utilisateur_id', $request->user()->id)->findOrFail($id);
++        if ($n->lu_at === null) {
++            $n->update(['lu_at' => now()]);
++        }
++
++        return response()->json(['message' => 'Notification lue.']);
++    }
++
++    public function toutLire(Request $request): JsonResponse
++    {
++        NotificationUtilisateur::where('utilisateur_id', $request->user()->id)
++            ->whereNull('lu_at')->update(['lu_at' => now()]);
++
++        return response()->json(['message' => 'Notifications lues.']);
++    }
++
++    private function formater(NotificationUtilisateur $n): array
++    {
++        $notif = $n->notification;
++
++        return [
++            'id' => $n->id,
++            'lu' => $n->lu_at !== null,
++            'action' => $notif->action,
++            'objet_type' => $notif->objet_type,
++            'objet_id' => $notif->objet_id,
++            'titre' => $notif->titre,
++            'departement' => $notif->departement?->nom_departement,
++            'acteur' => $notif->acteur ? $notif->acteur->only(['id', 'nom', 'prenom', 'photo']) : null,
++            'date' => $notif->created_at?->toIso8601String(),
++        ];
++    }
++}
+diff --git a/backend/app/Models/Notification.php b/backend/app/Models/Notification.php
+new file mode 100644
+index 0000000..7bbd19e
+--- /dev/null
++++ b/backend/app/Models/Notification.php
+@@ -0,0 +1,31 @@
++<?php
++
++namespace App\Models;
++
++use Illuminate\Database\Eloquent\Model;
++use Illuminate\Database\Eloquent\Relations\BelongsTo;
++use Illuminate\Database\Eloquent\Relations\HasMany;
++
++class Notification extends Model
++{
++    protected $table = 'notifications';
++
++    protected $fillable = [
++        'entreprise_id', 'acteur_id', 'departement_id', 'action', 'objet_type', 'objet_id', 'titre',
++    ];
++
++    public function acteur(): BelongsTo
++    {
++        return $this->belongsTo(Utilisateur::class, 'acteur_id');
++    }
++
++    public function departement(): BelongsTo
++    {
++        return $this->belongsTo(Departement::class);
++    }
++
++    public function destinataires(): HasMany
++    {
++        return $this->hasMany(NotificationUtilisateur::class);
++    }
++}
+diff --git a/backend/app/Models/NotificationUtilisateur.php b/backend/app/Models/NotificationUtilisateur.php
+new file mode 100644
+index 0000000..9e7cba5
+--- /dev/null
++++ b/backend/app/Models/NotificationUtilisateur.php
+@@ -0,0 +1,22 @@
++<?php
++
++namespace App\Models;
++
++use Illuminate\Database\Eloquent\Model;
++use Illuminate\Database\Eloquent\Relations\BelongsTo;
++
++class NotificationUtilisateur extends Model
++{
++    protected $table = 'notification_utilisateurs';
++
++    public $timestamps = false;
++
++    protected $fillable = ['notification_id', 'utilisateur_id', 'lu_at'];
++
++    protected $casts = ['lu_at' => 'datetime'];
++
++    public function notification(): BelongsTo
++    {
++        return $this->belongsTo(Notification::class);
++    }
++}
+diff --git a/backend/app/Services/NotificationService.php b/backend/app/Services/NotificationService.php
+new file mode 100644
+index 0000000..614cf75
+--- /dev/null
++++ b/backend/app/Services/NotificationService.php
+@@ -0,0 +1,113 @@
++<?php
++
++namespace App\Services;
++
++use App\Models\ModuleEntreprise;
++use App\Models\Notification;
++use App\Models\Utilisateur;
++use Illuminate\Support\Facades\DB;
++use Throwable;
++
++// Diffusion des notifications : qui a fait quoi, adressé à toute l'entreprise ou à un seul département.
++// Même règle de visibilité que les contenus, événements et documents (RG05, RG22) :
++// un département ciblé = seuls ses membres sont notifiés, les autres ne reçoivent rien.
++class NotificationService
++{
++    // Type d'objet => [modules qui doivent être actifs, permissions de consultation exigées du destinataire]
++    private const CIBLES = [
++        'actualite' => [['actualites'], ['actualites.consulter']],
++        'annonce' => [['annonces'], ['annonces.consulter']],
++        'article' => [['articles'], ['articles.consulter']],
++        'note_service' => [['notes_service'], ['notes_service.consulter']],
++        'evenement' => [['calendrier', 'evenements'], ['calendrier.consulter', 'evenements.consulter']],
++        'document' => [['documents'], ['documents.consulter']],
++    ];
++
++    private const PAR_LOT = 500;
++
++    // Une notification ne doit jamais faire échouer l'action qui la déclenche : l'erreur est journalisée.
++    public function publier(
++        Utilisateur $acteur,
++        string $action,
++        string $objetType,
++        int $objetId,
++        string $titre,
++        ?int $departementId = null,
++    ): void {
++        try {
++            $this->diffuser($acteur, $action, $objetType, $objetId, $titre, $departementId);
++        } catch (Throwable $e) {
++            report($e);
++        }
++    }
++
++    // L'objet est supprimé ou archivé : ses notifications disparaissent (les lignes destinataires partent en cascade)
++    public function retirer(string $objetType, int $objetId): void
++    {
++        try {
++            Notification::where('objet_type', $objetType)->where('objet_id', $objetId)->delete();
++        } catch (Throwable $e) {
++            report($e);
++        }
++    }
++
++    private function diffuser(
++        Utilisateur $acteur,
++        string $action,
++        string $objetType,
++        int $objetId,
++        string $titre,
++        ?int $departementId,
++    ): void {
++        if (! $acteur->entreprise_id || ! isset(self::CIBLES[$objetType])) {
++            return;
++        }
++        [$modules, $permissions] = self::CIBLES[$objetType];
++
++        // Module désactivé : rien n'est diffusé (RG10)
++        $actifs = ModuleEntreprise::where('entreprise_id', $acteur->entreprise_id)
++            ->where('module_actif', true)
++            ->whereHas('module', fn ($q) => $q->whereIn('code_module', $modules))
++            ->count();
++        if ($actifs < count($modules)) {
++            return;
++        }
++
++        $destinataires = Utilisateur::where('entreprise_id', $acteur->entreprise_id)
++            ->where('statut_compte', 'actif')
++            ->where('id', '!=', $acteur->id);
++        if ($departementId !== null) {
++            $destinataires->where('departement_id', $departementId);
++        }
++        // Seuls ceux qui ont le droit de consulter l'objet sont notifiés
++        foreach ($permissions as $permission) {
++            $destinataires->whereHas('role.permissions', fn ($q) => $q->where('code_permission', $permission));
++        }
++        $ids = $destinataires->pluck('id');
++        if ($ids->isEmpty()) {
++            return;
++        }
++
++        DB::transaction(function () use ($acteur, $action, $objetType, $objetId, $titre, $departementId, $ids) {
++            $notification = Notification::create([
++                'entreprise_id' => $acteur->entreprise_id,
++                'acteur_id' => $acteur->id,
++                'departement_id' => $departementId,
++                'action' => $action,
++                'objet_type' => $objetType,
++                'objet_id' => $objetId,
++                'titre' => mb_substr($titre, 0, 200),
++            ]);
++
++            foreach ($ids->chunk(self::PAR_LOT) as $lot) {
++                DB::table('notification_utilisateurs')->insert(
++                    $lot->map(fn ($id) => [
++                        'notification_id' => $notification->id,
++                        'utilisateur_id' => $id,
++                        'lu_at' => null,
++                    ])->all()
++                );
++            }
++        });
++    }
++}
+diff --git a/backend/database/migrations/2026_10_24_210000_create_notifications_tables.php b/backend/database/migrations/2026_10_24_210000_create_notifications_tables.php
+new file mode 100644
+index 0000000..855d9cd
+--- /dev/null
++++ b/backend/database/migrations/2026_10_24_210000_create_notifications_tables.php
+@@ -0,0 +1,45 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        // Un enregistrement par événement (qui a fait quoi, sur quoi, pour qui)
++        Schema::create('notifications', function (Blueprint $table) {
++            $table->id();
++            $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete(); // RG05
++            $table->foreignId('acteur_id')->constrained('utilisateurs')->restrictOnDelete();
++            // Null = toute l'entreprise ; sinon seuls les membres de ce département sont notifiés
++            $table->foreignId('departement_id')->nullable()->constrained('departements')->cascadeOnDelete();
++            $table->string('action', 20);       // publie / cree / depose
++            $table->string('objet_type', 20);   // actualite / annonce / article / note_service / evenement / document
++            $table->unsignedBigInteger('objet_id');
++            $table->string('titre', 200);       // titre au moment de l'action, pour l'affichage
++            $table->timestamps();
++
++            $table->index(['objet_type', 'objet_id']);
++            $table->index('entreprise_id');
++        });
++
++        // Un enregistrement par destinataire : c'est lui qui porte le statut lu / non lu
++        Schema::create('notification_utilisateurs', function (Blueprint $table) {
++            $table->id();
++            $table->foreignId('notification_id')->constrained('notifications')->cascadeOnDelete();
++            $table->foreignId('utilisateur_id')->constrained('utilisateurs')->cascadeOnDelete();
++            $table->timestamp('lu_at')->nullable();
++
++            $table->unique(['notification_id', 'utilisateur_id']);
++            $table->index(['utilisateur_id', 'lu_at']);
++        });
++    }
++
++    public function down(): void
++    {
++        Schema::dropIfExists('notification_utilisateurs');
++        Schema::dropIfExists('notifications');
++    }
++};
+diff --git a/backend/routes/api.php b/backend/routes/api.php
+index 7a194a9..4a10e44 100644
+--- a/backend/routes/api.php
++++ b/backend/routes/api.php
+@@ -22,6 +22,7 @@
+ use App\Http\Controllers\Api\MenuGestionController;
+ use App\Http\Controllers\Api\PageImageController;
+ use App\Http\Controllers\Api\LectureNoteController;
++use App\Http\Controllers\Api\NotificationController;
+ use App\Http\Controllers\Api\EmployeTableauDeBordController;
+ use App\Http\Controllers\Api\ManagerTableauDeBordController;
+ use App\Http\Controllers\Api\RhTableauDeBordController;
+@@ -53,6 +54,12 @@
+     Route::post('/me/photo', [ProfilController::class, 'photo']);
+     Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
+ 
++    // Notifications de l'utilisateur : publications, événements, documents (ciblage entreprise ou département)
++    Route::get('/notifications', [NotificationController::class, 'index']);
++    Route::get('/notifications/non-lues', [NotificationController::class, 'nonLues']);
++    Route::post('/notifications/tout-lire', [NotificationController::class, 'toutLire']);
++    Route::post('/notifications/{id}/lire', [NotificationController::class, 'lire'])->whereNumber('id');
++
+     // Ressources humaines : effectifs et suivi des fiches de l'entreprise
+     Route::get('/rh/tableau-de-bord', RhTableauDeBordController::class)
+         ->middleware('permission:utilisateurs.gerer');
+diff --git a/backend/tests/Feature/NotificationTest.php b/backend/tests/Feature/NotificationTest.php
+new file mode 100644
+index 0000000..d72b012
+--- /dev/null
++++ b/backend/tests/Feature/NotificationTest.php
+@@ -0,0 +1,237 @@
++<?php
++
++namespace Tests\Feature;
++
++use App\Models\Contenu;
++use App\Models\Departement;
++use App\Models\Entreprise;
++use App\Models\ModuleEntreprise;
++use App\Models\Role;
++use App\Models\Utilisateur;
++use App\Services\CreationIntranetService;
++use Database\Seeders\ModuleSeeder;
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Illuminate\Http\UploadedFile;
++use Illuminate\Support\Facades\Storage;
++use Laravel\Sanctum\Sanctum;
++use Tests\TestCase;
++
++class NotificationTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private Entreprise $entreprise;
++    private Utilisateur $admin;
++    private Departement $finance;
++    private Departement $technique;
++    private Utilisateur $employeFinance;
++    private Utilisateur $employeTechnique;
++    private Utilisateur $employeSansDepartement;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++        $this->seed(ModuleSeeder::class);
++
++        [$this->entreprise, $this->admin] = app(CreationIntranetService::class)->creer([
++            'nom_entreprise' => 'Acme Madagascar',
++            'email' => 'admin@acme.mg',
++            'nom' => 'Rakoto',
++            'prenom' => 'Admin',
++            'mot_de_passe' => 'motdepasse123',
++            'modules' => ['actualites', 'documents', 'calendrier', 'evenements'],
++        ]);
++
++        $this->finance = Departement::create(['entreprise_id' => $this->entreprise->id, 'nom_departement' => 'Finance']);
++        $this->technique = Departement::create(['entreprise_id' => $this->entreprise->id, 'nom_departement' => 'Technique']);
++
++        $this->employeFinance = $this->employe('finance@acme.mg', $this->finance);
++        $this->employeTechnique = $this->employe('technique@acme.mg', $this->technique);
++        $this->employeSansDepartement = $this->employe('libre@acme.mg', null);
++    }
++
++    private function employe(string $email, ?Departement $departement, string $statut = 'actif'): Utilisateur
++    {
++        return Utilisateur::create([
++            'entreprise_id' => $this->entreprise->id,
++            'role_id' => Role::where('entreprise_id', $this->entreprise->id)->where('nom_role', 'Employé')->value('id'),
++            'departement_id' => $departement?->id,
++            'nom' => 'Test',
++            'prenom' => $email,
++            'email' => $email,
++            'mot_de_passe' => 'motdepasse123',
++            'statut_compte' => $statut,
++        ]);
++    }
++
++    private function publierActualite(string $visibilite, ?Departement $departement = null, string $titre = 'Nouvelle politique'): void
++    {
++        $actualite = Contenu::create([
++            'entreprise_id' => $this->entreprise->id,
++            'auteur_id' => $this->admin->id,
++            'type_contenu' => 'actualite',
++            'titre' => $titre,
++            'corps' => 'Contenu',
++            'statut_contenu' => 'brouillon',
++            'visibilite' => $visibilite,
++            'departement_id' => $departement?->id,
++        ]);
++
++        Sanctum::actingAs($this->admin);
++        $this->postJson("/api/contenus/actualite/{$actualite->id}/publier")->assertOk();
++    }
++
++    private function nonLues(Utilisateur $u): int
++    {
++        Sanctum::actingAs($u);
++
++        return $this->getJson('/api/notifications/non-lues')->assertOk()->json('non_lues');
++    }
++
++    public function test_une_publication_pour_toute_lentreprise_notifie_tout_le_monde_sauf_lauteur(): void
++    {
++        $this->publierActualite('entreprise');
++
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++        $this->assertSame(1, $this->nonLues($this->employeTechnique));
++        $this->assertSame(1, $this->nonLues($this->employeSansDepartement));
++        $this->assertSame(0, $this->nonLues($this->admin));
++    }
++
++    public function test_une_publication_ciblee_ne_notifie_que_le_departement_concerne(): void
++    {
++        $this->publierActualite('departement', $this->finance);
++
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++        $this->assertSame(0, $this->nonLues($this->employeTechnique));
++        $this->assertSame(0, $this->nonLues($this->employeSansDepartement));
++
++        // Les départements non concernés ne voient rien dans leur liste non plus
++        Sanctum::actingAs($this->employeTechnique);
++        $this->getJson('/api/notifications')->assertOk()->assertJsonCount(0, 'data');
++    }
++
++    public function test_la_notification_indique_qui_a_fait_quoi_et_quand(): void
++    {
++        $this->publierActualite('departement', $this->finance, 'Clôture trimestrielle');
++
++        Sanctum::actingAs($this->employeFinance);
++        $reponse = $this->getJson('/api/notifications')->assertOk();
++
++        $reponse->assertJsonPath('data.0.action', 'publie')
++            ->assertJsonPath('data.0.objet_type', 'actualite')
++            ->assertJsonPath('data.0.titre', 'Clôture trimestrielle')
++            ->assertJsonPath('data.0.departement', 'Finance')
++            ->assertJsonPath('data.0.acteur.id', $this->admin->id)
++            ->assertJsonPath('data.0.acteur.prenom', 'Admin')
++            ->assertJsonPath('data.0.lu', false);
++        $this->assertNotEmpty($reponse->json('data.0.date'));
++    }
++
++    public function test_un_compte_desactive_nest_pas_notifie(): void
++    {
++        $inactif = $this->employe('inactif@acme.mg', $this->finance, 'inactif');
++
++        $this->publierActualite('entreprise');
++
++        $this->assertDatabaseMissing('notification_utilisateurs', ['utilisateur_id' => $inactif->id]);
++    }
++
++    public function test_un_module_desactive_ne_diffuse_aucune_notification(): void
++    {
++        ModuleEntreprise::where('entreprise_id', $this->entreprise->id)
++            ->whereHas('module', fn ($q) => $q->where('code_module', 'actualites'))
++            ->update(['module_actif' => false]);
++
++        // L'API refuse la publication d'un module désactivé côté droits ; on déclenche donc directement le service
++        app(\App\Services\NotificationService::class)
++            ->publier($this->admin, 'publie', 'actualite', 1, 'Titre', null);
++
++        $this->assertDatabaseCount('notifications', 0);
++    }
++
++    public function test_marquer_comme_lue_et_tout_lire(): void
++    {
++        $this->publierActualite('entreprise', null, 'Première');
++        $this->publierActualite('entreprise', null, 'Deuxième');
++
++        Sanctum::actingAs($this->employeFinance);
++        $this->assertSame(2, $this->nonLues($this->employeFinance));
++
++        $premiere = $this->getJson('/api/notifications')->json('data.0.id');
++        $this->postJson("/api/notifications/{$premiere}/lire")->assertOk();
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++
++        $this->postJson('/api/notifications/tout-lire')->assertOk();
++        $this->assertSame(0, $this->nonLues($this->employeFinance));
++
++        $this->getJson('/api/notifications?non_lues=1')->assertOk()->assertJsonCount(0, 'data');
++        // Les autres utilisateurs ne sont pas touchés
++        $this->assertSame(2, $this->nonLues($this->employeTechnique));
++    }
++
++    public function test_on_ne_peut_pas_lire_la_notification_dun_autre(): void
++    {
++        $this->publierActualite('entreprise');
++
++        Sanctum::actingAs($this->employeFinance);
++        $idFinance = $this->getJson('/api/notifications')->json('data.0.id');
++
++        Sanctum::actingAs($this->employeTechnique);
++        $this->postJson("/api/notifications/{$idFinance}/lire")->assertNotFound();
++    }
++
++    public function test_un_evenement_cible_ne_notifie_que_son_departement(): void
++    {
++        Sanctum::actingAs($this->admin);
++        $this->postJson('/api/evenements', [
++            'titre_evenement' => 'Réunion budget',
++            'date_debut' => '2026-11-10 09:00:00',
++            'date_fin' => '2026-11-10 11:00:00',
++            'visibilite' => 'departement',
++            'departement_id' => $this->finance->id,
++        ])->assertCreated();
++
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++        $this->assertSame(0, $this->nonLues($this->employeTechnique));
++
++        Sanctum::actingAs($this->employeFinance);
++        $this->getJson('/api/notifications')
++            ->assertJsonPath('data.0.action', 'cree')
++            ->assertJsonPath('data.0.objet_type', 'evenement')
++            ->assertJsonPath('data.0.titre', 'Réunion budget');
++    }
++
++    public function test_un_document_depose_notifie_toute_lentreprise(): void
++    {
++        Storage::fake('local');
++
++        Sanctum::actingAs($this->admin);
++        $this->postJson('/api/documents', [
++            'fichier' => UploadedFile::fake()->create('reglement.pdf', 20, 'application/pdf'),
++            'categorie' => 'RH',
++            'visibilite' => 'entreprise',
++        ])->assertCreated();
++
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++        $this->assertSame(1, $this->nonLues($this->employeTechnique));
++
++        Sanctum::actingAs($this->employeTechnique);
++        $this->getJson('/api/notifications')
++            ->assertJsonPath('data.0.action', 'depose')
++            ->assertJsonPath('data.0.objet_type', 'document');
++    }
++
++    public function test_archiver_ou_supprimer_un_contenu_retire_ses_notifications(): void
++    {
++        $this->publierActualite('entreprise');
++        $this->assertSame(1, $this->nonLues($this->employeFinance));
++
++        $id = Contenu::where('type_contenu', 'actualite')->value('id');
++        Sanctum::actingAs($this->admin);
++        $this->postJson("/api/contenus/actualite/{$id}/archiver")->assertOk();
++
++        $this->assertSame(0, $this->nonLues($this->employeFinance));
++        $this->assertDatabaseCount('notifications', 0);
++    }
++}
+diff --git a/frontend/src/components/espace/espace-shell.tsx b/frontend/src/components/espace/espace-shell.tsx
+index ff5ca13..fef7264 100644
+--- a/frontend/src/components/espace/espace-shell.tsx
++++ b/frontend/src/components/espace/espace-shell.tsx
+@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
+ import { usePathname, useRouter } from "next/navigation";
+ import { LogOut, Menu, X } from "lucide-react";
+ import { api, ApiError } from "@/lib/api";
+-import { refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
++import { estSuperAdmin, refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
+ import { variablesTheme } from "@/lib/apparence";
+ import { effacerToken, lireToken } from "@/lib/session";
+ import { ThemeToggle } from "@/components/visiteur/theme";
+@@ -12,6 +12,7 @@ import { EspaceContext } from "./espace-context";
+ import { Sidebar } from "./sidebar";
+ import { AccesRefuse } from "./acces-refuse";
+ import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
++import { NotificationsCloche } from "./notifications-cloche";
+ 
+ type Session = { token: string; profil: Profil; perso: Personnalisation | null; menu: MenuConfig | null };
+ 
+@@ -168,6 +169,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
+             </div>
+ 
+             <div className="ml-auto flex items-center gap-3">
++              {/* Le Super-administrateur n'appartient à aucune entreprise : pas de notifications */}
++              {!estSuperAdmin(profil) && <NotificationsCloche />}
+               <ThemeToggle />
+               <span aria-hidden className="hidden h-6 w-px bg-site-line sm:block" />
+               <button
+diff --git a/frontend/src/components/espace/notifications-cloche.tsx b/frontend/src/components/espace/notifications-cloche.tsx
+new file mode 100644
+index 0000000..4a174af
+--- /dev/null
++++ b/frontend/src/components/espace/notifications-cloche.tsx
+@@ -0,0 +1,327 @@
++"use client";
++
++import { useCallback, useEffect, useRef, useState } from "react";
++import { useRouter } from "next/navigation";
++import { format, formatDistanceToNowStrict, isSameYear } from "date-fns";
++import { fr } from "date-fns/locale";
++import { Bell, Building2, CheckCheck, Globe, Loader2 } from "lucide-react";
++import { api, ApiError, urlStockage } from "@/lib/api";
++import { cn } from "@/lib/utils";
++import { useEspace } from "./espace-context";
++
++// Cloche de notifications de l'en-tête : qui a publié / créé / déposé quoi, et quand.
++// L'API ne renvoie que les notifications destinées à l'utilisateur : une publication ciblée sur
++// un département n'apparaît jamais chez les membres des autres départements.
++
++type Notif = {
++  id: number;
++  lu: boolean;
++  action: string;
++  objet_type: string;
++  objet_id: number;
++  titre: string;
++  departement: string | null;
++  acteur: { id: number; nom: string; prenom: string; photo: string | null } | null;
++  date: string | null;
++};
++
++type Page = { data: Notif[]; current_page: number; last_page: number };
++
++const INTERVALLE = 30_000; // rafraîchissement automatique, onglet visible uniquement
++
++// « a publié l'actualité », « a créé l'événement », « a déposé le document »
++const PHRASES: Record<string, string> = {
++  "publie:actualite": "a publié l'actualité",
++  "publie:annonce": "a publié l'annonce",
++  "publie:article": "a publié l'article",
++  "publie:note_service": "a publié la note de service",
++  "cree:evenement": "a créé l'événement",
++  "depose:document": "a déposé le document",
++};
++
++// Écran où l'objet se consulte, pour tous les rôles qui le reçoivent
++const ADRESSES: Record<string, string> = {
++  actualite: "/espace/accueil",
++  annonce: "/espace/accueil",
++  article: "/espace/accueil",
++  note_service: "/espace/accueil",
++  evenement: "/espace/calendrier",
++  document: "/espace/consulter-documents",
++};
++
++const phrase = (n: Notif) => PHRASES[`${n.action}:${n.objet_type}`] ?? "a ajouté";
++const adresse = (n: Notif) => ADRESSES[n.objet_type] ?? "/espace";
++
++const ilYA = (iso: string | null) =>
++  iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "";
++
++// « 3 février, 10:30 », avec l'année si elle n'est pas l'année en cours
++function dateExacte(iso: string | null) {
++  if (!iso) return "";
++  const d = new Date(iso);
++  return format(d, isSameYear(d, new Date()) ? "d MMMM, HH:mm" : "d MMMM yyyy, HH:mm", { locale: fr });
++}
++
++function Avatar({ acteur }: { acteur: Notif["acteur"] }) {
++  if (!acteur) return <span aria-hidden className="size-9 shrink-0 rounded-full bg-site-line" />;
++  return acteur.photo ? (
++    // eslint-disable-next-line @next/next/no-img-element
++    <img src={urlStockage(acteur.photo)} alt="" className="size-9 shrink-0 rounded-full object-cover" />
++  ) : (
++    <span
++      aria-hidden
++      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-violet/15 text-xs font-semibold text-brand-violet"
++    >
++      {`${acteur.prenom.charAt(0)}${acteur.nom.charAt(0)}`.toUpperCase()}
++    </span>
++  );
++}
++
++export function NotificationsCloche() {
++  const { token, expirer } = useEspace();
++  const router = useRouter();
++  const racine = useRef<HTMLDivElement>(null);
++  const [ouvert, setOuvert] = useState(false);
++  const [nonLues, setNonLues] = useState(0);
++  const [liste, setListe] = useState<Notif[]>([]);
++  const [pagination, setPagination] = useState({ courante: 1, derniere: 1 });
++  const [etat, setEtat] = useState<"chargement" | "ok" | "erreur">("chargement");
++  const [plus, setPlus] = useState(false);
++
++  // Un 401 ferme la session ; toute autre erreur est silencieuse (la cloche reste utilisable)
++  const surErreur = useCallback(
++    (err: unknown) => {
++      if (err instanceof ApiError && err.status === 401) expirer();
++    },
++    [expirer],
++  );
++
++  const chargerCompte = useCallback(async () => {
++    try {
++      const r = await api<{ non_lues: number }>("/notifications/non-lues", { token });
++      setNonLues(r.non_lues);
++    } catch (err) {
++      surErreur(err);
++    }
++  }, [token, surErreur]);
++
++  const chargerListe = useCallback(async () => {
++    try {
++      const r = await api<Page>("/notifications", { token });
++      setListe(r.data);
++      setPagination({ courante: r.current_page, derniere: r.last_page });
++      setEtat("ok");
++    } catch (err) {
++      surErreur(err);
++      setEtat("erreur");
++    }
++  }, [token, surErreur]);
++
++  // Compteur au chargement puis toutes les 30 s ; le panneau ouvert actualise aussi la première page
++  useEffect(() => {
++    const actualiser = () => {
++      if (document.visibilityState !== "visible") return;
++      void chargerCompte();
++      if (ouvert && pagination.courante === 1) void chargerListe();
++    };
++    actualiser();
++    const minuteur = window.setInterval(actualiser, INTERVALLE);
++    document.addEventListener("visibilitychange", actualiser);
++    return () => {
++      window.clearInterval(minuteur);
++      document.removeEventListener("visibilitychange", actualiser);
++    };
++  }, [ouvert, pagination.courante, chargerCompte, chargerListe]);
++
++  // Le panneau se ferme au clic à l'extérieur et avec Échap
++  useEffect(() => {
++    if (!ouvert) return;
++    const surClic = (e: MouseEvent) => {
++      if (racine.current && !racine.current.contains(e.target as Node)) setOuvert(false);
++    };
++    const surTouche = (e: KeyboardEvent) => e.key === "Escape" && setOuvert(false);
++    document.addEventListener("mousedown", surClic);
++    window.addEventListener("keydown", surTouche);
++    return () => {
++      document.removeEventListener("mousedown", surClic);
++      window.removeEventListener("keydown", surTouche);
++    };
++  }, [ouvert]);
++
++  function ouvrirNotification(n: Notif) {
++    setOuvert(false);
++    if (!n.lu) {
++      setListe((l) => l.map((x) => (x.id === n.id ? { ...x, lu: true } : x)));
++      setNonLues((c) => Math.max(0, c - 1));
++      api(`/notifications/${n.id}/lire`, { method: "POST", token }).catch(surErreur);
++    }
++    router.push(adresse(n));
++  }
++
++  async function toutLire() {
++    setListe((l) => l.map((x) => ({ ...x, lu: true })));
++    setNonLues(0);
++    try {
++      await api("/notifications/tout-lire", { method: "POST", token });
++    } catch (err) {
++      surErreur(err);
++      void chargerCompte();
++      void chargerListe();
++    }
++  }
++
++  async function voirPlus() {
++    setPlus(true);
++    try {
++      const r = await api<Page>(`/notifications?page=${pagination.courante + 1}`, { token });
++      setListe((l) => [...l, ...r.data.filter((n) => !l.some((x) => x.id === n.id))]);
++      setPagination({ courante: r.current_page, derniere: r.last_page });
++    } catch (err) {
++      surErreur(err);
++    } finally {
++      setPlus(false);
++    }
++  }
++
++  return (
++    <div ref={racine} className="relative">
++      <button
++        type="button"
++        onClick={() => setOuvert((o) => !o)}
++        aria-haspopup="dialog"
++        aria-expanded={ouvert}
++        title="Notifications"
++        className="relative inline-flex size-10 items-center justify-center rounded-full border border-site-line text-site-muted transition-colors hover:border-brand-violet/60 hover:text-site-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-violet/40"
++      >
++        <Bell size={18} aria-hidden />
++        {nonLues > 0 && (
++          <span
++            aria-hidden
++            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-site-danger px-1 text-[0.65rem] font-bold leading-none text-white"
++          >
++            {nonLues > 9 ? "9+" : nonLues}
++          </span>
++        )}
++        <span className="sr-only">
++          {nonLues > 0 ? `Notifications, ${nonLues} non lue${nonLues > 1 ? "s" : ""}` : "Notifications"}
++        </span>
++      </button>
++
++      {ouvert && (
++        <div
++          role="dialog"
++          aria-label="Notifications"
++          className="fixed inset-x-3 top-[4.25rem] z-50 overflow-hidden rounded-2xl border border-site-line bg-site-surface shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-96"
++        >
++          <div className="flex items-center justify-between gap-3 border-b border-site-line px-4 py-3">
++            <p className="text-sm font-semibold">Notifications</p>
++            {nonLues > 0 && (
++              <button
++                type="button"
++                onClick={toutLire}
++                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-violet hover:underline"
++              >
++                <CheckCheck size={14} aria-hidden />
++                Tout marquer comme lu
++              </button>
++            )}
++          </div>
++
++          <div className="max-h-[26rem] overflow-y-auto">
++            {etat === "chargement" && (
++              <div className="flex items-center justify-center p-8" role="status" aria-label="Chargement">
++                <Loader2 size={20} className="animate-spin text-site-muted" aria-hidden />
++              </div>
++            )}
++
++            {etat === "erreur" && (
++              <div className="space-y-3 p-6 text-center text-sm text-site-muted">
++                <p>Impossible de charger les notifications.</p>
++                <button
++                  type="button"
++                  onClick={() => {
++                    setEtat("chargement");
++                    void chargerListe();
++                  }}
++                  className="rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink hover:border-brand-violet/60"
++                >
++                  Réessayer
++                </button>
++              </div>
++            )}
++
++            {etat === "ok" && liste.length === 0 && (
++              <p className="p-8 text-center text-sm text-site-muted">Aucune notification pour le moment.</p>
++            )}
++
++            {etat === "ok" && liste.length > 0 && (
++              <ul className="divide-y divide-site-line">
++                {liste.map((n) => (
++                  <li key={n.id}>
++                    <button
++                      type="button"
++                      onClick={() => ouvrirNotification(n)}
++                      className={cn(
++                        "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-site-surface2 focus-visible:bg-site-surface2 focus-visible:outline-none",
++                        !n.lu && "bg-brand-violet/5",
++                      )}
++                    >
++                      <Avatar acteur={n.acteur} />
++                      <span className="min-w-0 flex-1 space-y-1">
++                        <span className="block text-sm leading-snug">
++                          <span className="font-semibold">
++                            {n.acteur ? `${n.acteur.prenom} ${n.acteur.nom}` : "Un utilisateur"}
++                          </span>{" "}
++                          {phrase(n)} <span className="font-medium">« {n.titre} »</span>
++                        </span>
++                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-site-muted">
++                          <time dateTime={n.date ?? undefined} title={dateExacte(n.date)}>
++                            {ilYA(n.date)}
++                          </time>
++                          <span aria-hidden>·</span>
++                          <span className="inline-flex items-center gap-1">
++                            {n.departement ? (
++                              <>
++                                <Building2 size={12} aria-hidden />
++                                {n.departement}
++                              </>
++                            ) : (
++                              <>
++                                <Globe size={12} aria-hidden />
++                                Toute l&apos;entreprise
++                              </>
++                            )}
++                          </span>
++                        </span>
++                      </span>
++                      {!n.lu && (
++                        <>
++                          <span aria-hidden className="mt-1.5 size-2.5 shrink-0 rounded-full bg-brand-violet" />
++                          <span className="sr-only">Non lue</span>
++                        </>
++                      )}
++                    </button>
++                  </li>
++                ))}
++              </ul>
++            )}
++
++            {etat === "ok" && pagination.courante < pagination.derniere && (
++              <div className="border-t border-site-line p-3 text-center">
++                <button
++                  type="button"
++                  onClick={voirPlus}
++                  disabled={plus}
++                  className="inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50"
++                >
++                  {plus && <Loader2 size={12} className="animate-spin" aria-hidden />}
++                  Voir plus
++                </button>
++              </div>
++            )}
++          </div>
++        </div>
++      )}
++    </div>
++  );
++}

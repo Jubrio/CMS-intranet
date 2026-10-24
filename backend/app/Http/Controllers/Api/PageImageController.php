@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerImagePageRequest;
 use App\Models\Contenu;
 use App\Models\Image;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 class PageImageController extends Controller
 {
     private const MAX_IMAGES = 10;          // par page (RG39)
+
     private const VALIDITE_URL_MINUTES = 60; // duree de vie d'une adresse signee
 
     // Ajouter une image a une page existante (route reservee a pages.gerer)
@@ -24,7 +26,7 @@ class PageImageController extends Controller
         $page = $this->page($request, $id);
 
         if ($page->images()->count() >= self::MAX_IMAGES) {
-            return response()->json(['message' => 'Limite de ' . self::MAX_IMAGES . ' images par page atteinte.'], 422);
+            return response()->json(['message' => 'Limite de '.self::MAX_IMAGES.' images par page atteinte.'], 422);
         }
 
         $fichier = $request->file('image');
@@ -32,7 +34,7 @@ class PageImageController extends Controller
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
         // disque prive, nom aleatoire : jamais le nom envoye par l'utilisateur
-        $chemin = $fichier->store('pages/' . $u->entreprise_id, 'local');
+        $chemin = $fichier->store('pages/'.$u->entreprise_id, 'local');
 
         $image = Image::create([
             'entreprise_id' => $u->entreprise_id, // RG05
@@ -66,7 +68,7 @@ class PageImageController extends Controller
     {
         $image = Image::findOrFail($id);
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disque */
+        /** @var FilesystemAdapter $disque */
         $disque = Storage::disk('local');
         abort_unless($disque->exists($image->fichier), 404);
 

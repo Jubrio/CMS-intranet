@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('nom_entreprise', 100);
             $table->string('slug', 50)->unique();
             $table->string('email_contact', 100)->nullable();
-            $table->string('statut_entreprise', 15)->default('active'); 
-            $table->timestamps(); 
+            $table->string('statut_entreprise', 15)->default('active');
+            $table->timestamps();
         });
     }
 

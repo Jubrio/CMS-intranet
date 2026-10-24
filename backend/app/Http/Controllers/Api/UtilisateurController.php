@@ -7,14 +7,13 @@ use App\Http\Requests\EnregistrerUtilisateurRequest;
 use App\Models\Role;
 use App\Models\Utilisateur;
 use App\Services\DroitsUtilisateurs;
+use App\Services\HierarchieUtilisateurs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UtilisateurController extends Controller
 {
-    public function __construct(private DroitsUtilisateurs $droits)
-    {
-    }
+    public function __construct(private DroitsUtilisateurs $droits) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -68,24 +67,29 @@ class UtilisateurController extends Controller
     {
         $appelant = $request->user();
         $cible = $this->trouver($request, $id);
-
         if (! $this->droits->peutGerer($appelant, $cible)) { // RG32
             return response()->json(['message' => 'Ce compte possède des droits supérieurs aux vôtres.'], 403);
         }
-
         $donnees = $request->validated();
-
         if (empty($donnees)) {
             return response()->json(['message' => 'Aucun champ à modifier.'], 422);
         }
-        if (! empty($donnees['superieur_id'])
-            && app(\App\Services\HierarchieUtilisateurs::class)->creeUnCycle($cible->id, (int) $donnees['superieur_id'])) {
-            return response()->json(['message' => 'Ce choix créerait une boucle hiérarchique.'], 422);
+
+        // On ne bloque que les vrais changements : le formulaire peut renvoyer l'e-mail inchangé
+        $emailChange = isset($donnees['email']) && $donnees['email'] !== $cible->email;
+        $motDePasseChange = ! empty($donnees['mot_de_passe']);
+        if (($emailChange || $motDePasseChange) && ! $this->droits->peutModifierIdentifiants($appelant, $cible)) {
+            return response()->json([
+                'message' => "Vous ne pouvez pas modifier l'e-mail ou le mot de passe d'un compte de niveau égal ou supérieur au vôtre.",
+            ], 403);
         }
 
+        if (! empty($donnees['superieur_id'])
+            && app(HierarchieUtilisateurs::class)->creeUnCycle($cible->id, (int) $donnees['superieur_id'])) {
+            return response()->json(['message' => 'Ce choix créerait une boucle hiérarchique.'], 422);
+        }
         if (isset($donnees['role_id']) && (int) $donnees['role_id'] !== $cible->role_id) {
             $role = Role::where('entreprise_id', $appelant->entreprise_id)->findOrFail($donnees['role_id']);
-
             if (! $this->droits->roleAttribuable($appelant, $role)) { // RG32
                 return response()->json(['message' => 'Vous ne pouvez pas attribuer un rôle plus élevé que le vôtre.'], 403);
             }
@@ -96,8 +100,8 @@ class UtilisateurController extends Controller
 
         $cible->update($donnees);
 
-        // CORRIGÉ : la réinitialisation du mot de passe par un tiers invalide les sessions du compte
-        if (isset($donnees['mot_de_passe']) && $cible->id !== $appelant->id) {
+        // Changement d'e-mail ou de mot de passe par un tiers : les sessions du compte sont fermées
+        if (($emailChange || $motDePasseChange) && $cible->id !== $appelant->id) {
             $cible->tokens()->delete();
         }
 
@@ -146,19 +150,19 @@ class UtilisateurController extends Controller
     private function formater(Utilisateur $u): array
     {
         return [
-            'id'             => $u->id,
-            'nom'            => $u->nom,
-            'prenom'         => $u->prenom,
-            'email'          => $u->email,
-            'telephone'      => $u->telephone,
-            'photo'          => $u->photo,
-            'poste'          => $u->poste,
-            'date_embauche'  => $u->date_embauche,
-            'statut_compte'  => $u->statut_compte,
-            'role_id'        => $u->role_id,
-            'role'           => $u->role?->nom_role,
+            'id' => $u->id,
+            'nom' => $u->nom,
+            'prenom' => $u->prenom,
+            'email' => $u->email,
+            'telephone' => $u->telephone,
+            'photo' => $u->photo,
+            'poste' => $u->poste,
+            'date_embauche' => $u->date_embauche,
+            'statut_compte' => $u->statut_compte,
+            'role_id' => $u->role_id,
+            'role' => $u->role?->nom_role,
             'departement_id' => $u->departement_id,
-            'superieur_id'   => $u->superieur_id,
+            'superieur_id' => $u->superieur_id,
         ];
     }
 }

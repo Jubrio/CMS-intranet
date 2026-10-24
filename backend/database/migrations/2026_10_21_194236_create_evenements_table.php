@@ -12,20 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('evenements', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete();
-    $table->foreignId('auteur_id')->constrained('utilisateurs')->restrictOnDelete();
-    $table->foreignId('departement_id')->nullable()->constrained('departements')->restrictOnDelete();
-    $table->string('titre_evenement', 150);
-    $table->text('description_evenement')->nullable();
-    $table->dateTime('date_debut');
-    $table->dateTime('date_fin');           // RG27 : >= date_debut
-    $table->string('lieu', 100)->nullable();
-    $table->string('visibilite', 15)->default('entreprise'); // entreprise / departement
-    $table->timestamps();
+            $table->id();
+            $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete();
+            $table->foreignId('auteur_id')->constrained('utilisateurs')->restrictOnDelete();
+            $table->foreignId('departement_id')->nullable()->constrained('departements')->restrictOnDelete();
+            $table->string('titre_evenement', 150);
+            $table->text('description_evenement')->nullable();
+            $table->dateTime('date_debut');
+            $table->dateTime('date_fin');           // RG27 : >= date_debut
+            $table->string('lieu', 100)->nullable();
+            $table->string('visibilite', 15)->default('entreprise'); // entreprise / departement
+            $table->timestamps();
 
-    $table->index(['entreprise_id', 'date_debut']);
-});
+            $table->index(['entreprise_id', 'date_debut']);
+        });
     }
 
     /**

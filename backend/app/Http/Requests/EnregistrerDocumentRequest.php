@@ -9,7 +9,7 @@ class EnregistrerDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; 
+        return true;
     }
 
     public function rules(): array
@@ -20,7 +20,7 @@ class EnregistrerDocumentRequest extends FormRequest
             'fichier' => $this->isMethod('POST')
     ? ['required', 'file', 'max:10240',
         'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png',
-        'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png'] 
+        'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,jpg,jpeg,png']
     : 'prohibited',
             'nom_document' => ['sometimes', 'string', 'max:150'],
             'categorie' => [$p, 'string', 'max:50'],

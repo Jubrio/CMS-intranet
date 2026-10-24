@@ -10,16 +10,16 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('modules', function (Blueprint $table) {
-        $table->id();
-        $table->string('code_module', 30)->unique();
-        $table->string('nom_module', 50);
-        $table->string('description_module', 250)->nullable();
-        $table->boolean('module_obligatoire')->default(false);
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('modules', function (Blueprint $table) {
+            $table->id();
+            $table->string('code_module', 30)->unique();
+            $table->string('nom_module', 50);
+            $table->string('description_module', 250)->nullable();
+            $table->boolean('module_obligatoire')->default(false);
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

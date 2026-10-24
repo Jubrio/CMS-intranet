@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerDocumentRequest;
 use App\Models\Document;
 use App\Models\Utilisateur;
+use App\Services\AccesContenus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -22,7 +24,7 @@ class DocumentController extends Controller
 
         $requete = $this->visibles($request->user());
         if ($q = trim((string) $request->query('q'))) {
-            $requete->where('nom_document', 'ilike', '%' . addcslashes($q, '%_\\') . '%');
+            $requete->where('nom_document', 'ilike', '%'.addcslashes($q, '%_\\').'%');
         }
         if ($request->filled('categorie')) {
             $requete->where('categorie', $request->query('categorie'));
@@ -47,8 +49,15 @@ class DocumentController extends Controller
         return response()->json($this->formater($d));
     }
 
-    // Adresse de téléchargement signée et de courte durée, remise seulement à qui voit le document (RG26).
-    // Le navigateur la télécharge directement : pas d'appel inter-origines, donc pas de souci CORS.
+    // RG21 : un Manager ne gère que les documents de son département
+    private function verifierPortee(Utilisateur $u, string $visibilite, $departementId): void
+    {
+        $dept = $departementId ? (int) $departementId : null;
+        if (! app(AccesContenus::class)->peutCibler($u, $visibilite, $dept)) {
+            abort(403, 'Un Manager ne gère que les documents de son département.');
+        }
+    }
+
     public function lien(Request $request, int $id): JsonResponse
     {
         $d = $this->visibles($request->user())->findOrFail($id);
@@ -66,15 +75,15 @@ class DocumentController extends Controller
 
     private function envoyer(Document $d)
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disque */
+        /** @var FilesystemAdapter $disque */
         $disque = Storage::disk('local');
         abort_unless($disque->exists($d->fichier), 404);
 
         // Nom proposé : celui du document + l'extension du fichier, sans caractère interdit dans un en-tête
-        $nom = trim(preg_replace('/[\/\\\\"\x00-\x1F\x7F]+/', '-', $d->nom_document), " .-");
+        $nom = trim(preg_replace('/[\/\\\\"\x00-\x1F\x7F]+/', '-', $d->nom_document), ' .-');
         $extension = pathinfo($d->fichier, PATHINFO_EXTENSION);
 
-        return $disque->download($d->fichier, ($nom !== '' ? $nom : 'document') . ($extension !== '' ? '.' . $extension : ''), [
+        return $disque->download($d->fichier, ($nom !== '' ? $nom : 'document').($extension !== '' ? '.'.$extension : ''), [
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
@@ -83,12 +92,13 @@ class DocumentController extends Controller
     {
         $u = $request->user();
         $d = $request->validated();
-        $fichier = $request->file('fichier');
+        $this->verifierPortee($u, $d['visibilite'], $d['departement_id'] ?? null);
 
+        $fichier = $request->file('fichier');
         $nom = $d['nom_document'] ?? pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME);
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        $chemin = $fichier->store('documents/' . $u->entreprise_id, 'local');
+        $chemin = $fichier->store('documents/'.$u->entreprise_id, 'local');
 
         $doc = Document::create([
             'entreprise_id' => $u->entreprise_id, // RG05
@@ -107,7 +117,10 @@ class DocumentController extends Controller
 
     public function update(EnregistrerDocumentRequest $request, int $id): JsonResponse
     {
-        $doc = Document::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id);
+        $u = $request->user();
+        $doc = Document::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
+        $this->verifierPortee($u, $doc->visibilite, $doc->departement_id); // l'existant
+
         $d = $request->validated();
         if (empty($d)) {
             return response()->json(['message' => 'Aucun champ à modifier.'], 422);
@@ -122,6 +135,7 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Un département est requis.',
                 'errors' => ['departement_id' => ['Un département est requis.']]], 422);
         }
+        $this->verifierPortee($u, $visibilite, $dept); // la nouvelle valeur
 
         $doc->update(Arr::only($d, ['nom_document', 'categorie']) + ['visibilite' => $visibilite, 'departement_id' => $dept]);
 
@@ -130,7 +144,10 @@ class DocumentController extends Controller
 
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $doc = Document::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id);
+        $u = $request->user();
+        $doc = Document::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
+        $this->verifierPortee($u, $doc->visibilite, $doc->departement_id);
+
         Storage::disk('local')->delete($doc->fichier);
         $doc->delete();
 

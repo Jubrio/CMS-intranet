@@ -16,7 +16,7 @@ class QuestionFaqController extends Controller
 
         $requete = QuestionFaq::where('entreprise_id', $request->user()->entreprise_id); // RG05
         if ($q = trim((string) $request->query('q'))) {
-            $motif = '%' . addcslashes($q, '%_\\') . '%';
+            $motif = '%'.addcslashes($q, '%_\\').'%';
             $requete->where(fn ($w) => $w->where('question', 'ilike', $motif)->orWhere('reponse', 'ilike', $motif));
         }
         if ($request->filled('categorie')) {

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -42,7 +43,7 @@ class ModuleEntrepriseController extends Controller
         $actif = $request->boolean('actif');
         $module = Module::where('code_module', $code)->firstOrFail();
 
-        if ($module->module_obligatoire && ! $actif) { 
+        if ($module->module_obligatoire && ! $actif) {
             return response()->json(['message' => 'Ce module est obligatoire et ne peut pas être désactivé.'], 422);
         }
 
@@ -51,7 +52,7 @@ class ModuleEntrepriseController extends Controller
         if ($actif) {
             $ligne->date_activation = now();
         }
-        $ligne->save(); 
+        $ligne->save();
 
         return response()->json(['code_module' => $code, 'actif' => $actif]);
     }

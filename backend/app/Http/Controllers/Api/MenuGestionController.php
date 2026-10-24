@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 class MenuGestionController extends Controller
 {
     private const MAX_LIENS = 30;
+
     public const ORDRE_LIEN = 1000; // un lien sans ordre se place apres les modules
 
     // Vue complete pour l'administrateur : modules actifs (avec ou sans reglage) et liens
@@ -69,7 +70,7 @@ class MenuGestionController extends Controller
     {
         $eid = $request->user()->entreprise_id;
         if (Menu::where('entreprise_id', $eid)->where('type_menu', 'lien')->count() >= self::MAX_LIENS) {
-            return response()->json(['message' => 'Limite de ' . self::MAX_LIENS . ' liens atteinte.'], 422);
+            return response()->json(['message' => 'Limite de '.self::MAX_LIENS.' liens atteinte.'], 422);
         }
 
         $ligne = new Menu([

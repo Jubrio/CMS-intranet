@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use App\Models\ModuleEntreprise;
@@ -20,6 +21,7 @@ class VerifierModule
         if (! $actif) {
             return response()->json(['message' => 'Module désactivé.'], 403); // RG10
         }
+
         return $next($request);
     }
 }

@@ -10,15 +10,15 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('permissions', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('module_id')->constrained('modules')->cascadeOnDelete();
-        $table->string('code_permission', 50)->unique(); // ex. actualite.publier
-        $table->string('libelle_permission', 100);
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('module_id')->constrained('modules')->cascadeOnDelete();
+            $table->string('code_permission', 50)->unique(); // ex. actualite.publier
+            $table->string('libelle_permission', 100);
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

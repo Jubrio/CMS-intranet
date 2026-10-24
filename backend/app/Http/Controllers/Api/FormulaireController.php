@@ -43,6 +43,7 @@ class FormulaireController extends Controller
             if ($gestionnaire) {
                 $item['nb_reponses'] = $f->reponses_count;
             }
+
             return $item;
         }));
     }
@@ -209,27 +210,27 @@ class FormulaireController extends Controller
         return Formulaire::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
     }
 
-private function visibles(Utilisateur $u, bool $gestionnaire, bool $ouvertsSeulement = true): Builder
-{
-    $q = Formulaire::where('entreprise_id', $u->entreprise_id);
-    if ($gestionnaire) {
-        return $q;
-    }
-
-    $q->whereIn('statut_formulaire', $ouvertsSeulement ? ['publie'] : ['publie', 'cloture']);
-    if ($ouvertsSeulement) {
-        $q->where(fn ($w) => $w->whereNull('date_limite')
-            ->orWhere('date_limite', '>=', today()->toDateString()));
-    }
-
-    return $q->where(function ($w) use ($u) {
-        $w->where('visibilite', 'entreprise');
-        if ($u->departement_id) {
-            $w->orWhere(fn ($w2) => $w2->where('visibilite', 'departement')
-                ->where('departement_id', $u->departement_id));
+    private function visibles(Utilisateur $u, bool $gestionnaire, bool $ouvertsSeulement = true): Builder
+    {
+        $q = Formulaire::where('entreprise_id', $u->entreprise_id);
+        if ($gestionnaire) {
+            return $q;
         }
-    });
-}
+
+        $q->whereIn('statut_formulaire', $ouvertsSeulement ? ['publie'] : ['publie', 'cloture']);
+        if ($ouvertsSeulement) {
+            $q->where(fn ($w) => $w->whereNull('date_limite')
+                ->orWhere('date_limite', '>=', today()->toDateString()));
+        }
+
+        return $q->where(function ($w) use ($u) {
+            $w->where('visibilite', 'entreprise');
+            if ($u->departement_id) {
+                $w->orWhere(fn ($w2) => $w2->where('visibilite', 'departement')
+                    ->where('departement_id', $u->departement_id));
+            }
+        });
+    }
 
     // On ne garde que les clés connues d'un champ ; les options n'existent que pour les choix
     private function nettoyerChamps(array $champs): array
@@ -244,6 +245,7 @@ private function visibles(Utilisateur $u, bool $gestionnaire, bool $ouvertsSeule
             if (in_array($c['type'], ['choix_unique', 'choix_multiple'], true)) {
                 $champ['options'] = array_values($c['options']);
             }
+
             return $champ;
         }, $champs));
     }
@@ -268,6 +270,7 @@ private function visibles(Utilisateur $u, bool $gestionnaire, bool $ouvertsSeule
                 if ($c['obligatoire']) {
                     $erreurs["valeurs.$nom"] = ['Ce champ est obligatoire.'];
                 }
+
                 continue;
             }
 
@@ -282,7 +285,8 @@ private function visibles(Utilisateur $u, bool $gestionnaire, bool $ouvertsSeule
             };
 
             if (! $ok) {
-                $erreurs["valeurs.$nom"] = ['Valeur invalide pour « ' . $c['libelle'] . ' ».'];
+                $erreurs["valeurs.$nom"] = ['Valeur invalide pour « '.$c['libelle'].' ».'];
+
                 continue;
             }
             $propre[$nom] = $v;

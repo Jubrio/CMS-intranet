@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
-    public function __construct(private DroitsUtilisateurs $droits)
-    {
-    }
+    public function __construct(private DroitsUtilisateurs $droits) {}
 
     // Catalogue des permissions : le frontend les regroupe par code_module
     public function permissions(): JsonResponse
@@ -56,10 +54,10 @@ class RoleController extends Controller
             ->withCount('permissions')
             ->orderBy('id')->get()
             ->map(fn ($r) => [
-                'id'              => $r->id,
-                'nom_role'        => $r->nom_role,
+                'id' => $r->id,
+                'nom_role' => $r->nom_role,
                 'role_par_defaut' => (bool) $r->role_par_defaut,
-                'nb_permissions'  => $r->permissions_count,
+                'nb_permissions' => $r->permissions_count,
                 'nb_utilisateurs' => (int) ($comptes[$r->id] ?? 0),
             ]);
 
@@ -82,8 +80,8 @@ class RoleController extends Controller
 
         $role = DB::transaction(function () use ($appelant, $donnees) {
             $role = Role::create([
-                'entreprise_id'   => $appelant->entreprise_id,
-                'nom_role'        => $donnees['nom_role'],
+                'entreprise_id' => $appelant->entreprise_id,
+                'nom_role' => $donnees['nom_role'],
                 'role_par_defaut' => false,
             ]);
             $role->permissions()->sync($this->idsDe($donnees['permissions']));
@@ -168,10 +166,10 @@ class RoleController extends Controller
     private function formater(Role $r): array
     {
         return [
-            'id'              => $r->id,
-            'nom_role'        => $r->nom_role,
+            'id' => $r->id,
+            'nom_role' => $r->nom_role,
             'role_par_defaut' => (bool) $r->role_par_defaut,
-            'permissions'     => $r->permissions()->pluck('code_permission')->values(),
+            'permissions' => $r->permissions()->pluck('code_permission')->values(),
         ];
     }
 }

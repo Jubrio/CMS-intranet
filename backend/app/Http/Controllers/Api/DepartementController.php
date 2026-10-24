@@ -103,13 +103,13 @@ class DepartementController extends Controller
     private function formater(Departement $d): array
     {
         return [
-            'id'                      => $d->id,
-            'nom_departement'         => $d->nom_departement,
+            'id' => $d->id,
+            'nom_departement' => $d->nom_departement,
             'description_departement' => $d->description_departement,
-            'departement_parent_id'   => $d->departement_parent_id,
-            'responsable_id'          => $d->responsable_id,
-            'responsable'             => $d->responsable?->only(['id', 'nom', 'prenom']),
-            'nb_employes'             => $d->utilisateurs_count,
+            'departement_parent_id' => $d->departement_parent_id,
+            'responsable_id' => $d->responsable_id,
+            'responsable' => $d->responsable?->only(['id', 'nom', 'prenom']),
+            'nb_employes' => $d->utilisateurs_count,
         ];
     }
 }

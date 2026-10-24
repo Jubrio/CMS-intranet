@@ -7,8 +7,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
-{ 
-    $this->call([ModuleSeeder::class, SuperAdminSeeder::class]);
-}
-
+    {
+        $this->call([ModuleSeeder::class, SuperAdminSeeder::class]);
+    }
 }
