@@ -1,21 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import type { MenuConfig, Personnalisation, Profil } from "@/lib/espace";
+import { refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { variablesTheme } from "@/lib/apparence";
 import { effacerToken, lireToken } from "@/lib/session";
 import { ThemeToggle } from "@/components/visiteur/theme";
 import { EspaceContext } from "./espace-context";
 import { Sidebar } from "./sidebar";
+import { AccesRefuse } from "./acces-refuse";
 import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
 
 type Session = { token: string; profil: Profil; perso: Personnalisation | null; menu: MenuConfig | null };
 
 export function EspaceShell({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const [erreur, setErreur] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
@@ -109,6 +111,8 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   }
 
   const { profil, perso, menu } = session;
+  // Garde de route : une page dont l'entrée de menu n'est pas ouverte à ce profil ne se charge pas
+  const refus = refusRoute(pathname, profil, menu);
 
   return (
     <EspaceContext.Provider value={valeur}>
@@ -190,7 +194,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">{refus ? <AccesRefuse raison={refus} /> : children}</main>
       </div>
 
       {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}

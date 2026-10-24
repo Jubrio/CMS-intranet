@@ -79,7 +79,7 @@ function LignePersonne({ p, onOuvrir }: { p: LienEmploye; onOuvrir: (id: number)
 
 // ---- Fiche d'une personne --------------------------------------------------------
 
-function PanneauFiche({ id, onFermer, onOuvrir }: { id: number; onFermer: () => void; onOuvrir: (id: number) => void }) {
+export function PanneauFiche({ id, onFermer, onOuvrir }: { id: number; onFermer: () => void; onOuvrir: (id: number) => void }) {
   const charger = useCallback((jeton: string) => api<Fiche>(`/annuaire/${id}`, { token: jeton }), [id]);
   const fiche = useDonnees(true, charger);
   const f = fiche.donnees;

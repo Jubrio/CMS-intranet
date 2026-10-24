@@ -72,7 +72,8 @@ export type EntreeNav = {
   sauf?: string;
   // Code du module du menu configurable (« Menus ») dont dépend l'entrée, si différent de `module`
   menu?: string;
-  // Jamais masquée par la configuration des menus (évite de s'enfermer dehors)
+  // Jamais masquée par la configuration des menus : évite de s'enfermer dehors, et sert aux
+  // modules que « Menus » ne règle pas (les pages se rangent par rubrique, /menu ne les renvoie pas)
   toujours?: boolean;
   // Lien vers un site externe : s'ouvre dans un nouvel onglet
   externe?: boolean;
@@ -103,9 +104,10 @@ export const NAV: GroupeNav[] = [
   {
     titre: "Mon entreprise",
     entrees: [
+      { libelle: "Annuaire", icone: Contact, href: "/espace/consulter-annuaire", permission: "annuaire.consulter", module: "annuaire", sauf: "annuaire.gerer" },
       { libelle: "Organigramme", icone: Network, href: "/espace/organigramme", permission: "annuaire.consulter", module: "annuaire", sauf: "annuaire.gerer" },
       { libelle: "Calendrier", icone: CalendarDays, href: "/espace/calendrier", permission: "evenements.consulter", module: "evenements", menu: "calendrier", sauf: "evenements.gerer" },
-      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/consulter-pages", permission: "pages.consulter", module: "pages", sauf: "pages.gerer" },
+      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/consulter-pages", permission: "pages.consulter", module: "pages", sauf: "pages.gerer", toujours: true },
       { libelle: "Documents", icone: FolderOpen, href: "/espace/consulter-documents", permission: "documents.consulter", module: "documents", sauf: "documents.gerer" },
       { libelle: "FAQ", icone: CircleHelp, href: "/espace/consulter-faq", permission: "faq.consulter", module: "faq", sauf: "faq.gerer" },
     ],
@@ -125,7 +127,7 @@ export const NAV: GroupeNav[] = [
       { libelle: "Annonces", icone: Megaphone, href: "/espace/annonces", permission: "annonces.publier", module: "annonces" },
       { libelle: "Articles", icone: FileText, href: "/espace/articles", permission: "articles.publier", module: "articles" },
       { libelle: "Notes de service", icone: ScrollText, href: "/espace/notes-service", permission: "notes_service.publier", module: "notes_service" },
-      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/pages-internes", permission: "pages.gerer", module: "pages" },
+      { libelle: "Pages internes", icone: LayoutTemplate, href: "/espace/pages-internes", permission: "pages.gerer", module: "pages", toujours: true },
       { libelle: "Documents", icone: FolderOpen, href: "/espace/documents", permission: "documents.gerer", module: "documents" },
       { libelle: "Événements", icone: CalendarCheck, href: "/espace/evenements", permission: "evenements.gerer", module: "evenements" },
       { libelle: "FAQ", icone: CircleHelp, href: "/espace/faq", permission: "faq.gerer", module: "faq" },
@@ -249,4 +251,35 @@ function menuDeBase(profil: Profil): GroupeNav[] {
     .filter((g) => g.entrees.length > 0);
   const [premier, ...suite] = autres;
   return [premier, { titre: "Ressources humaines", entrees: rh }, ...suite];
+}
+
+// ---- Garde de route ------------------------------------------------------------
+// Une adresse du menu n'est ouverte que si son entrée l'est : même règle que le menu latéral
+// (permission, module actif, réglages de « Menus »). L'API reste l'arbitre final des droits.
+
+export type RaisonRefus = "role" | "module" | "menu";
+
+type EntreeAdressee = EntreeNav & { href: string };
+
+const ENTREES_ADRESSEES: EntreeAdressee[] = [...NAV, ...NAV_PLATEFORME]
+  .flatMap((g) => g.entrees)
+  .filter((e): e is EntreeAdressee => !!e.href && e.href !== "/espace");
+
+// null = accès permis. Les adresses hors menu (tableau de bord, inconnues) restent permises ici.
+export function refusRoute(chemin: string, profil: Profil, menu: MenuConfig | null): RaisonRefus | null {
+  const adresse = chemin.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
+  const entree = ENTREES_ADRESSEES.filter((e) => adresse === e.href || adresse.startsWith(`${e.href}/`)).sort((a, b) => b.href.length - a.href.length)[0];
+  if (!entree) return null;
+
+  // La plateforme et les intranets sont deux mondes : le Super-administrateur n'ouvre que les écrans de la plateforme
+  if (estSuperAdmin(profil) !== !!entree.superAdmin) return "role";
+  if (entree.superAdmin) return null;
+
+  if (entree.permission && !profil.permissions.includes(entree.permission)) return "role";
+  if (entree.module && !profil.modules_actifs.includes(entree.module)) return "module";
+
+  // Masquée par l'administrateur (écran « Menus ») pour ce rôle ; sans réponse de /menu, on ne bloque pas
+  const cle = cleMenu(entree);
+  if (menu && cle && !entree.toujours && !menu.modules.some((m) => m.code === cle)) return "menu";
+  return null;
 }

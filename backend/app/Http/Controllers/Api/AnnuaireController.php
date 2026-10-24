@@ -29,8 +29,10 @@ class AnnuaireController extends Controller
 
         $requete = $this->base($request);
 
-        if ($q = trim((string) $request->query('q'))) {
-            $motif = '%' . addcslashes($q, '%_\\') . '%';
+        // Chaque mot doit se retrouver dans l'un des champs : « jean rakoto » trouve Jean Rakoto
+        $mots = array_slice(preg_split('/\s+/', trim((string) $request->query('q')), -1, PREG_SPLIT_NO_EMPTY) ?: [], 0, 5);
+        foreach ($mots as $mot) {
+            $motif = '%' . addcslashes($mot, '%_\\') . '%';
             $requete->where(fn ($w) => $w
                 ->where('utilisateurs.nom', 'ilike', $motif)
                 ->orWhere('utilisateurs.prenom', 'ilike', $motif)

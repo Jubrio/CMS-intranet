@@ -154,7 +154,6 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::get('/documents', [DocumentController::class, 'index']);
             Route::get('/documents/categories', [DocumentController::class, 'categories']);
             Route::get('/documents/{id}', [DocumentController::class, 'show'])->whereNumber('id');
-            Route::get('/documents/{id}/telecharger', [DocumentController::class, 'telecharger'])->whereNumber('id');
             Route::get('/documents/{id}/lien', [DocumentController::class, 'lien'])->whereNumber('id');
         });
         Route::middleware('permission:documents.gerer')->group(function () {

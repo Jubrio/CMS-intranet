@@ -253,7 +253,7 @@ export function Annuaire() {
                 <Contact size={22} aria-hidden />
               </span>
               <p className="mt-4 text-sm font-medium">{filtre ? "Aucune personne ne correspond à cette recherche." : "Aucun employé dans l’annuaire."}</p>
-              {filtre && <p className="mt-1 text-xs text-site-muted">La recherche porte sur un seul mot à la fois : essayez le nom ou le prénom seul.</p>}
+              {filtre && <p className="mt-1 text-xs text-site-muted">Essayez un seul mot, ou retirez le filtre de département.</p>}
             </div>
           ) : (
             <div>

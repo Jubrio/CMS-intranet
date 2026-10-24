@@ -64,12 +64,6 @@ class DocumentController extends Controller
         return $this->envoyer(Document::findOrFail($id));
     }
 
-    // Téléchargement direct avec jeton (clients qui peuvent envoyer l'en-tête Authorization)
-    public function telecharger(Request $request, int $id)
-    {
-        return $this->envoyer($this->visibles($request->user())->findOrFail($id));
-    }
-
     private function envoyer(Document $d)
     {
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disque */
