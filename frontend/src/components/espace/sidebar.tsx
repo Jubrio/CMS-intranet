@@ -76,7 +76,6 @@ export function Sidebar({
                     : "text-site-muted hover:bg-site-surface2 hover:text-site-ink",
                 );
 
-                // Lien vers un site externe (liens personnalisés) : nouvel onglet
                 if (e.externe) {
                   return (
                     <li key={`${e.libelle}-${e.href}`}>

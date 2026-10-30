@@ -4,8 +4,6 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Éléments d'affichage partagés par les tableaux de bord (plateforme, RH).
-
 export const nombre = new Intl.NumberFormat("fr-FR");
 export const decimal = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 export const pluriel = (n: number, singulier: string, plur: string) => (n > 1 ? plur : singulier);
@@ -13,8 +11,6 @@ export const pourcent = (partie: number, total: number) => (total > 0 ? Math.rou
 
 export const BOUTON_PETIT =
   "inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60";
-
-// ---- Éléments d'affichage ---------------------------------------------------
 
 export type Accent = "violet" | "blue" | "cyan";
 
@@ -127,7 +123,6 @@ export function Kpi({
   );
 }
 
-// Barre horizontale « valeur sur total » (taux d'adoption, taille d'entreprise)
 export function BarreTaux({
   libelle,
   valeur,

@@ -12,12 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-// Images des actualités, annonces et articles (affichées dans le fil d'accueil).
-// Même table, mêmes fichiers privés et mêmes adresses signées que les images des pages :
-// le fichier est servi par la route images.fichier.
 class ContenuImageController extends Controller
 {
-    private const MAX_IMAGES = 6; // par contenu
+    private const MAX_IMAGES = 6;
 
     public function __construct(private AccesContenus $acces) {}
 
@@ -34,11 +31,10 @@ class ContenuImageController extends Controller
         $nom = Str::limit(pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME), 150, '');
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        // disque privé, nom aléatoire : jamais le nom envoyé par l'utilisateur
         $chemin = $fichier->store('contenus/'.$u->entreprise_id, 'local');
 
         $image = Image::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'contenu_id' => $contenu->id,
             'auteur_id' => $u->id,
             'nom_image' => $nom,
@@ -54,7 +50,7 @@ class ContenuImageController extends Controller
     public function destroy(Request $request, string $type, int $id, int $imageId): JsonResponse
     {
         $contenu = $this->contenu($request, $type, $id);
-        $image = $contenu->images()->findOrFail($imageId); // 404 si l'image n'est pas de ce contenu
+        $image = $contenu->images()->findOrFail($imageId);
 
         $chemin = $image->fichier;
         $image->delete();
@@ -63,8 +59,6 @@ class ContenuImageController extends Controller
         return response()->json(['message' => 'Image supprimée.']);
     }
 
-    // Mêmes règles que la modification d'un contenu : droit de publication (RG11),
-    // contenu de l'entreprise (RG05), portée du Manager (RG21)
     private function contenu(Request $request, string $type, int $id): Contenu
     {
         $u = $request->user();

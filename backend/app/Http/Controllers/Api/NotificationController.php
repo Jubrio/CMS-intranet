@@ -4,11 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationUtilisateur;
+use App\Services\FichiersProfil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-// Notifications de l'utilisateur connecté. Chaque ligne n'existe que pour ses destinataires :
-// un utilisateur ne voit jamais celles d'un département qui n'est pas le sien.
 class NotificationController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -66,7 +65,9 @@ class NotificationController extends Controller
             'objet_id' => $notif->objet_id,
             'titre' => $notif->titre,
             'departement' => $notif->departement?->nom_departement,
-            'acteur' => $notif->acteur ? $notif->acteur->only(['id', 'nom', 'prenom', 'photo']) : null,
+            'acteur' => $notif->acteur
+                ? $notif->acteur->only(['id', 'nom', 'prenom']) + ['photo' => FichiersProfil::url($notif->acteur->photo)]
+                : null,
             'date' => $notif->created_at?->toIso8601String(),
         ];
     }

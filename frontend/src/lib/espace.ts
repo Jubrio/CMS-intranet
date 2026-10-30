@@ -57,8 +57,6 @@ export const initiales = (p: { prenom: string; nom: string }) =>
   `${p.prenom.charAt(0)}${p.nom.charAt(0)}`.toUpperCase();
 
 // ---- Menu latéral -------------------------------------------------------------
-// Une entrée apparaît si le rôle a la permission ET si le module est actif.
-// Sans `href`, l'écran n'existe pas encore : l'entrée est affichée « Bientôt ».
 
 export type EntreeNav = {
   libelle: string;
@@ -66,20 +64,13 @@ export type EntreeNav = {
   href?: string;
   permission?: string;
   module?: string;
-  // Entrée de la plateforme : visible uniquement par le Super-administrateur
   superAdmin?: boolean;
-  // Entrée masquée si le rôle a cette permission (ex. la consultation cède la place à la gestion)
   sauf?: string;
-  // Code du module du menu configurable (« Menus ») dont dépend l'entrée, si différent de `module`
   menu?: string;
-  // Jamais masquée par la configuration des menus : évite de s'enfermer dehors, et sert aux
-  // modules que « Menus » ne règle pas (les pages se rangent par rubrique, /menu ne les renvoie pas)
   toujours?: boolean;
-  // Lien vers un site externe : s'ouvre dans un nouvel onglet
   externe?: boolean;
 };
 
-// Réponse de GET /menu : réglages de l'administrateur appliqués au rôle de l'appelant
 export type MenuConfig = {
   modules: {
     code: string;
@@ -91,7 +82,6 @@ export type MenuConfig = {
   liens: { id: number; libelle: string; url: string; ordre: number }[];
 };
 
-// Le Super-administrateur n'appartient à aucune entreprise
 export const estSuperAdmin = (p: Pick<Profil, "role" | "entreprise">) =>
   p.role === "Super-administrateur" && p.entreprise === null;
 
@@ -102,9 +92,7 @@ export const NAV: GroupeNav[] = [
     titre: null,
     entrees: [
       { libelle: "Tableau de bord", icone: LayoutDashboard, href: "/espace" },
-      // Fil d'actualité de l'entreprise : visible par tous les rôles d'une entreprise
       { libelle: "Accueil", icone: Home, href: "/espace/accueil" },
-      // Formulaires internes à remplir : tout rôle qui a le droit de répondre
       {
         libelle: "Mes formulaires",
         icone: ClipboardCheck,
@@ -301,7 +289,6 @@ export const NAV: GroupeNav[] = [
   },
 ];
 
-// Menu du Super-administrateur : il gère la plateforme, pas l'intranet d'une entreprise
 export const NAV_PLATEFORME: GroupeNav[] = [
   {
     titre: null,
@@ -316,16 +303,12 @@ export const NAV_PLATEFORME: GroupeNav[] = [
   },
 ];
 
-// Le rôle « RH » est créé avec chaque intranet ; il gère les personnes, pas la configuration
 export const estRH = (p: Pick<Profil, "role" | "entreprise">) => p.role === "RH" && p.entreprise !== null;
 
-// Le rôle « Manager » est créé avec chaque intranet ; il pilote une équipe et publie pour son département
 export const estManager = (p: Pick<Profil, "role" | "entreprise">) => p.role === "Manager" && p.entreprise !== null;
 
-// Entrées regroupées sous « Ressources humaines » dans le menu du rôle RH
 const ENTREES_RH = ["Utilisateurs", "Départements", "Annuaire"];
 
-// Menu filtré selon le profil ; les groupes vides disparaissent
 export function menuPour(profil: Profil, menu: MenuConfig | null = null): GroupeNav[] {
   if (estSuperAdmin(profil)) return NAV_PLATEFORME;
   const base = menuDeBase(profil);
@@ -334,7 +317,6 @@ export function menuPour(profil: Profil, menu: MenuConfig | null = null): Groupe
 
 const cleMenu = (e: EntreeNav) => e.menu ?? e.module;
 
-// Réglages de l'administrateur (écran « Menus ») : visibilité et rôles, libellés, ordre, liens
 function appliquerMenu(groupes: GroupeNav[], menu: MenuConfig): GroupeNav[] {
   const modules = new Map(menu.modules.map((m) => [m.code, m]));
   const reglage = (e: EntreeNav) => {
@@ -342,12 +324,10 @@ function appliquerMenu(groupes: GroupeNav[], menu: MenuConfig): GroupeNav[] {
     return c ? modules.get(c) : undefined;
   };
 
-  // 1. Une entrée liée à un module que /menu ne renvoie pas pour ce rôle est masquée
   let res = groupes
     .map((g) => ({ ...g, entrees: g.entrees.filter((e) => !cleMenu(e) || e.toujours || modules.has(cleMenu(e)!)) }))
     .filter((g) => g.entrees.length > 0);
 
-  // 2. Libellé personnalisé : seulement si le module n'a qu'une entrée dans le menu
   const nb = new Map<string, number>();
   for (const g of res)
     for (const e of g.entrees) {
@@ -362,15 +342,12 @@ function appliquerMenu(groupes: GroupeNav[], menu: MenuConfig): GroupeNav[] {
     }),
   }));
 
-  // 3. Ordre : un groupe où l'administrateur a réglé l'ordre se trie sur l'ordre des modules
-  //    (les entrées sans module, comme le tableau de bord, restent en tête)
   res = res.map((g) => {
     if (!g.entrees.some((e) => reglage(e)?.ordre_perso != null)) return g;
     const rang = (e: EntreeNav) => (cleMenu(e) ? (reglage(e)?.ordre ?? Number.MAX_SAFE_INTEGER) : -1);
     return { ...g, entrees: [...g.entrees].sort((a, b) => rang(a) - rang(b)) };
   });
 
-  // 4. Liens personnalisés, dans un groupe à la fin
   if (menu.liens.length > 0) {
     res = [
       ...res,
@@ -399,7 +376,6 @@ function menuDeBase(profil: Profil): GroupeNav[] {
 
   if (!estRH(profil)) return groupes;
 
-  // RH : les écrans du personnel passent dans un groupe dédié, juste sous le tableau de bord
   const rh = groupes.flatMap((g) => g.entrees).filter((e) => ENTREES_RH.includes(e.libelle));
   if (rh.length === 0) return groupes;
   const autres = groupes
@@ -410,8 +386,6 @@ function menuDeBase(profil: Profil): GroupeNav[] {
 }
 
 // ---- Garde de route ------------------------------------------------------------
-// Une adresse du menu n'est ouverte que si son entrée l'est : même règle que le menu latéral
-// (permission, module actif, réglages de « Menus »). L'API reste l'arbitre final des droits.
 
 export type RaisonRefus = "role" | "module" | "menu";
 
@@ -421,7 +395,6 @@ const ENTREES_ADRESSEES: EntreeAdressee[] = [...NAV, ...NAV_PLATEFORME]
   .flatMap((g) => g.entrees)
   .filter((e): e is EntreeAdressee => !!e.href && e.href !== "/espace");
 
-// null = accès permis. Les adresses hors menu (tableau de bord, inconnues) restent permises ici.
 export function refusRoute(chemin: string, profil: Profil, menu: MenuConfig | null): RaisonRefus | null {
   const adresse = chemin.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
   const entree = ENTREES_ADRESSEES.filter((e) => adresse === e.href || adresse.startsWith(`${e.href}/`)).sort(
@@ -429,14 +402,12 @@ export function refusRoute(chemin: string, profil: Profil, menu: MenuConfig | nu
   )[0];
   if (!entree) return null;
 
-  // La plateforme et les intranets sont deux mondes : le Super-administrateur n'ouvre que les écrans de la plateforme
   if (estSuperAdmin(profil) !== !!entree.superAdmin) return "role";
   if (entree.superAdmin) return null;
 
   if (entree.permission && !profil.permissions.includes(entree.permission)) return "role";
   if (entree.module && !profil.modules_actifs.includes(entree.module)) return "module";
 
-  // Masquée par l'administrateur (écran « Menus ») pour ce rôle ; sans réponse de /menu, on ne bloque pas
   const cle = cleMenu(entree);
   if (menu && cle && !entree.toujours && !menu.modules.some((m) => m.code === cle)) return "menu";
   return null;

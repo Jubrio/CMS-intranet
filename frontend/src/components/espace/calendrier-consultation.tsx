@@ -9,9 +9,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { cleJour, lireDate, type Evenement } from "./evenement-formulaire";
 
-// Calendrier et événements en lecture seule : grille du mois ou liste, détail d'un événement.
-// L'API renvoie les événements de l'entreprise, de mon département ou que j'ai créés.
-
 type ReponseMois = { debut: string; fin: string; evenements: Evenement[] };
 type Vue = "calendrier" | "liste";
 
@@ -35,7 +32,6 @@ function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
 }
 
-// Cases de la grille : semaines complètes (lundi → dimanche) qui couvrent le mois
 function construireGrille(mois: Date): Date[] {
   const decal = (mois.getDay() === 0 ? 6 : mois.getDay() - 1) % 7;
   const nbJours = new Date(mois.getFullYear(), mois.getMonth() + 1, 0).getDate();
@@ -45,7 +41,6 @@ function construireGrille(mois: Date): Date[] {
 
 const dansLeJour = (e: Evenement, cle: string) => jourDe(e.date_debut) <= cle && cle <= jourDe(e.date_fin);
 
-// Horaire d'un événement pour un jour donné
 function horaire(e: Evenement, cle: string): string {
   const d = lireDate(e.date_debut);
   const f = lireDate(e.date_fin);
@@ -175,7 +170,6 @@ export function CalendrierConsultation() {
   const router = useRouter();
   const idCible = useSearchParams().get("ouvrir");
 
-  // Clic sur une notification : l'événement s'ouvre directement (« ?ouvrir=12 »)
   useEffect(() => {
     if (!idCible || !/^\d+$/.test(idCible)) return;
     let annule = false;
@@ -237,7 +231,6 @@ export function CalendrierConsultation() {
     return m;
   }, [grille, evenements]);
 
-  // Liste : seulement les jours du mois affiché
   const joursDuMois = useMemo(
     () =>
       grille

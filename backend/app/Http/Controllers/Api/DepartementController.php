@@ -14,7 +14,7 @@ class DepartementController extends Controller
     {
         $liste = Departement::with('responsable:id,nom,prenom')
             ->withCount('utilisateurs')
-            ->where('entreprise_id', $request->user()->entreprise_id) // RG05
+            ->where('entreprise_id', $request->user()->entreprise_id)
             ->orderBy('nom_departement')
             ->get()
             ->map(fn ($d) => $this->formater($d));
@@ -46,7 +46,7 @@ class DepartementController extends Controller
         }
 
         if (array_key_exists('departement_parent_id', $donnees)
-            && $this->creeUnCycle($departement->id, $donnees['departement_parent_id'])) { // RG17
+            && $this->creeUnCycle($departement->id, $donnees['departement_parent_id'])) {
             return response()->json(['message' => 'Une hiérarchie circulaire est interdite.'], 422);
         }
 
@@ -59,7 +59,7 @@ class DepartementController extends Controller
     {
         $departement = $this->trouver($request, $id);
 
-        if ($departement->utilisateurs()->exists()) { // RG19
+        if ($departement->utilisateurs()->exists()) {
             return response()->json(['message' => 'Département non vide : réaffectez ses employés avant de le supprimer.'], 422);
         }
 
@@ -74,7 +74,6 @@ class DepartementController extends Controller
         return response()->json(['message' => 'Département supprimé.']);
     }
 
-    // Remonte la chaîne des parents : si on retombe sur le département lui-même, il y a un cycle
     private function creeUnCycle(int $id, ?int $parentId): bool
     {
         $courant = $parentId;

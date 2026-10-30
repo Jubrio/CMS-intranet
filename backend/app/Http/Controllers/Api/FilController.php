@@ -6,14 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Contenu;
 use App\Models\LectureNote;
 use App\Services\AccesContenus;
+use App\Services\FichiersProfil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-// Fil d'accueil : les publications que l'utilisateur peut lire (actualités, annonces, articles,
-// notes de service), de la plus récente à la plus ancienne, par pages pour le défilement.
-// Visibilité : toute l'entreprise, mon département, ou écrit par moi (RG05, RG22).
-// Chaque type suit son module et le droit « consulter » du rôle ; une annonce expirée disparaît (RG23).
 class FilController extends Controller
 {
     private const TYPES = [
@@ -70,7 +67,6 @@ class FilController extends Controller
             ->orderByDesc('date_publication')->orderByDesc('id')
             ->paginate(self::PAR_PAGE);
 
-        // Notes de service de la page déjà lues par l'appelant (une seule requête)
         $notes = $page->getCollection()->where('type_contenu', 'note_service')->pluck('id');
         $lues = $notes->isEmpty() ? [] : LectureNote::where('utilisateur_id', $u->id)
             ->whereIn('contenu_id', $notes)->pluck('contenu_id')->all();
@@ -106,7 +102,7 @@ class FilController extends Controller
                 'id' => $c->auteur->id,
                 'nom' => $c->auteur->nom,
                 'prenom' => $c->auteur->prenom,
-                'photo' => $c->auteur->photo,
+                'photo' => FichiersProfil::url($c->auteur->photo),
                 'role' => $c->auteur->role?->nom_role,
             ] : null,
             'images' => $c->images->map(fn ($i) => PageImageController::formater($i))->values()->all(),

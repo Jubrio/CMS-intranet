@@ -41,8 +41,6 @@ import {
   pourcent,
 } from "./elements-tableau";
 
-// ---- Formes des réponses de l'API ------------------------------------------
-
 type EntrepriseResume = {
   id: number;
   nom_entreprise: string;

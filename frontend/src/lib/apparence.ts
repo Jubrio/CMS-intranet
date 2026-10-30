@@ -19,11 +19,8 @@ function luminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-// Rapport de contraste d'une couleur avec le blanc (texte des boutons) ; 3 est le minimum conseillé
 export const contrasteAvecBlanc = (hex: string) => 1.05 / (luminance(hex) + 0.05);
 
-// Variables CSS qui teintent l'interface avec les couleurs de l'entreprise. En thème sombre, les
-// couleurs servant de texte sont éclaircies pour rester lisibles ; les boutons gardent la couleur choisie.
 export function variablesTheme(principale?: string | null, secondaire?: string | null): CSSProperties {
   const p = principale && FORMAT_COULEUR.test(principale) ? principale : null;
   const s = secondaire && FORMAT_COULEUR.test(secondaire) ? secondaire : null;

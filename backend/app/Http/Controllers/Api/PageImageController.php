@@ -15,11 +15,10 @@ use Illuminate\Support\Str;
 
 class PageImageController extends Controller
 {
-    private const MAX_IMAGES = 10;          // par page (RG39)
+    private const MAX_IMAGES = 10;
 
-    private const VALIDITE_URL_MINUTES = 60; // duree de vie d'une adresse signee
+    private const VALIDITE_URL_MINUTES = 60;
 
-    // Ajouter une image a une page existante (route reservee a pages.gerer)
     public function store(EnregistrerImagePageRequest $request, int $id): JsonResponse
     {
         $u = $request->user();
@@ -33,11 +32,10 @@ class PageImageController extends Controller
         $nom = Str::limit(pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME), 150, '');
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        // disque prive, nom aleatoire : jamais le nom envoye par l'utilisateur
         $chemin = $fichier->store('pages/'.$u->entreprise_id, 'local');
 
         $image = Image::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'contenu_id' => $page->id,
             'auteur_id' => $u->id,
             'nom_image' => $nom,
@@ -53,8 +51,7 @@ class PageImageController extends Controller
     public function destroy(Request $request, int $id, int $imageId): JsonResponse
     {
         $page = $this->page($request, $id);
-        $image = $page->images()->findOrFail($imageId); // 404 si l'image n'est pas de cette page
-
+        $image = $page->images()->findOrFail($imageId);
         $chemin = $image->fichier;
         $image->delete();
         Storage::disk('local')->delete($chemin);
@@ -62,8 +59,6 @@ class PageImageController extends Controller
         return response()->json(['message' => 'Image supprimée.']);
     }
 
-    // Fichier de l'image. Route HORS authentification : l'acces est controle par la signature
-    // de l'adresse (middleware signed), remise seulement aux utilisateurs qui voient la page.
     public function fichier(Request $request, int $id)
     {
         $image = Image::findOrFail($id);
@@ -80,7 +75,6 @@ class PageImageController extends Controller
         ], 'inline');
     }
 
-    // Format commun, aussi utilise par PageController::show
     public static function formater(Image $i): array
     {
         return [

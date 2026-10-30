@@ -1,7 +1,6 @@
 import { iconeModule } from "@/lib/module-icons";
 import type { ModuleCatalogue } from "@/lib/modules";
 
-// Remplace la bande de logos clients : les modules que l'on peut activer
 export function BandeauModules({ modules }: { modules: ModuleCatalogue[] }) {
   const optionnels = modules.filter((m) => !m.module_obligatoire);
 

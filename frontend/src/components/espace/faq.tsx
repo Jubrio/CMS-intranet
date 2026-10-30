@@ -97,7 +97,6 @@ export function Faq() {
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -112,7 +111,6 @@ export function Faq() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Catégories et nombre de questions de chacune
   const chargerCategories = useCallback(
     async (jeton: string) => {
       void version;
@@ -124,10 +122,8 @@ export function Faq() {
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
   const nomsCategories = useMemo(() => categories.map((c) => c.categorie), [categories]);
   const totalQuestions = cats.donnees ? cats.donnees.reduce((s, c) => s + c.nb_questions, 0) : null;
-  // Une catégorie qui n'existe plus (dernière question supprimée) ne filtre plus
   const categorie = cats.donnees === null || nomsCategories.includes(categorieChoisie) ? categorieChoisie : "";
 
-  // Liste filtrée
   const cleCourante = `${page}|${q}|${categorie}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
@@ -135,7 +131,6 @@ export function Faq() {
       if (q) p.set("q", q);
       if (categorie) p.set("categorie", categorie);
       const res = await api<Pagination<QuestionFaq>>(`/faq?${p.toString()}`, { token: jeton });
-      // Dernière page vidée (ex. dernière question supprimée) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },

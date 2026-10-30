@@ -11,7 +11,7 @@ class AccesContenus
     public function autorise(Utilisateur $u, string $type, string $action): bool
     {
         if (! $u->entreprise_id || ! isset(Contenu::MODULES[$type])) {
-            return false; // le Super-administrateur n'a pas accès aux contenus (RG06)
+            return false;
         }
         $module = Contenu::MODULES[$type];
 
@@ -31,7 +31,6 @@ class AccesContenus
         return $u->role->role_par_defaut && $u->role->nom_role === 'Manager';
     }
 
-    // RG21 : un Manager ne cible que son propre département
     public function peutCibler(Utilisateur $u, string $visibilite, ?int $departementId): bool
     {
         if (! $this->estManager($u)) {

@@ -30,8 +30,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { Anneau, CourbeAire, COULEURS_SERIE, ListeBarres } from "./graphiques";
 
-// ---- Formes des réponses de l'API ------------------------------------------
-
 type PageTotal = { total: number };
 
 type DepartementResume = {
@@ -61,7 +59,6 @@ type PageContenus = { data: ContenuLigne[]; total: number };
 
 type EvenementApi = { id: number; titre_evenement: string; date_debut: string; date_fin: string; lieu: string | null };
 
-// Types de contenu et module associé (même correspondance que Contenu::MODULES côté Laravel)
 const TYPES_CONTENU = [
   { type: "actualite", libelle: "Actualités", module: "actualites" },
   { type: "annonce", libelle: "Annonces", module: "annonces" },
@@ -75,13 +72,10 @@ const HORIZON_EVENEMENTS_JOURS = 30;
 const nombre = new Intl.NumberFormat("fr-FR");
 const pluriel = (n: number, singulier: string, plur: string) => (n > 1 ? plur : singulier);
 
-// "2026-10-23 14:30:00" (heure locale, sans fuseau) -> Date
 const dateLocale = (s: string) => parseISO(s.replace(" ", "T"));
 
 const BOUTON_PETIT =
   "inline-flex items-center rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60";
-
-// ---- Éléments d'affichage ---------------------------------------------------
 
 type Accent = "violet" | "blue" | "cyan";
 
@@ -140,7 +134,6 @@ type KpiProps = {
   libelle: string;
   valeur: string | null;
   detail?: string;
-  // 0 à 100 : jauge sous le chiffre
   progression?: number;
   chargement: boolean;
   erreur: boolean;
@@ -218,7 +211,6 @@ export function TableauDeBord() {
     peut("calendrier.consulter") &&
     peut("evenements.consulter");
 
-  // Types que ce rôle peut publier (brouillons) / consulter (publications), module actif
   const typesPublies = useMemo(
     () =>
       TYPES_CONTENU.filter(
@@ -237,7 +229,6 @@ export function TableauDeBord() {
   const voirPublications = typesLisibles.length > 0;
 
   const chargerUtilisateurs = useCallback(async (token: string) => {
-    // Les listes sont paginées : le total suffit, on ne lit pas les lignes
     const [actifs, inactifs] = await Promise.all([
       api<PageTotal>("/utilisateurs?statut=actif", { token }),
       api<PageTotal>("/utilisateurs?statut=inactif", { token }),
@@ -255,7 +246,6 @@ export function TableauDeBord() {
         typesPublies.map((t) => api<PageTotal>(`/contenus/${t.type}?statut=brouillon`, { token })),
       );
       if (reponses.every((r) => r.status === "rejected")) throw new Error("brouillons indisponibles");
-      // Un type qui échoue est écarté plutôt que compté à 0
       return typesPublies.flatMap((t, i) => {
         const r = reponses[i];
         return r.status === "fulfilled" ? [{ libelle: t.libelle, total: r.value.total }] : [];
@@ -300,8 +290,6 @@ export function TableauDeBord() {
             date,
           });
         }
-        // La liste est limitée à 20 par type : si le plus ancien reçu est encore dans la
-        // fenêtre affichée, des publications plus anciennes de la fenêtre peuvent manquer.
         if (
           page.total > page.data.length &&
           plusAncien &&

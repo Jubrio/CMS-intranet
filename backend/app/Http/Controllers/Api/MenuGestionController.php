@@ -13,9 +13,8 @@ class MenuGestionController extends Controller
 {
     private const MAX_LIENS = 30;
 
-    public const ORDRE_LIEN = 1000; // un lien sans ordre se place apres les modules
+    public const ORDRE_LIEN = 1000;
 
-    // Vue complete pour l'administrateur : modules actifs (avec ou sans reglage) et liens
     public function index(Request $request): JsonResponse
     {
         $eid = $request->user()->entreprise_id;
@@ -54,7 +53,6 @@ class MenuGestionController extends Controller
         return response()->json($this->formaterModule($module, $ligne->load('roles')));
     }
 
-    // Retour au comportement par defaut : on supprime le reglage (idempotent)
     public function reinitialiserModule(Request $request, string $code): JsonResponse
     {
         $module = DB::table('modules')->where('code_module', $code)->first();
@@ -101,16 +99,12 @@ class MenuGestionController extends Controller
         return response()->json(['message' => 'Lien supprimé.']);
     }
 
-    // ---------- outils ----------
-
-    // 404 hors entreprise ou hors type lien (RG05)
     private function lien(Request $request, int $id): Menu
     {
         return Menu::where('entreprise_id', $request->user()->entreprise_id)
             ->where('type_menu', 'lien')->findOrFail($id);
     }
 
-    // Seules les cles envoyees sont modifiees ; roles = null leve la restriction
     private function appliquer(Menu $ligne, array $d): void
     {
         foreach (['libelle_menu', 'url_menu', 'ordre_menu', 'visible'] as $champ) {
@@ -130,7 +124,6 @@ class MenuGestionController extends Controller
         });
     }
 
-    // null = tous les roles ; tableau (eventuellement vide) = roles autorises
     private function roles(?Menu $l): ?array
     {
         if (! $l || ! $l->roles_limites) {

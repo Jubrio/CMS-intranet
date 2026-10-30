@@ -8,12 +8,8 @@ use App\Models\Utilisateur;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-// Diffusion des notifications : qui a fait quoi, adressé à toute l'entreprise ou à un seul département.
-// Même règle de visibilité que les contenus, événements et documents (RG05, RG22) :
-// un département ciblé = seuls ses membres sont notifiés, les autres ne reçoivent rien.
 class NotificationService
 {
-    // Type d'objet => [modules qui doivent être actifs, permissions de consultation exigées du destinataire]
     private const CIBLES = [
         'actualite' => [['actualites'], ['actualites.consulter']],
         'annonce' => [['annonces'], ['annonces.consulter']],
@@ -25,7 +21,6 @@ class NotificationService
 
     private const PAR_LOT = 500;
 
-    // Une notification ne doit jamais faire échouer l'action qui la déclenche : l'erreur est journalisée.
     public function publier(
         Utilisateur $acteur,
         string $action,
@@ -41,7 +36,6 @@ class NotificationService
         }
     }
 
-    // L'objet est supprimé ou archivé : ses notifications disparaissent (les lignes destinataires partent en cascade)
     public function retirer(string $objetType, int $objetId): void
     {
         try {
@@ -63,8 +57,6 @@ class NotificationService
             return;
         }
         [$modules, $permissions] = self::CIBLES[$objetType];
-
-        // Module désactivé : rien n'est diffusé (RG10)
         $actifs = ModuleEntreprise::where('entreprise_id', $acteur->entreprise_id)
             ->where('module_actif', true)
             ->whereHas('module', fn ($q) => $q->whereIn('code_module', $modules))
@@ -79,7 +71,6 @@ class NotificationService
         if ($departementId !== null) {
             $destinataires->where('departement_id', $departementId);
         }
-        // Seuls ceux qui ont le droit de consulter l'objet sont notifiés
         foreach ($permissions as $permission) {
             $destinataires->whereHas('role.permissions', fn ($q) => $q->where('code_permission', $permission));
         }

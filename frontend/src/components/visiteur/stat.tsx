@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Nombre qui monte jusqu'à `cible` quand il entre à l'écran
 export function Compteur({ cible }: { cible: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [valeur, setValeur] = useState(0);

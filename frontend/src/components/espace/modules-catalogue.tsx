@@ -9,8 +9,6 @@ import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 
-// ---- Formes des réponses de l'API ------------------------------------------
-
 type ModuleCatalogue = {
   code_module: string;
   nom_module: string;
@@ -57,8 +55,6 @@ function Stat({ icone, libelle, valeur }: { icone: LucideIcon; libelle: string; 
 }
 
 const pluriel = (n: number, un: string, plusieurs: string) => `${nombre.format(n)} ${n > 1 ? plusieurs : un}`;
-
-// ---- Fiche d'un module (panneau latéral) -----------------------------------------
 
 function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
   const charger = useCallback((jeton: string) => api<ModuleDetail>(`/super/modules/${code}`, { token: jeton }), [code]);

@@ -10,7 +10,6 @@ class ModuleSeeder extends Seeder
 {
     public function run(): void
     {
-        // [code, nom, description, obligatoire, [[code permission, libellé], ...]]
         $catalogue = [
             ['utilisateurs', 'Utilisateurs', 'Comptes, services et départements', true, [
                 ['utilisateurs.gerer', 'Gérer les utilisateurs'],

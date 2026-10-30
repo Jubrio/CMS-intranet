@@ -130,7 +130,7 @@ function CaseModule({
 }
 
 type Props = {
-  role: Role | null; // null = création
+  role: Role | null;
   catalogue: PermissionCatalogue[];
   onFermer: () => void;
   onEnregistre: (message: string) => void;
@@ -153,7 +153,6 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
   const detenues = useMemo(() => new Set(profil.permissions), [profil.permissions]);
   const modulesActifs = useMemo(() => new Set(profil.modules_actifs), [profil.modules_actifs]);
 
-  // Détail du rôle : les permissions ne sont pas dans la liste
   const roleId = role?.id ?? null;
   useEffect(() => {
     if (roleId === null) return;
@@ -181,7 +180,6 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
     };
   }, [roleId, token, expirer]);
 
-  // Le champ nom n'existe qu'une fois le détail chargé
   useEffect(() => {
     if (!chargement) premierChamp.current?.focus();
   }, [chargement]);
@@ -205,7 +203,6 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
     return [...parModule.entries()].map(([code, permissions]) => ({ code, permissions }));
   }, [catalogue]);
 
-  // Lecture seule : rôle par défaut (RG10) ou rôle qui dépasse les droits de l'appelant (RG32)
   const parDefaut = role?.role_par_defaut ?? false;
   const depasse = edition && detenuesRole.some((c) => !detenues.has(c));
   const verrouille = edition && (parDefaut || depasse || echecChargement);
@@ -246,7 +243,6 @@ export function RoleFormulaire({ role, catalogue, onFermer, onEnregistre }: Prop
     }
 
     setEnvoi(true);
-    // Ordre du catalogue, pour un envoi stable
     const permissions = catalogue.map((p) => p.code_permission).filter((c) => selection.has(c));
 
     try {

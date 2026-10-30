@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DepartementController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EmployeTableauDeBordController;
 use App\Http\Controllers\Api\EvenementController;
+use App\Http\Controllers\Api\FichierProfilController;
 use App\Http\Controllers\Api\FilController;
 use App\Http\Controllers\Api\FormulaireController;
 use App\Http\Controllers\Api\IntranetController;
@@ -32,17 +33,21 @@ use App\Http\Controllers\Api\UtilisateurController;
 use Illuminate\Support\Facades\Route;
 
 // Routes publiques
-Route::get('/health', fn () => response()->json(['status' => 'ok']));
 Route::get('/modules/catalogue', [ModuleController::class, 'catalogue']);
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/intranets', [IntranetController::class, 'creer'])->middleware('throttle:5,1');
 
-// Fichier d'image : accès contrôlé par la signature de l'adresse (étape 38)
+// Fichier d'image
 Route::get('/images/{id}/fichier', [PageImageController::class, 'fichier'])
     ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('images.fichier');
-// Fichier d'un document : accès contrôlé par la signature de l'adresse remise par /documents/{id}/lien
+// Fichier d'un document
 Route::get('/documents/{id}/fichier', [DocumentController::class, 'fichier'])
     ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('documents.fichier');
+
+// Photos de profil et logos
+Route::get('/fichiers/{chemin}', [FichierProfilController::class, 'fichier'])
+    ->where('chemin', '(photos/[A-Za-z0-9._-]+|logos/[0-9]+/[A-Za-z0-9._-]+)')
+    ->middleware(['signed', 'throttle:240,1'])->name('profil.fichier');
 
 // Routes protégées (jeton obligatoire)
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
@@ -52,7 +57,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::post('/me/photo', [ProfilController::class, 'photo']);
     Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
 
-    // Notifications de l'utilisateur : publications, événements, documents (ciblage entreprise ou département)
+    // Notifications de l'utilisateur : publications, événements, documents
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/non-lues', [NotificationController::class, 'nonLues']);
     Route::post('/notifications/tout-lire', [NotificationController::class, 'toutLire']);
@@ -68,7 +73,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     // Employé : notes à lire, nouveautés, événements, formulaires et son entourage (lecture seule)
     Route::get('/employe/tableau-de-bord', EmployeTableauDeBordController::class);
 
-    // Plateforme : réservé au Super-administrateur (intranets de toutes les entreprises)
+    // Plateforme : réservé au Super-administrateur
     Route::middleware('super.admin')->prefix('super')->group(function () {
         Route::get('/tableau-de-bord', SuperTableauDeBordController::class);
         Route::get('/intranets', [SuperIntranetController::class, 'index']);
@@ -77,8 +82,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/modules', [SuperModuleController::class, 'index']);
         Route::get('/modules/{code}', [SuperModuleController::class, 'show'])->where('code', '[a-z_]+');
     });
-
-    // Modules (étape 22)
+    // Modules
     Route::get('/modules', [ModuleEntrepriseController::class, 'index'])
         ->middleware('permission:personnalisation.modules');
     Route::put('/modules/{code}', [ModuleEntrepriseController::class, 'update'])
@@ -91,7 +95,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         ->middleware('permission:personnalisation.apparence');
     Route::put('/entreprise', [PersonnalisationController::class, 'updateParametres'])
         ->middleware('permission:personnalisation.parametres');
-    // Utilisateurs (étape 24)
+    // Utilisateurs
     Route::middleware('permission:utilisateurs.gerer')->group(function () {
         Route::get('/utilisateurs', [UtilisateurController::class, 'index']);
         Route::post('/utilisateurs', [UtilisateurController::class, 'store']);
@@ -99,7 +103,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/utilisateurs/{id}', [UtilisateurController::class, 'update'])->whereNumber('id');
         Route::put('/utilisateurs/{id}/statut', [UtilisateurController::class, 'changerStatut'])->whereNumber('id');
     });
-    // Départements (étape 25)
+    // Départements
     Route::middleware('permission:utilisateurs.departements')->group(function () {
         Route::get('/departements', [DepartementController::class, 'index']);
         Route::post('/departements', [DepartementController::class, 'store']);
@@ -107,7 +111,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/departements/{id}', [DepartementController::class, 'update'])->whereNumber('id');
         Route::delete('/departements/{id}', [DepartementController::class, 'destroy'])->whereNumber('id');
     });
-    // Rôles et permissions (étape 26)
+    // Rôles et permissions
     Route::get('/roles/assignables', [RoleController::class, 'assignables'])
         ->middleware('permission:utilisateurs.gerer');
 
@@ -119,7 +123,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/roles/{id}', [RoleController::class, 'update'])->whereNumber('id');
         Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->whereNumber('id');
     });
-    // Contenus (étape 28)
+    // Contenus
     Route::get('/contenus/{type}', [ContenuController::class, 'index'])
         ->where('type', 'actualite|annonce|article|note_service');
     Route::get('/contenus/{type}/{id}', [ContenuController::class, 'show'])
@@ -129,12 +133,12 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
 
     Route::put('/contenus/{type}/{id}', [ContenuController::class, 'update'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
-    // Images des publications (actualités, annonces, articles) affichées dans le fil d'accueil
+    // Images des publications
     Route::post('/contenus/{type}/{id}/images', [ContenuImageController::class, 'store'])
         ->where('type', 'actualite|annonce|article')->whereNumber('id');
     Route::delete('/contenus/{type}/{id}/images/{imageId}', [ContenuImageController::class, 'destroy'])
         ->where('type', 'actualite|annonce|article')->whereNumber(['id', 'imageId']);
-    // Fil d'accueil : publications lisibles par l'utilisateur, de la plus récente à la plus ancienne
+    // Fil d'accueil
     Route::get('/fil', FilController::class);
     Route::post('/contenus/{type}/{id}/publier', [ContenuController::class, 'publier'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
@@ -142,7 +146,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
     Route::delete('/contenus/{type}/{id}', [ContenuController::class, 'destroy'])
         ->where('type', 'actualite|annonce|article|note_service')->whereNumber('id');
-    // Annuaire et organigramme (étape 30)
+    // Annuaire et organigramme
     Route::middleware(['module:annuaire', 'permission:annuaire.consulter'])->group(function () {
         Route::get('/annuaire', [AnnuaireController::class, 'index']);
         Route::get('/annuaire/{id}', [AnnuaireController::class, 'show'])->whereNumber('id');
@@ -153,7 +157,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/annuaire/{id}', [AnnuaireController::class, 'modifier'])->whereNumber('id');
         Route::post('/annuaire/{id}/photo', [AnnuaireController::class, 'photo'])->whereNumber('id');
     });
-    // Documents (étape 32)
+    // Documents
     Route::middleware('module:documents')->group(function () {
         Route::middleware('permission:documents.consulter')->group(function () {
             Route::get('/documents', [DocumentController::class, 'index']);
@@ -167,7 +171,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->whereNumber('id');
         });
     });
-    // Calendrier et événements (étape 33)
+    // Calendrier et événements
     Route::middleware(['module:calendrier', 'module:evenements'])->group(function () {
         Route::middleware(['permission:calendrier.consulter', 'permission:evenements.consulter'])->group(function () {
             Route::get('/evenements', [EvenementController::class, 'index']);
@@ -179,7 +183,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::delete('/evenements/{id}', [EvenementController::class, 'destroy'])->whereNumber('id');
         });
     });
-    // FAQ (étape 34)
+    // FAQ
     Route::middleware('module:faq')->group(function () {
         Route::middleware('permission:faq.consulter')->group(function () {
             Route::get('/faq', [QuestionFaqController::class, 'index']);
@@ -192,7 +196,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::delete('/faq/{id}', [QuestionFaqController::class, 'destroy'])->whereNumber('id');
         });
     });
-    // Formulaires internes (étape 35)
+    // Formulaires internes
     Route::middleware('module:formulaires')->group(function () {
         Route::middleware('permission:formulaires.repondre')->group(function () {
             Route::get('/formulaires', [FormulaireController::class, 'index']);
@@ -208,11 +212,10 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::get('/formulaires/{id}/reponses', [FormulaireController::class, 'reponses'])->whereNumber('id');
         });
     });
-    // Menu de l'utilisateur connecté (étape 36)
+    // Menu de l'utilisateur connecté
     Route::get('/menu', [MenuController::class, 'index']);
 
-    // Pages internes (étape 36)
-    // Pages internes (étape 36) et leurs images (étape 38)
+    // Pages internes
     Route::middleware('module:pages')->group(function () {
         Route::middleware('permission:pages.consulter')->group(function () {
             Route::get('/pages', [PageController::class, 'index']);
@@ -228,7 +231,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
             Route::delete('/pages/{id}/images/{imageId}', [PageImageController::class, 'destroy'])->whereNumber(['id', 'imageId']);
         });
     });
-    // Gestion des menus (étape 37) : module personnalisation, obligatoire donc toujours actif
+    // Gestion des menus
     Route::middleware('permission:personnalisation.parametres')->group(function () {
         Route::get('/menus', [MenuGestionController::class, 'index']);
         Route::put('/menus/modules/{code}', [MenuGestionController::class, 'modifierModule'])->where('code', '[a-z_]+');
@@ -237,7 +240,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::put('/menus/liens/{id}', [MenuGestionController::class, 'modifierLien'])->whereNumber('id');
         Route::delete('/menus/liens/{id}', [MenuGestionController::class, 'supprimerLien'])->whereNumber('id');
     });
-    // Confirmation de lecture des notes de service (étape 39)
+    // Confirmation de lecture des notes de service
     Route::post('/contenus/note_service/{id}/lecture', [LectureNoteController::class, 'confirmer'])
         ->whereNumber('id');
     Route::get('/contenus/note_service/{id}/lectures', [LectureNoteController::class, 'lectures'])

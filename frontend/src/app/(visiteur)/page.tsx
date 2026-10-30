@@ -13,7 +13,6 @@ import { Avantages } from "@/components/visiteur/sections/avantages";
 import { Faq } from "@/components/visiteur/sections/faq";
 import { AppelFinal } from "@/components/visiteur/sections/appel-final";
 
-// Le catalogue est relu au plus toutes les 5 minutes
 export const revalidate = 300;
 
 export default async function Accueil() {

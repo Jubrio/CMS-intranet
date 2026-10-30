@@ -9,11 +9,10 @@ import { useEspace } from "./espace-context";
 import { CHAMP } from "./utilisateur-formulaire";
 
 const TYPES_PHOTO = ["image/jpeg", "image/png", "image/webp"];
-const POIDS_MAX_PHOTO = 2 * 1024 * 1024; // RG25 : 2 Mo
+const POIDS_MAX_PHOTO = 2 * 1024 * 1024;
 
 const TAILLES = { md: "size-10 text-xs", lg: "size-20 text-2xl" } as const;
 
-// Photo de la personne, ou ses initiales sur le dégradé de l'entreprise
 export function PastilleProfil({
   profil,
   taille = "md",
@@ -136,7 +135,6 @@ export function ProfilPanneau({ onFermer }: { onFermer: () => void }) {
     };
   }, [onFermer]);
 
-  // Retourne le message à afficher, ou null si la session a expiré (déjà gérée)
   const traiterErreur = useCallback(
     (e: unknown): string | null => {
       if (e instanceof ApiError && e.status === 401) {
@@ -220,8 +218,10 @@ export function ProfilPanneau({ onFermer }: { onFermer: () => void }) {
 
     const locales: Record<string, string[]> = {};
     if (!actuel) locales.mot_de_passe_actuel = ["Saisissez votre mot de passe actuel."];
-    if (nouveau.length < 8)
-      locales.nouveau_mot_de_passe = ["Le nouveau mot de passe doit contenir au moins 8 caractères."];
+    if (nouveau.length < 10 || !/[A-Za-z]/.test(nouveau) || !/\d/.test(nouveau))
+      locales.nouveau_mot_de_passe = [
+        "Le nouveau mot de passe doit contenir au moins 10 caractères, avec des lettres et des chiffres.",
+      ];
     else if (nouveau !== confirmation)
       locales.nouveau_mot_de_passe_confirmation = ["La confirmation ne correspond pas."];
     if (Object.keys(locales).length > 0) {
@@ -415,7 +415,7 @@ export function ProfilPanneau({ onFermer }: { onFermer: () => void }) {
               label="Nouveau mot de passe"
               requis
               erreur={errM("nouveau_mot_de_passe")}
-              aide="8 caractères au minimum."
+              aide="10 caractères minimum, avec des lettres et des chiffres."
             >
               <input
                 id="pr-nouveau"

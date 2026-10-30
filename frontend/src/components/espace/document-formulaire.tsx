@@ -15,7 +15,7 @@ export type DocumentFichier = {
   visibilite: "entreprise" | "departement";
   departement_id: number | null;
   type_mime: string;
-  taille_fichier: number; // en Ko
+  taille_fichier: number;
   auteur: { id: number; nom: string; prenom: string } | null;
   created_at: string;
 };
@@ -57,7 +57,7 @@ function Champ({
 }
 
 type Props = {
-  doc: DocumentFichier | null; // null = dépôt d'un nouveau document
+  doc: DocumentFichier | null;
   departements: DepartementOption[];
   categories: string[];
   onFermer: () => void;
@@ -113,7 +113,6 @@ export function DocumentFormulaire({ doc, departements, categories, onFermer, on
       return;
     }
     setFichier(f);
-    // Le nom du document reprend celui du fichier tant que l'utilisateur n'en a pas saisi un
     if (!nom.trim()) setNom(f.name.replace(/\.[^.]+$/, "").slice(0, 150));
   }
 

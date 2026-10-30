@@ -1,18 +1,17 @@
 import { FileText, Megaphone, Newspaper, ScrollText, type LucideIcon } from "lucide-react";
 
-// Réglages propres à chaque type de contenu géré depuis l'espace (même API /contenus/{type})
 export type ConfigContenu = {
   type: "actualite" | "annonce" | "article" | "note_service";
-  permission: string; // permission de publication
-  titre: string; // titre de l'écran
+  permission: string;
+  titre: string;
   description: string;
-  nom: string; // « actualité »
+  nom: string;
   feminin: boolean;
-  elision: boolean; // « l’actualité » (true) ou « le contenu » (false)
-  pluriel: string; // « actualités »
-  expiration: boolean; // champ date d'expiration (annonces)
-  numero: boolean; // numéro de note obligatoire (notes de service)
-  suiviLectures: boolean; // suivi des confirmations de lecture (notes de service)
+  elision: boolean;
+  pluriel: string;
+  expiration: boolean;
+  numero: boolean;
+  suiviLectures: boolean;
   icone: LucideIcon;
 };
 
@@ -76,7 +75,6 @@ export const NOTES_SERVICE: ConfigContenu = {
   icone: ScrollText,
 };
 
-// Petits accords de langue pour composer les messages
 export const textes = (c: ConfigContenu) => {
   const accord = (m: string) => (c.feminin ? `${m}e` : m);
   const Nom = c.nom.charAt(0).toUpperCase() + c.nom.slice(1);

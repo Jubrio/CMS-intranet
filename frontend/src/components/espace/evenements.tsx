@@ -100,7 +100,6 @@ function BoutonIcone({
 type Occurrence = { evenement: Evenement; horaire: string };
 type Jour = { cle: string; date: Date; occurrences: Occurrence[] };
 
-// Un événement sur plusieurs jours apparaît à chaque jour du mois qu'il couvre
 function grouperParJour(evenements: Evenement[], debut: Date, fin: Date): Jour[] {
   const jours = new Map<string, Jour>();
   for (const e of evenements) {
@@ -131,7 +130,6 @@ function grouperParJour(evenements: Evenement[], debut: Date, fin: Date): Jour[]
   return [...jours.values()].sort((a, b) => a.cle.localeCompare(b.cle));
 }
 
-// Début proposé pour un nouvel événement : la prochaine heure pleine si on est dans le mois affiché, sinon le 1er à 9 h
 function proposerDebut(mois: Date): Date {
   const n = new Date();
   if (cleJour(debutDuMois(n)) === cleJour(mois))
@@ -178,7 +176,6 @@ export function Evenements() {
 
   const jours = useMemo(() => (evenements ? grouperParJour(evenements, debut, fin) : []), [evenements, debut, fin]);
 
-  // Départements : liste complète si le rôle y a accès ; sinon le département de l'utilisateur
   const chargerDepartements = useCallback(
     async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
     [],

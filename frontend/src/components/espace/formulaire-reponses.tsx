@@ -30,7 +30,6 @@ const dateHeure = new Intl.DateTimeFormat("fr-FR", {
 });
 const jourSeul = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-// Valeur lisible d'une réponse selon le type du champ
 export function formaterValeur(champ: ChampDef, v: Reponse["valeurs"][string] | undefined): string {
   if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) return "";
   if (Array.isArray(v)) return v.join(", ");
@@ -41,7 +40,6 @@ export function formaterValeur(champ: ChampDef, v: Reponse["valeurs"][string] | 
   return String(v);
 }
 
-// Une cellule qui commence par = + - @ serait interprétée comme une formule par le tableur
 function cellule(texte: string): string {
   const sur = /^[=+\-@\t\r]/.test(texte) ? `'${texte}` : texte;
   return `"${sur.replace(/"/g, '""')}"`;
@@ -80,7 +78,6 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
   const res = donnees?.res ?? null;
   const champs = res?.formulaire.champs ?? [];
 
-  // Export CSV : on parcourt toutes les pages (50 réponses par page)
   async function exporter() {
     setExport(true);
     setErreurExport(null);
@@ -99,7 +96,6 @@ export function FormulaireReponses({ formulaire, onFermer }: Props) {
         dateHeure.format(new Date(r.created_at)),
         ...definition.map((c) => formaterValeur(c, r.valeurs[c.nom])),
       ]);
-      // Séparateur « ; » et BOM UTF-8 : s'ouvre correctement dans Excel en français
       const contenu = "﻿" + [entetes, ...lignes].map((l) => l.map(cellule).join(";")).join("\r\n");
       const url = URL.createObjectURL(new Blob([contenu], { type: "text/csv;charset=utf-8" }));
       const lien = document.createElement("a");

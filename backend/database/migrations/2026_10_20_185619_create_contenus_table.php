@@ -16,16 +16,16 @@ return new class extends Migration
             $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete();
             $table->foreignId('auteur_id')->constrained('utilisateurs')->restrictOnDelete();
             $table->foreignId('departement_id')->nullable()->constrained('departements')->restrictOnDelete();
-            $table->string('type_contenu', 15);                    // page / actualite / annonce / article / note_service
+            $table->string('type_contenu', 15);
             $table->string('titre', 150);
             $table->text('corps');
-            $table->string('statut_contenu', 10)->default('brouillon'); // brouillon / publie / archive
-            $table->string('visibilite', 15)->default('entreprise');    // entreprise / departement
+            $table->string('statut_contenu', 10)->default('brouillon');
+            $table->string('visibilite', 15)->default('entreprise');
             $table->timestamp('date_publication')->nullable();
             $table->string('categorie', 50)->nullable();
-            $table->string('emplacement_menu', 50)->nullable();    // Page
-            $table->date('date_expiration')->nullable();           // Annonce
-            $table->string('numero_note', 20)->nullable();         // Note de service
+            $table->string('emplacement_menu', 50)->nullable();
+            $table->date('date_expiration')->nullable();
+            $table->string('numero_note', 20)->nullable();
             $table->timestamps();
 
             $table->unique(['entreprise_id', 'numero_note']);

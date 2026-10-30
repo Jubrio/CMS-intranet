@@ -38,7 +38,6 @@ class PageController extends Controller
         $page = $requete->with('auteur:id,nom,prenom')
             ->orderBy('emplacement_menu')->orderBy('titre')->paginate(20);
 
-        // la liste ne renvoie pas le corps : il faut ouvrir la page pour le lire
         return response()->json($page->through(fn ($c) => $this->formater($c, false)));
     }
 
@@ -61,9 +60,9 @@ class PageController extends Controller
         $statut = $d['statut_contenu'] ?? 'brouillon';
 
         $c = Contenu::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
-            'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null, // RG22
+            'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null,
             'type_contenu' => 'page',
             'titre' => $d['titre'],
             'corps' => $d['corps'],
@@ -87,7 +86,7 @@ class PageController extends Controller
         $visibilite = $d['visibilite'] ?? $c->visibilite;
         $dept = array_key_exists('departement_id', $d) ? $d['departement_id'] : $c->departement_id;
         if ($visibilite === 'entreprise') {
-            $dept = null; // RG22
+            $dept = null;
         }
         if ($visibilite === 'departement' && ! $dept) {
             return response()->json(['message' => 'Un département est requis.',
@@ -106,7 +105,6 @@ class PageController extends Controller
         if ($c->statut_contenu === 'publie') {
             return response()->json(['message' => 'Cette page est déjà publiée.'], 422);
         }
-        // la date de première publication est conservée en cas de republication
         $c->update(['statut_contenu' => 'publie', 'date_publication' => $c->date_publication ?? now()]);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
@@ -118,7 +116,7 @@ class PageController extends Controller
         if ($c->statut_contenu !== 'publie') {
             return response()->json(['message' => 'Seule une page publiée peut être archivée.'], 422);
         }
-        $c->update(['statut_contenu' => 'archive']); // disparaît du menu, reste conservée
+        $c->update(['statut_contenu' => 'archive']);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
@@ -127,20 +125,17 @@ class PageController extends Controller
     {
         $c = $this->gerer($request, $id);
         $chemins = Image::where('contenu_id', $c->id)->pluck('fichier')->all();
-        $c->delete(); // les lignes images partent en cascade
+        $c->delete();
         Storage::disk('local')->delete($chemins);
 
         return response()->json(['message' => 'Page supprimée.']);
     }
-
-    // ---------- outils ----------
 
     private function peutGerer(Utilisateur $u): bool
     {
         return $u->role->permissions()->where('code_permission', 'pages.gerer')->exists();
     }
 
-    // Gestionnaire : 404 hors entreprise ou hors type page (RG05)
     private function gerer(Request $request, int $id): Contenu
     {
         $u = $request->user();

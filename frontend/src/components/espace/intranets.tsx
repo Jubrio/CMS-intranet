@@ -26,8 +26,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
 
-// ---- Formes des réponses de l'API ------------------------------------------
-
 type StatutEntreprise = "active" | "suspendue";
 
 type Intranet = {
@@ -167,8 +165,6 @@ function Ligne({ icone, libelle, children }: { icone: LucideIcon; libelle: strin
     </div>
   );
 }
-
-// ---- Fiche d'un intranet (panneau latéral) -----------------------------------
 
 function Fiche({
   id,
@@ -480,7 +476,6 @@ export function Intranets() {
   const [selection, setSelection] = useState<number | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -506,7 +501,6 @@ export function Intranets() {
   const chargerListe = useCallback(
     async (jeton: string) => {
       const res = await api<PageIntranets>(`/super/intranets?${requete}`, { token: jeton });
-      // Dernière page vidée (ex. suspension sous un filtre) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },

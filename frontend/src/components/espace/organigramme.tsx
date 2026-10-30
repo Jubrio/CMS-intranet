@@ -114,7 +114,6 @@ type Props = {
   onReessayer: () => void;
   onOuvrirPersonne: (id: number) => void;
   onVoirEquipe: (departementId: number) => void;
-  // Consultation : les messages ne renvoient pas vers des écrans de gestion
   lectureSeule?: boolean;
 };
 

@@ -15,7 +15,6 @@ const LIENS = [
 ];
 
 type Props = {
-  // Version allégée (création d'intranet, connexion) : logo, thème et un seul lien
   simple?: boolean;
   lien?: { href: string; label: string };
 };

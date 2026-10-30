@@ -26,7 +26,7 @@ export type FormulaireInterne = {
   visibilite: "entreprise" | "departement";
   departement_id: number | null;
   reponse_unique: boolean;
-  date_limite: string | null; // « 2026-11-12 »
+  date_limite: string | null;
   statut_formulaire: StatutFormulaire;
   auteur: { id: number; nom: string; prenom: string } | null;
   created_at: string;
@@ -46,7 +46,6 @@ export const TYPES: { code: TypeChamp; libelle: string }[] = [
 const MAX_CHAMPS = 30;
 const estChoix = (t: TypeChamp) => t === "choix_unique" || t === "choix_multiple";
 
-// Champ en cours d'édition : `cle` sert d'identifiant stable pour React, `nom` n'existe que pour les champs déjà enregistrés
 type ChampEdite = {
   cle: number;
   nom: string | null;
@@ -68,7 +67,6 @@ const champVide = (): ChampEdite => ({
   options: "",
 });
 
-// Identifiant technique d'un champ (a-z, 0-9, _) déduit de son libellé
 function identifiant(libelle: string): string {
   const base = libelle
     .normalize("NFD")
@@ -109,7 +107,7 @@ function Champ({
 }
 
 type Props = {
-  formulaire: FormulaireInterne | null; // null = création
+  formulaire: FormulaireInterne | null;
   departements: DepartementOption[];
   onFermer: () => void;
   onEnregistre: (message: string, echecPublication?: string) => void;
@@ -119,7 +117,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
   const { token, expirer } = useEspace();
   const edition = formulaire !== null;
   const dejaPublie = formulaire?.statut_formulaire === "publie";
-  // Les champs sont verrouillés dès la première réponse
   const verrouille = edition && (formulaire.nb_reponses ?? 0) > 0;
 
   const [titre, setTitre] = useState(formulaire?.titre_formulaire ?? "");
@@ -138,7 +135,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
   const [message, setMessage] = useState<string | null>(null);
   const premierChamp = useRef<HTMLInputElement>(null);
 
-  // La définition des champs n'est pas dans la liste
   const formulaireId = formulaire?.id ?? null;
   useEffect(() => {
     if (formulaireId === null) return;
@@ -191,7 +187,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
   }, [onFermer]);
 
   const err = (champ: string) => erreurs[champ]?.[0];
-  // Erreur du serveur propre au champ n° i (« champs.2.libelle », « champs.2.options.1 », …)
   const erreurChamp = (i: number) =>
     erreursLocales[i] ?? Object.entries(erreurs).find(([k]) => k.startsWith(`champs.${i}.`))?.[1][0];
 
@@ -215,7 +210,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
     setErreursLocales({});
     setMessage(null);
 
-    // Contrôles de saisie avant l'envoi
     const locales: Record<number, string> = {};
     champs.forEach((c, i) => {
       if (verrouille) return;
@@ -239,7 +233,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
 
     setEnvoi(publier ? "publier" : "enregistrer");
 
-    // Identifiants : on garde ceux des champs déjà enregistrés, on en crée pour les nouveaux (uniques)
     const pris = new Set(champs.map((c) => c.nom).filter((n): n is string => n !== null));
     const definitions: ChampDef[] = champs.map((c) => {
       let nom = c.nom;
@@ -269,7 +262,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
       reponse_unique: reponseUnique,
     };
     if (!verrouille) corps.champs = definitions;
-    // La date limite n'est renvoyée que si elle change : le serveur refuse une date passée
     if (!edition || dateLimite !== (formulaire.date_limite ?? "")) corps.date_limite = dateLimite || null;
     if (!edition) corps.statut_formulaire = publier ? "publie" : "brouillon";
 
@@ -296,7 +288,6 @@ export function FormulaireEditeur({ formulaire, departements, onFermer, onEnregi
       return;
     }
 
-    // À la création le statut est déjà fixé ; sur un brouillon existant, « publier » est une seconde étape
     if (!publier || !edition || dejaPublie || id === null) {
       onEnregistre(
         edition ? "Formulaire modifié." : publier ? "Formulaire publié." : "Formulaire enregistré en brouillon.",

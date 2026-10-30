@@ -1,6 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
-// Erreur renvoyée par l'API Laravel : { message, errors?: { champ: [messages] } }
 export class ApiError extends Error {
   status: number;
   errors?: Record<string, string[]>;
@@ -20,7 +19,6 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
-      // Un FormData (envoi de fichier) fixe lui-même son Content-Type et sa frontière
       ...(init.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
       Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -33,7 +31,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     try {
       corps = await res.json();
     } catch {
-      // réponse sans corps JSON : on garde le message par défaut
+      // réponse sans corps JSON 
     }
     throw new ApiError(res.status, corps?.message ?? `Erreur API ${res.status}`, corps?.errors);
   }
@@ -41,7 +39,6 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   return res.json();
 }
 
-// Message lisible pour l'utilisateur à partir d'une erreur d'appel
 export function messageErreur(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 429) return "Trop de tentatives. Patientez une minute, puis réessayez.";
@@ -51,9 +48,6 @@ export function messageErreur(err: unknown): string {
   return "Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.";
 }
 
-// Télécharge un fichier protégé : le serveur remet une adresse signée de courte durée, que le
-// navigateur télécharge directement (le fichier arrive avec « Content-Disposition: attachment »,
-// la page courante n'est donc pas quittée). Aucun appel inter-origines : pas de souci CORS.
 export async function telechargerFichier(cheminLien: string, token: string): Promise<void> {
   const { url } = await api<{ url: string }>(cheminLien, { token });
   const lien = document.createElement("a");
@@ -64,8 +58,6 @@ export async function telechargerFichier(cheminLien: string, token: string): Pro
   lien.remove();
 }
 
-// Adresse publique d'un fichier du disque « public » de Laravel (photos de profil), à partir du
-// chemin relatif renvoyé par l'API (ex. « photos/abc.jpg »). Le lien « storage » doit exister côté serveur.
 export function urlStockage(chemin: string): string {
   if (/^https?:\/\//.test(chemin)) return chemin;
   return `${API_URL.replace(/\/api\/?$/, "")}/storage/${chemin.replace(/^\/+/, "")}`;

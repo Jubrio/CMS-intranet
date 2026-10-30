@@ -51,10 +51,10 @@ class PersonnalisationController extends Controller
 
         $perso = $entreprise->personnalisation()->firstOrCreate([]);
         if ($perso->logo) {
-            Storage::disk('public')->delete($perso->logo);
+            FichierProfilController::supprimer($perso->logo);
         }
         $perso->update([
-            'logo' => $request->file('logo')->store('logos/'.$entreprise->id, 'public'),
+            'logo' => $request->file('logo')->store('logos/'.$entreprise->id, \App\Services\FichiersProfil::DISQUE),
         ]);
 
         return response()->json($this->donnees($entreprise->fresh()));
@@ -84,7 +84,7 @@ class PersonnalisationController extends Controller
             'nom_entreprise' => $entreprise->nom_entreprise,
             'slug' => $entreprise->slug,
             'email_contact' => $entreprise->email_contact,
-            'logo_url' => $p?->logo ? asset('storage/'.$p->logo) : null,
+            'logo_url' => \App\Services\FichiersProfil::url($p?->logo),
             'couleur_principale' => $p?->couleur_principale ?? '#1D4ED8',
             'couleur_secondaire' => $p?->couleur_secondaire ?? '#475569',
         ];

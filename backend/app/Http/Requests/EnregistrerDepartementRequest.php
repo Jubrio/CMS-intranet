@@ -24,9 +24,9 @@ class EnregistrerDepartementRequest extends FormRequest
                     ->where('entreprise_id', $entrepriseId)->ignore($id)],
             'description_departement' => ['nullable', 'string', 'max:1000'],
             'departement_parent_id' => ['nullable', 'integer',
-                Rule::exists('departements', 'id')->where('entreprise_id', $entrepriseId)], // RG17
+                Rule::exists('departements', 'id')->where('entreprise_id', $entrepriseId)],
             'responsable_id' => ['nullable', 'integer',
-                Rule::exists('utilisateurs', 'id')->where('entreprise_id', $entrepriseId)], // RG18
+                Rule::exists('utilisateurs', 'id')->where('entreprise_id', $entrepriseId)],
         ];
     }
 }

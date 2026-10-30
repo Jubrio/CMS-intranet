@@ -9,22 +9,17 @@ import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
 import type { ChampDef, FormulaireInterne } from "./formulaire-editeur";
 
-// Écran « Mes formulaires » : les formulaires internes ouverts, que l'utilisateur peut remplir.
-// L'API fait déjà le tri : public cible (entreprise ou département), statut publié, date limite.
-
 type Pagination<T> = { data: T[]; current_page: number; last_page: number; total: number };
 type Element = FormulaireInterne & { deja_repondu?: boolean };
 type Valeur = string | string[];
 
 const jour = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-// « 2026-11-12 » → date locale (sans décalage de fuseau)
 const lireJour = (s: string) => {
   const [a, m, j] = s.split("-").map(Number);
   return new Date(a, m - 1, j);
 };
 
-// La date limite incluse reste ouverte toute la journée
 const estDepasse = (limite: string | null) => {
   if (!limite) return false;
   const fin = lireJour(limite);
@@ -38,8 +33,6 @@ const estVide = (v: Valeur | undefined) => v === undefined || (Array.isArray(v) 
 function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
 }
-
-// ---- Fenêtre de remplissage ----------------------------------------------------------
 
 function Remplissage({
   formulaire,
@@ -85,7 +78,6 @@ function Remplissage({
     e.preventDefault();
     setErreurGlobale(null);
 
-    // Contrôle côté navigateur (le serveur revérifie tout)
     const locales: Record<string, string> = {};
     for (const c of champs) {
       const v = valeurs[c.nom];
@@ -100,7 +92,6 @@ function Remplissage({
       return;
     }
 
-    // Les champs laissés vides ne sont pas envoyés
     const payload: Record<string, string | number | string[]> = {};
     for (const c of champs) {
       const v = valeurs[c.nom];
@@ -301,11 +292,8 @@ function Remplissage({
   );
 }
 
-// ---- Liste ---------------------------------------------------------------------------
-
 export function MesFormulaires() {
   const { profil, token, expirer } = useEspace();
-  // Un gestionnaire reçoit aussi les brouillons et clôturés : on ne demande que les publiés
   const gestionnaire = profil.permissions.includes("formulaires.gerer");
 
   const [page, setPage] = useState(1);

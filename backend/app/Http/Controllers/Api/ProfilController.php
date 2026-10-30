@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\FichiersProfil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 
-// Profil de la personne connectée : chacun gère ses propres informations, sans permission particulière.
-// Le rôle, le département, le poste et l'e-mail restent réservés aux gestionnaires (écrans Utilisateurs et Annuaire).
 class ProfilController extends Controller
 {
     public function modifier(Request $request): JsonResponse
@@ -32,14 +31,14 @@ class ProfilController extends Controller
     public function photo(Request $request): JsonResponse
     {
         $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048', // RG25
+            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $utilisateur = $request->user();
         if ($utilisateur->photo) {
-            Storage::disk('public')->delete($utilisateur->photo);
+            FichierProfilController::supprimer($utilisateur->photo);
         }
-        $utilisateur->forceFill(['photo' => $request->file('photo')->store('photos', 'public')])->save();
+        $utilisateur->forceFill(['photo' => $request->file('photo')->store('photos', FichiersProfil::DISQUE)])->save();
 
         return response()->json($this->profil($utilisateur));
     }
@@ -48,7 +47,7 @@ class ProfilController extends Controller
     {
         $donnees = $request->validate([
             'mot_de_passe_actuel' => ['required', 'string'],
-            'nouveau_mot_de_passe' => ['required', 'string', 'min:8', 'max:72', 'confirmed', 'different:mot_de_passe_actuel'],
+            'nouveau_mot_de_passe' => ['required', 'string', 'max:72', 'confirmed', 'different:mot_de_passe_actuel', Password::min(10)->letters()->numbers()->uncompromised()],
         ], [
             'nouveau_mot_de_passe.different' => 'Le nouveau mot de passe doit être différent de l’actuel.',
         ]);
@@ -62,7 +61,6 @@ class ProfilController extends Controller
         }
 
         $utilisateur->forceFill(['mot_de_passe' => $donnees['nouveau_mot_de_passe']])->save();
-        // Les autres appareils doivent se reconnecter ; la session en cours reste ouverte
         $utilisateur->tokens()->where('id', '!=', $utilisateur->currentAccessToken()->id)->delete();
 
         return response()->json(['message' => 'Mot de passe modifié.']);

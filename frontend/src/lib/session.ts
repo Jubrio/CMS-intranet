@@ -1,7 +1,5 @@
 const TOKEN_KEY = "cms_token";
 
-// Le jeton Sanctum est gardé côté navigateur. Les accès au stockage sont
-// protégés : navigation privée ou stockage bloqué ne doivent pas casser la page.
 export function lireToken(): string | null {
   try {
     return localStorage.getItem(TOKEN_KEY);

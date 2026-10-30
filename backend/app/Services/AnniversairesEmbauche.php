@@ -5,10 +5,8 @@ namespace App\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
-// Anniversaires d'embauche à venir, partagés par les tableaux de bord RH et Manager.
 class AnniversairesEmbauche
 {
-    // Comptes dont la date d'embauche tombe (au moins 1 an après) dans les $horizonJours prochains jours
     public function prochains(Collection $utilisateurs, Carbon $aujourdhui, int $horizonJours, int $limite): array
     {
         $fin = $aujourdhui->copy()->addDays($horizonJours);

@@ -9,10 +9,6 @@ import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 
-// Panneau de lecture d'une publication (actualité, annonce, article, note de service),
-// avec ses images et, pour une note de service, la confirmation de lecture (RG24).
-// Partagé par le fil d'accueil et le tableau de bord de l'employé.
-
 export type TypeContenu = "actualite" | "annonce" | "article" | "note_service";
 export type Ouvert = { type: TypeContenu; id: number; titre: string };
 

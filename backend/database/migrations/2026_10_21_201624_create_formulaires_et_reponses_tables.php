@@ -15,19 +15,18 @@ return new class extends Migration
             $table->foreignId('departement_id')->nullable()->constrained('departements')->restrictOnDelete();
             $table->string('titre_formulaire', 150);
             $table->jsonb('champs');
-            $table->string('visibilite', 15)->default('entreprise');   // entreprise / departement
-            $table->boolean('reponse_unique')->default(false);         // RG29
+            $table->string('visibilite', 15)->default('entreprise');
+            $table->boolean('reponse_unique')->default(false);
             $table->date('date_limite')->nullable();
-            $table->string('statut_formulaire', 15)->default('publie'); // brouillon / publie / cloture
+            $table->string('statut_formulaire', 15)->default('publie');
             $table->timestamps();
-
             $table->index(['entreprise_id', 'statut_formulaire']);
         });
 
         Schema::create('reponses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('formulaire_id')->constrained('formulaires')->cascadeOnDelete();
-            $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete(); // RG05
+            $table->foreignId('entreprise_id')->constrained('entreprises')->cascadeOnDelete();
             $table->foreignId('utilisateur_id')->constrained('utilisateurs')->restrictOnDelete();
             $table->jsonb('valeurs');
             $table->timestamps();

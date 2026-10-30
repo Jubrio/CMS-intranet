@@ -7,8 +7,6 @@ export type ModuleCatalogue = {
   module_obligatoire: boolean;
 };
 
-// Même contenu que le ModuleSeeder du backend. Sert de secours quand l'API
-// ne répond pas, pour que la vitrine reste affichable.
 export const MODULES_PAR_DEFAUT: ModuleCatalogue[] = [
   {
     code_module: "utilisateurs",
@@ -91,7 +89,6 @@ export const MODULES_PAR_DEFAUT: ModuleCatalogue[] = [
   },
 ];
 
-// Catalogue public (GET /api/modules/catalogue), mis en cache 5 minutes
 export async function getCatalogue(): Promise<ModuleCatalogue[]> {
   try {
     const data = await api<ModuleCatalogue[]>("/modules/catalogue", { next: { revalidate: 300 } });

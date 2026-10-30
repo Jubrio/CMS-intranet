@@ -18,8 +18,6 @@ type Noeud = PersonneOrga & { enfants: Noeud[] };
 
 const LIGNE = "bg-brand-violet/35";
 
-// Liste à plat → forêt. Les personnes sans supérieur actif deviennent des racines ; celles qui ne
-// sont rattachées à aucune racine (boucle de données) sont signalées à part.
 function construire(personnes: PersonneOrga[]) {
   const noeuds = new Map<number, Noeud>(personnes.map((p) => [p.id, { ...p, enfants: [] }]));
   const racines: Noeud[] = [];
@@ -67,7 +65,6 @@ function Carte({ p, accent, onOuvrir }: { p: PersonneOrga; accent?: boolean; onO
   );
 }
 
-// Équipe empilée sous un responsable : trait vertical à gauche, petit trait vers chaque carte (h-14 = 3,5 rem)
 function Pile({ noeuds, retrait, onOuvrir }: { noeuds: Noeud[]; retrait: string; onOuvrir: (id: number) => void }) {
   return (
     <ul className={retrait}>
@@ -114,7 +111,6 @@ type Props = {
   erreur: boolean;
   onReessayer: () => void;
   onOuvrir: (id: number) => void;
-  // Consultation : les messages ne renvoient pas vers des écrans de gestion
   lectureSeule?: boolean;
 };
 

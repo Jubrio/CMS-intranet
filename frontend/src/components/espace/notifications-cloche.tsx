@@ -9,10 +9,6 @@ import { api, ApiError, urlStockage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 
-// Cloche de notifications de l'en-tête : qui a publié / créé / déposé quoi, et quand.
-// L'API ne renvoie que les notifications destinées à l'utilisateur : une publication ciblée sur
-// un département n'apparaît jamais chez les membres des autres départements.
-
 type Notif = {
   id: number;
   lu: boolean;
@@ -27,9 +23,8 @@ type Notif = {
 
 type Page = { data: Notif[]; current_page: number; last_page: number };
 
-const INTERVALLE = 30_000; // rafraîchissement automatique, onglet visible uniquement
+const INTERVALLE = 30_000;
 
-// « a publié l'actualité », « a créé l'événement », « a déposé le document »
 const PHRASES: Record<string, string> = {
   "publie:actualite": "a publié l'actualité",
   "publie:annonce": "a publié l'annonce",
@@ -39,8 +34,6 @@ const PHRASES: Record<string, string> = {
   "depose:document": "a déposé le document",
 };
 
-// Écran où l'objet se consulte, pour tous les rôles qui le reçoivent.
-// Publications et événements s'ouvrent directement (paramètre « ouvrir ») ; un document se trouve dans la liste.
 const CONTENUS = ["actualite", "annonce", "article", "note_service"];
 
 const phrase = (n: Notif) => PHRASES[`${n.action}:${n.objet_type}`] ?? "a ajouté";
@@ -54,7 +47,6 @@ function adresse(n: Notif): string {
 const ilYA = (iso: string | null) =>
   iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "";
 
-// « 3 février, 10:30 », avec l'année si elle n'est pas l'année en cours
 function dateExacte(iso: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -87,7 +79,6 @@ export function NotificationsCloche() {
   const [etat, setEtat] = useState<"chargement" | "ok" | "erreur">("chargement");
   const [plus, setPlus] = useState(false);
 
-  // Un 401 ferme la session ; toute autre erreur est silencieuse (la cloche reste utilisable)
   const surErreur = useCallback(
     (err: unknown) => {
       if (err instanceof ApiError && err.status === 401) expirer();
@@ -116,7 +107,6 @@ export function NotificationsCloche() {
     }
   }, [token, surErreur]);
 
-  // Compteur au chargement puis toutes les 30 s ; le panneau ouvert actualise aussi la première page
   useEffect(() => {
     const actualiser = () => {
       if (document.visibilityState !== "visible") return;
@@ -132,7 +122,6 @@ export function NotificationsCloche() {
     };
   }, [ouvert, pagination.courante, chargerCompte, chargerListe]);
 
-  // Le panneau se ferme au clic à l'extérieur et avec Échap
   useEffect(() => {
     if (!ouvert) return;
     const surClic = (e: MouseEvent) => {

@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
 use App\Services\DroitsUtilisateurs;
+use App\Services\FichiersProfil;
 use App\Services\HierarchieUtilisateurs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AnnuaireController extends Controller
@@ -29,7 +29,6 @@ class AnnuaireController extends Controller
 
         $requete = $this->base($request);
 
-        // Chaque mot doit se retrouver dans l'un des champs : « jean rakoto » trouve Jean Rakoto
         $mots = array_slice(preg_split('/\s+/', trim((string) $request->query('q')), -1, PREG_SPLIT_NO_EMPTY) ?: [], 0, 5);
         foreach ($mots as $mot) {
             $motif = '%'.addcslashes($mot, '%_\\').'%';
@@ -46,6 +45,7 @@ class AnnuaireController extends Controller
         return response()->json(
             $requete->orderBy('utilisateurs.nom')->orderBy('utilisateurs.prenom')
                 ->select(self::CHAMPS)->paginate(20)
+                ->through(fn ($p) => $this->avecPhotoSignee($p))
         );
     }
 
@@ -56,6 +56,7 @@ class AnnuaireController extends Controller
         $fiche = $this->base($request)->where('utilisateurs.id', $id)
             ->select(array_merge(self::CHAMPS, ['utilisateurs.date_embauche', 'utilisateurs.superieur_id']))->first();
         abort_if(! $fiche, 404);
+        $this->avecPhotoSignee($fiche);
 
         $entrepriseId = $request->user()->entreprise_id;
         $fiche->superieur = $fiche->superieur_id
@@ -73,7 +74,7 @@ class AnnuaireController extends Controller
 
     public function organigramme(Request $request): JsonResponse
     {
-        $entrepriseId = $request->user()->entreprise_id; // RG05
+        $entrepriseId = $request->user()->entreprise_id;
 
         $deps = DB::table('departements')->where('entreprise_id', $entrepriseId)
             ->orderBy('nom_departement')->get();
@@ -106,7 +107,6 @@ class AnnuaireController extends Controller
         return response()->json($construire(0));
     }
 
-    // Organigramme des personnes : tous les comptes actifs avec leur supérieur (l'arbre est construit côté client)
     public function organigrammePersonnes(Request $request): JsonResponse
     {
         $personnes = $this->base($request)
@@ -115,7 +115,14 @@ class AnnuaireController extends Controller
             ->get(['utilisateurs.id', 'utilisateurs.nom', 'utilisateurs.prenom', 'utilisateurs.poste',
                 'utilisateurs.photo', 'utilisateurs.superieur_id', 'departements.nom_departement']);
 
-        return response()->json($personnes);
+        return response()->json($personnes->map(fn ($p) => $this->avecPhotoSignee($p))->values());
+    }
+
+    private function avecPhotoSignee(object $ligne): object
+    {
+        $ligne->photo = FichiersProfil::url($ligne->photo);
+
+        return $ligne;
     }
 
     public function modifier(Request $request, int $id): JsonResponse
@@ -153,22 +160,21 @@ class AnnuaireController extends Controller
         $cible = $this->cible($request, $id);
 
         $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048', // RG25
+            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($cible->photo) {
-            Storage::disk('public')->delete($cible->photo);
+            FichierProfilController::supprimer($cible->photo);
         }
-        $chemin = $request->file('photo')->store('photos', 'public');
+        $chemin = $request->file('photo')->store('photos', FichiersProfil::DISQUE);
         $cible->forceFill(['photo' => $chemin])->save();
 
         return response()->json([
-            'photo' => $chemin,
-            'url' => asset('storage/'.$chemin),
+            'photo' => FichiersProfil::url($chemin),
+            'url' => FichiersProfil::url($chemin),
         ]);
     }
 
-    // 404 hors entreprise (RG05), 403 si le compte possède des permissions que l'appelant n'a pas (RG32)
     private function cible(Request $request, int $id): Utilisateur
     {
         $appelant = $request->user();
@@ -182,7 +188,8 @@ class AnnuaireController extends Controller
 
     private function resume(Utilisateur $u): array
     {
-        return $u->only(['id', 'nom', 'prenom', 'email', 'telephone', 'poste', 'photo', 'departement_id', 'superieur_id']);
+        return ['photo' => FichiersProfil::url($u->photo)]
+            + $u->only(['id', 'nom', 'prenom', 'email', 'telephone', 'poste', 'departement_id', 'superieur_id']);
     }
 
     private function base(Request $request)

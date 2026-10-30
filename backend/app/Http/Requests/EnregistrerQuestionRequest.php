@@ -17,7 +17,7 @@ class EnregistrerQuestionRequest extends FormRequest
 
         return [
             'question' => [$p, 'string', 'max:250'],
-            'reponse' => [$p, 'string'],
+            'reponse' => [$p, 'string', 'max:10000'],
             'categorie' => [$p, 'string', 'max:50'],
         ];
     }

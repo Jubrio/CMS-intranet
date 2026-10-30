@@ -4,8 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { useEspace } from "./espace-context";
 
-// Charge une donnée de l'API quand `actif` est vrai. `charger` doit être stable
-// (useCallback). Un 401 ferme la session ; toute autre erreur affiche « Réessayer ».
 export function useDonnees<T>(actif: boolean, charger: (token: string) => Promise<T>) {
   const { token, expirer } = useEspace();
   const [donnees, setDonnees] = useState<T | null>(null);

@@ -13,6 +13,7 @@ use App\Models\Reponse;
 use App\Models\Utilisateur;
 use App\Services\AccesContenus;
 use App\Services\AnniversairesEmbauche;
+use App\Services\FichiersProfil;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -21,11 +22,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-// Tableau de bord de l'Employé : ce qui le concerne au quotidien (notes à lire, nouveautés,
-// événements, formulaires à remplir, documents) et son entourage (département, supérieur, collègues).
-// Lecture seule. Chaque bloc suit les mêmes règles de visibilité que les écrans correspondants
-// (entreprise, département ou auteur : RG05, RG22) et vaut `null` si le module est désactivé
-// ou si le rôle n'a pas le droit de consultation : l'écran masque alors le bloc.
 class EmployeTableauDeBordController extends Controller
 {
     private const TYPES = [
@@ -58,12 +54,10 @@ class EmployeTableauDeBordController extends Controller
             ->where('modules_entreprise.module_actif', true)
             ->pluck('modules.code_module')->all();
         $droits = $u->role->permissions->pluck('code_permission')->all();
-        // Vrai si tous les modules sont actifs et toutes les permissions accordées
         $peut = fn (array $mods, array $perms) => array_diff($mods, $modules) === [] && array_diff($perms, $droits) === [];
 
         $aujourdhui = now()->startOfDay();
 
-        // Comptes actifs de l'entreprise, lus une fois (colonnes utiles seulement)
         $actifs = Utilisateur::where('entreprise_id', $u->entreprise_id)
             ->where('statut_compte', 'actif')
             ->get(['id', 'nom', 'prenom', 'poste', 'photo', 'date_embauche', 'departement_id', 'superieur_id']);
@@ -82,7 +76,6 @@ class EmployeTableauDeBordController extends Controller
         ]);
     }
 
-    // Ancienneté et fiche personnelle : ce que l'employé peut compléter lui-même (profil)
     private function profil(Utilisateur $u, Carbon $aujourdhui): array
     {
         $manque = [];
@@ -149,10 +142,10 @@ class EmployeTableauDeBordController extends Controller
 
     private function personne(Utilisateur $m): array
     {
-        return ['id' => $m->id, 'nom' => $m->nom, 'prenom' => $m->prenom, 'poste' => $m->poste, 'photo' => $m->photo];
+        return ['id' => $m->id, 'nom' => $m->nom, 'prenom' => $m->prenom, 'poste' => $m->poste,
+            'photo' => FichiersProfil::url($m->photo)];
     }
 
-    // Fil des publications visibles par l'employé, nouveautés par type et notes de service à lire
     private function contenus(Utilisateur $u, AccesContenus $acces, Carbon $aujourdhui): array
     {
         $limiteNouveau = $aujourdhui->copy()->subDays(self::NOUVEAU_JOURS);
@@ -163,7 +156,7 @@ class EmployeTableauDeBordController extends Controller
 
         foreach (self::TYPES as $type => $libelle) {
             if (! $acces->autorise($u, $type, 'consulter')) {
-                continue; // module désactivé ou droit absent
+                continue;
             }
 
             $requete = $this->contenusVisibles($u, $type);
@@ -204,8 +197,6 @@ class EmployeTableauDeBordController extends Controller
         ];
     }
 
-    // Notes de service des 90 derniers jours qui me concernent : lues, et celles qui restent à lire.
-    // Les notes que j'ai écrites ne comptent pas : on ne se confirme pas sa propre lecture.
     private function notes(Utilisateur $u, Carbon $limite): array
     {
         $notes = $this->contenusVisibles($u, 'note_service')
@@ -238,7 +229,6 @@ class EmployeTableauDeBordController extends Controller
         ];
     }
 
-    // Publiés, destinés à toute l'entreprise, à mon département ou écrits par moi (RG05, RG22)
     private function contenusVisibles(Utilisateur $u, string $type): Builder
     {
         $requete = Contenu::where('entreprise_id', $u->entreprise_id)
@@ -252,7 +242,7 @@ class EmployeTableauDeBordController extends Controller
                 }
             });
 
-        if ($type === 'annonce') { // RG23 : une annonce n'est plus affichée après son expiration
+        if ($type === 'annonce') {
             $requete->where(fn ($q) => $q->whereNull('date_expiration')
                 ->orWhere('date_expiration', '>=', today()->toDateString()));
         }
@@ -295,7 +285,6 @@ class EmployeTableauDeBordController extends Controller
         ];
     }
 
-    // Formulaires ouverts que je n'ai pas encore remplis
     private function formulaires(Utilisateur $u): array
     {
         $remplis = Reponse::where('utilisateur_id', $u->id)->pluck('formulaire_id');
@@ -313,7 +302,6 @@ class EmployeTableauDeBordController extends Controller
             ->whereNotIn('id', $remplis);
 
         $liste = (clone $requete)
-            // les plus urgents d'abord ; sans date limite en dernier
             ->orderByRaw('date_limite is null')->orderBy('date_limite')->orderByDesc('id')
             ->limit(self::LIMITE_LISTES)
             ->get(['id', 'titre_formulaire', 'date_limite']);

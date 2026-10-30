@@ -76,12 +76,12 @@ class ContenuController extends Controller
     {
         $u = $request->user();
         $d = $request->validated();
-        if (! $this->acces->peutCibler($u, $d['visibilite'], $d['departement_id'] ?? null)) { // RG21
+        if (! $this->acces->peutCibler($u, $d['visibilite'], $d['departement_id'] ?? null)) {
             return response()->json(['message' => 'Un Manager ne publie que pour son département.'], 403);
         }
 
         $c = Contenu::create([
-            'entreprise_id' => $u->entreprise_id, // RG20
+            'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
             'type_contenu' => $type,
             'titre' => $d['titre'],
@@ -89,7 +89,7 @@ class ContenuController extends Controller
             'categorie' => $d['categorie'] ?? null,
             'statut_contenu' => 'brouillon',
             'visibilite' => $d['visibilite'],
-            'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null, // RG22
+            'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null,
             'date_expiration' => $d['date_expiration'] ?? null,
             'numero_note' => $d['numero_note'] ?? null,
         ]);
@@ -108,13 +108,13 @@ class ContenuController extends Controller
         $visibilite = $d['visibilite'] ?? $c->visibilite;
         $dept = array_key_exists('departement_id', $d) ? $d['departement_id'] : $c->departement_id;
         if ($visibilite === 'entreprise') {
-            $dept = null; // RG22
+            $dept = null;
         }
         if ($visibilite === 'departement' && ! $dept) {
             return response()->json(['message' => 'Un département est requis.',
                 'errors' => ['departement_id' => ['Un département est requis.']]], 422);
         }
-        if (! $this->acces->peutCibler($request->user(), $visibilite, $dept)) { // RG21
+        if (! $this->acces->peutCibler($request->user(), $visibilite, $dept)) {
             return response()->json(['message' => 'Un Manager ne publie que pour son département.'], 403);
         }
 
@@ -130,7 +130,7 @@ class ContenuController extends Controller
         if ($c->statut_contenu === 'publie') {
             return response()->json(['message' => 'Ce contenu est déjà publié.'], 422);
         }
-        if ($c->date_expiration && $c->date_expiration->lt(today())) { // RG23
+        if ($c->date_expiration && $c->date_expiration->lt(today())) {
             return response()->json(['message' => "La date d'expiration est dépassée."], 422);
         }
         $c->update([
@@ -138,7 +138,6 @@ class ContenuController extends Controller
             'date_publication' => $c->date_publication ?? now(),
         ]);
 
-        // Notifie toute l'entreprise, ou seulement le département ciblé
         $this->notifications->publier(
             $request->user(), 'publie', $type, $c->id, $c->titre,
             $c->visibilite === 'departement' ? $c->departement_id : null,
@@ -163,14 +162,13 @@ class ContenuController extends Controller
     {
         $c = $this->gerer($request, $type, $id);
         $fichiers = $c->images()->pluck('fichier')->all();
-        $c->delete(); // les lignes images partent en cascade
+        $c->delete();
         $this->notifications->retirer($type, $c->id);
         Storage::disk('local')->delete($fichiers);
 
         return response()->json(['message' => 'Contenu supprimé.']);
     }
 
-    // Permission de publication (RG11), 404 hors entreprise (RG05), portée du Manager (RG21)
     private function gerer(Request $request, string $type, int $id): Contenu
     {
         $u = $request->user();
@@ -186,7 +184,6 @@ class ContenuController extends Controller
         return $c;
     }
 
-    // Contenus de l'entreprise, destinés à tous, à mon département, ou que j'ai écrits (RG05, RG22)
     private function visibles(Utilisateur $u, string $type): Builder
     {
         return Contenu::where('entreprise_id', $u->entreprise_id)
@@ -200,7 +197,6 @@ class ContenuController extends Controller
             });
     }
 
-    // RG23 : une annonce n'est plus affichée après sa date d'expiration
     private function sansExpirees(Builder $requete): void
     {
         $requete->where(fn ($q) => $q->whereNull('date_expiration')

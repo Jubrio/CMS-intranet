@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\DB;
 
 class HierarchieUtilisateurs
 {
-    // Vrai si donner $superieurId comme supérieur à $utilisateurId créerait une boucle
     public function creeUnCycle(int $utilisateurId, ?int $superieurId): bool
     {
         $courant = $superieurId;

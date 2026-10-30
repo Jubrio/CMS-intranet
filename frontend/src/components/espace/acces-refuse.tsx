@@ -19,7 +19,6 @@ const MESSAGES: Record<RaisonRefus, { titre: string; detail: string }> = {
   },
 };
 
-// Affiché à la place d'une page dont l'entrée de menu n'est pas ouverte au profil
 export function AccesRefuse({ raison }: { raison: RaisonRefus }) {
   const { titre, detail } = MESSAGES[raison];
   return (

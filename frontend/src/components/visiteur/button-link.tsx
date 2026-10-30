@@ -4,7 +4,6 @@ import type { ComponentProps } from "react";
 type Variante = "primary" | "secondary";
 type Taille = "md" | "sm";
 
-// Classes communes aux liens et aux vrais boutons (envoi de formulaire)
 export function classeBouton(variante: Variante = "primary", taille: Taille = "md", extra = ""): string {
   const base =
     "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all disabled:pointer-events-none disabled:opacity-60";

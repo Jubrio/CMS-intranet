@@ -60,11 +60,10 @@ function Champ({
 
 type Props = {
   config: ConfigContenu;
-  contenu: Contenu | null; // null = création
+  contenu: Contenu | null;
   departements: DepartementOption[];
-  manager: boolean; // RG21 : un Manager ne publie que pour son département
+  manager: boolean;
   onFermer: () => void;
-  // `echecPublication` : enregistrée mais non publiée
   onEnregistre: (message: string, echecPublication?: string) => void;
 };
 
@@ -91,7 +90,6 @@ export function ContenuFormulaire({ config, contenu, departements, manager, onFe
   const [message, setMessage] = useState<string | null>(null);
   const premierChamp = useRef<HTMLInputElement>(null);
 
-  // Le corps complet n'est pas dans la liste
   const contenuId = contenu?.id ?? null;
   useEffect(() => {
     if (contenuId === null) return;

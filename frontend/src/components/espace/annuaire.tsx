@@ -41,7 +41,6 @@ export function Annuaire() {
   const [ficheId, setFicheId] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -56,7 +55,6 @@ export function Annuaire() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Organigramme : sert à l'onglet du même nom, au filtre et au choix du département
   const chargerOrga = useCallback(
     async (jeton: string) => {
       void version;
@@ -66,11 +64,9 @@ export function Annuaire() {
   );
   const orga = useDonnees(autorise, chargerOrga);
   const departements = useMemo(() => (orga.donnees ? aplatirOrga(orga.donnees) : []), [orga.donnees]);
-  // Un département qui n'existe plus ne filtre plus
   const departementActif =
     orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
 
-  // Organigramme des personnes : chargé seulement quand on l'affiche
   const chargerPersonnes = useCallback(
     async (jeton: string) => {
       void version;
@@ -80,7 +76,6 @@ export function Annuaire() {
   );
   const personnes = useDonnees(autorise && onglet === "organigramme" && vueOrga === "personnes", chargerPersonnes);
 
-  // Annuaire filtré
   const cleCourante = `${page}|${q}|${departementActif}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
@@ -88,7 +83,6 @@ export function Annuaire() {
       if (q) p.set("q", q);
       if (departementActif) p.set("departement_id", departementActif);
       const res = await api<Pagination<Employe>>(`/annuaire?${p.toString()}`, { token: jeton });
-      // Dernière page vidée : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },

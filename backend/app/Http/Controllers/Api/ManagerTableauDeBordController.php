@@ -15,9 +15,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-// Tableau de bord du Manager : son équipe (supérieur → subordonnés), son département
-// et ses publications. Un Manager ne publie que pour son département (RG21).
-// Tout est limité à l'entreprise de l'appelant (RG05).
 class ManagerTableauDeBordController extends Controller
 {
     private const TYPES = [
@@ -39,8 +36,6 @@ class ManagerTableauDeBordController extends Controller
         abort_unless($u->entreprise_id && $acces->estManager($u), 403, 'Réservé au rôle Manager.');
 
         $aujourdhui = now()->startOfDay();
-
-        // Comptes actifs de l'entreprise, lus une fois : la hiérarchie se parcourt en mémoire
         $actifs = Utilisateur::where('entreprise_id', $u->entreprise_id)
             ->where('statut_compte', 'actif')
             ->get(['id', 'nom', 'prenom', 'poste', 'telephone', 'date_embauche', 'departement_id', 'superieur_id']);
@@ -51,7 +46,7 @@ class ManagerTableauDeBordController extends Controller
 
         return response()->json([
             'genere_le' => now()->toIso8601String(),
-            'peut_publier' => $u->departement_id !== null, // RG21
+            'peut_publier' => $u->departement_id !== null,
             'departement' => $this->departement($u, $actifs),
             'superieur' => $this->superieur($u, $actifs),
             'equipe' => [
@@ -76,7 +71,6 @@ class ManagerTableauDeBordController extends Controller
         ]);
     }
 
-    // Tous les subordonnés, directs ou non (parcours en largeur, protégé contre les boucles)
     private function equipe(Collection $actifs, int $racine): Collection
     {
         $enfants = $actifs->groupBy('superieur_id');
@@ -134,7 +128,7 @@ class ManagerTableauDeBordController extends Controller
 
         foreach (self::TYPES as $type => $libelle) {
             if (! $acces->autorise($u, $type, 'publier')) {
-                continue; // module désactivé ou droit absent
+                continue;
             }
             $mes = Contenu::where('entreprise_id', $u->entreprise_id)
                 ->where('type_contenu', $type)
@@ -161,7 +155,6 @@ class ManagerTableauDeBordController extends Controller
         ];
     }
 
-    // Dernières notes de service que le Manager suit : les siennes et celles de son département
     private function notes(Utilisateur $u, Collection $actifs): array
     {
         $notes = Contenu::where('entreprise_id', $u->entreprise_id)
@@ -190,7 +183,6 @@ class ManagerTableauDeBordController extends Controller
         $parDepartement = $actifs->countBy('departement_id');
 
         return $notes->map(function ($n) use ($lectures, $parDepartement, $actifs) {
-            // Mêmes destinataires que le suivi des lectures : tous les actifs, ou ceux du département visé
             $destinataires = $n->visibilite === 'departement'
                 ? (int) ($parDepartement[$n->departement_id] ?? 0)
                 : $actifs->count();

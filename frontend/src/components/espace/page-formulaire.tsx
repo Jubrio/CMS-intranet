@@ -32,7 +32,7 @@ type ImagePage = {
   url: string;
 };
 
-const MAX_IMAGES = 10; // RG39
+const MAX_IMAGES = 10;
 const MAX_KO = 5120;
 const TYPES_ACCEPTES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -64,7 +64,6 @@ function Champ({
   );
 }
 
-// Images de la page : ajout et suppression directs (la page doit déjà exister)
 function Images({
   pageId,
   images,
@@ -227,10 +226,9 @@ function Images({
 }
 
 type Props = {
-  page: PageInterne | null; // null = création
+  page: PageInterne | null;
   departements: DepartementOption[];
   onFermer: () => void;
-  // `rouvrir` : page tout juste créée en brouillon, à rouvrir pour y ajouter des images
   onEnregistre: (message: string, options?: { echecPublication?: string; rouvrir?: PageInterne }) => void;
 };
 
@@ -252,7 +250,6 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
   const [message, setMessage] = useState<string | null>(null);
   const premierChamp = useRef<HTMLInputElement>(null);
 
-  // Le corps complet et les images ne sont pas dans la liste
   const pageId = page?.id ?? null;
   useEffect(() => {
     if (pageId === null) return;
@@ -317,7 +314,6 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
       if (edition) {
         await api<PageInterne>(`/pages/${page.id}`, { method: "PUT", token, body: JSON.stringify(corpsEnvoye) });
       } else {
-        // À la création, le statut peut être fixé directement
         creee = await api<PageInterne>("/pages", {
           method: "POST",
           token,
@@ -339,7 +335,6 @@ export function PageFormulaire({ page, departements, onFermer, onEnregistre }: P
       return;
     }
 
-    // Création : tout est fait. Brouillon : on rouvre la page pour permettre l'ajout d'images.
     if (creee) {
       if (publier) onEnregistre("Page publiée.");
       else

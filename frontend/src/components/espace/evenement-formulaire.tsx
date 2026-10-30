@@ -12,7 +12,7 @@ export type Evenement = {
   id: number;
   titre_evenement: string;
   description_evenement: string | null;
-  date_debut: string; // « 2026-10-25 14:00:00 », sans fuseau
+  date_debut: string;
   date_fin: string;
   lieu: string | null;
   visibilite: "entreprise" | "departement";
@@ -22,7 +22,6 @@ export type Evenement = {
 
 const zero = (n: number) => String(n).padStart(2, "0");
 
-// Dates « naïves » du serveur : on les lit et on les écrit en heure locale, sans conversion de fuseau
 export const lireDate = (s: string) => new Date(s.replace(" ", "T"));
 export const cleJour = (d: Date) => `${d.getFullYear()}-${zero(d.getMonth() + 1)}-${zero(d.getDate())}`;
 export const versChampDate = (d: Date) => `${cleJour(d)}T${zero(d.getHours())}:${zero(d.getMinutes())}`;
@@ -57,8 +56,8 @@ function Champ({
 }
 
 type Props = {
-  evenement: Evenement | null; // null = création
-  debutParDefaut: Date; // proposé pour un nouvel événement
+  evenement: Evenement | null;
+  debutParDefaut: Date;
   departements: DepartementOption[];
   onFermer: () => void;
   onEnregistre: (message: string) => void;
@@ -102,7 +101,6 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
 
   const err = (champ: string) => erreurs[champ]?.[0];
 
-  // Quand on décale le début, la fin suit pour garder la même durée (confort de saisie)
   function changerDebut(valeur: string) {
     if (valeur && debut && fin) {
       const duree = new Date(fin).getTime() - new Date(debut).getTime();
@@ -120,7 +118,6 @@ export function EvenementFormulaire({ evenement, debutParDefaut, departements, o
     setMessage(null);
 
     if (debut && fin && new Date(fin) < new Date(debut)) {
-      // RG27, vérifié aussi côté serveur
       setErreurs({ date_fin: ["La date de fin doit être postérieure ou égale à la date de début."] });
       setMessage("Certains champs sont à corriger.");
       return;

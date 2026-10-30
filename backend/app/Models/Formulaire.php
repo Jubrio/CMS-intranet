@@ -29,7 +29,6 @@ class Formulaire extends Model
         return $this->hasMany(Reponse::class);
     }
 
-    // Ouvert = publié et date limite non dépassée (le jour de la date limite reste ouvert)
     public function estOuvert(): bool
     {
         return $this->statut_formulaire === 'publie'

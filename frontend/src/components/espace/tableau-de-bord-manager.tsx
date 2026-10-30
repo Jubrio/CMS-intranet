@@ -26,8 +26,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { BOUTON_PETIT, Carte, EnteteCarte, Kpi, Squelette, Vide, nombre, pluriel } from "./elements-tableau";
 
-// ---- Formes des réponses de l'API ------------------------------------------
-
 type Personne = { id: number; nom: string; prenom: string };
 
 type Manager = {
@@ -71,7 +69,6 @@ type EvenementApi = { id: number; titre_evenement: string; date_debut: string; d
 const HORIZON_EVENEMENTS_JOURS = 30;
 const ACCES_RAPIDES = ["Actualités", "Annonces", "Articles", "Notes de service", "Documents", "Événements"];
 
-// "2026-10-23 14:30:00" (heure locale, sans fuseau) -> Date
 const dateLocale = (s: string) => parseISO(s.replace(" ", "T"));
 
 function Avatar({ p, teinte = "violet" }: { p: Personne; teinte?: "violet" | "blue" }) {
@@ -122,7 +119,6 @@ export function TableauDeBordManager() {
   }, []);
   const evenements = useDonnees(voirEvenements, chargerEvenements);
 
-  // Les accès rapides suivent le menu : droits et modules déjà pris en compte
   const acces = useMemo(
     () =>
       menuPour(profil)

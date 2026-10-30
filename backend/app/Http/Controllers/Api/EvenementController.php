@@ -17,7 +17,6 @@ class EvenementController extends Controller
 {
     public function __construct(private NotificationService $notifications) {}
 
-    // Vue calendrier : événements qui chevauchent la période demandée (mois courant par défaut)
     public function index(Request $request): JsonResponse
     {
         $request->validate([
@@ -45,7 +44,6 @@ class EvenementController extends Controller
         ]);
     }
 
-    // RG21 : un Manager ne gère que les événements de son département
     private function verifierPortee(Utilisateur $u, string $visibilite, $departementId): void
     {
         $dept = $departementId ? (int) $departementId : null;
@@ -68,7 +66,7 @@ class EvenementController extends Controller
         $this->verifierPortee($u, $d['visibilite'], $d['departement_id'] ?? null);
 
         $e = Evenement::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
             'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null,
             'titre_evenement' => $d['titre_evenement'],
@@ -79,7 +77,6 @@ class EvenementController extends Controller
             'visibilite' => $d['visibilite'],
         ]);
 
-        // Notifie toute l'entreprise, ou seulement le département ciblé
         $this->notifications->publier($u, 'cree', 'evenement', $e->id, $e->titre_evenement, $e->departement_id);
 
         return response()->json($this->formater($e->load('auteur:id,nom,prenom')), 201);
@@ -89,7 +86,7 @@ class EvenementController extends Controller
     {
         $u = $request->user();
         $e = Evenement::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
-        $this->verifierPortee($u, $e->visibilite, $e->departement_id); // l'existant
+        $this->verifierPortee($u, $e->visibilite, $e->departement_id);
 
         $d = $request->validated();
         if (empty($d)) {
@@ -98,7 +95,7 @@ class EvenementController extends Controller
 
         $debut = Carbon::parse($d['date_debut'] ?? $e->date_debut);
         $fin = Carbon::parse($d['date_fin'] ?? $e->date_fin);
-        if ($fin->lt($debut)) { // RG27
+        if ($fin->lt($debut)) {
             return response()->json(['message' => 'La date de fin doit être postérieure ou égale à la date de début.',
                 'errors' => ['date_fin' => ['La date de fin doit être postérieure ou égale à la date de début.']]], 422);
         }
@@ -112,7 +109,7 @@ class EvenementController extends Controller
             return response()->json(['message' => 'Un département est requis.',
                 'errors' => ['departement_id' => ['Un département est requis.']]], 422);
         }
-        $this->verifierPortee($u, $visibilite, $dept); // la nouvelle valeur
+        $this->verifierPortee($u, $visibilite, $dept);
 
         $e->update(array_diff_key($d, ['visibilite' => 1, 'departement_id' => 1])
             + ['visibilite' => $visibilite, 'departement_id' => $dept]);
@@ -131,7 +128,6 @@ class EvenementController extends Controller
         return response()->json(['message' => 'Événement annulé.']);
     }
 
-    // Événements de l'entreprise, destinés à tous, à mon département, ou que j'ai créés (RG05)
     private function visibles(Utilisateur $u): Builder
     {
         return Evenement::where('entreprise_id', $u->entreprise_id)

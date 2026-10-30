@@ -32,7 +32,7 @@ import {
 } from "./annuaire-commun";
 
 const TYPES_PHOTO = ["image/jpeg", "image/png", "image/webp"];
-const POIDS_MAX_PHOTO = 2 * 1024 * 1024; // RG25 : 2 Mo
+const POIDS_MAX_PHOTO = 2 * 1024 * 1024;
 
 function Champ({
   id,
@@ -62,8 +62,6 @@ function Champ({
   );
 }
 
-// ---- Choix du supérieur : recherche dans l'annuaire -----------------------------------
-
 function ChoixSuperieur({
   soiId,
   valeur,
@@ -86,8 +84,6 @@ function ChoixSuperieur({
     let annule = false;
     const t = setTimeout(() => {
       setRecherche(true);
-      // Le serveur cherche le texte entier dans chaque champ : on lui envoie le mot le plus long,
-      // puis on affine ci-dessous avec tous les mots saisis (« Jean Dupont »).
       const mot = [...terme.split(/\s+/)].sort((a, b) => b.length - a.length)[0];
       api<Pagination<Employe>>(`/annuaire?q=${encodeURIComponent(mot)}`, { token })
         .then((res) => {
@@ -236,7 +232,6 @@ function FormulaireFiche({ fiche, departements, onAnnuler, onEnregistre, onPhoto
 
   const err = (champ: string) => erreurs[champ]?.[0];
 
-  // Le département actuel reste proposé même si la liste n'a pas pu être chargée
   const options = useMemo(() => {
     if (fiche.departement_id && fiche.nom_departement && !departements.some((d) => d.id === fiche.departement_id)) {
       return [...departements, { id: fiche.departement_id, nom_departement: fiche.nom_departement, profondeur: 0 }];

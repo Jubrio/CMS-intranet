@@ -42,7 +42,6 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     try {
       const [profil, menu] = await Promise.all([
         api<Profil>("/me", { token: jeton }),
-        // Les réglages du menu sont un plus : sans eux, le menu par défaut s'affiche
         api<MenuConfig>("/menu", { token: jeton }).catch(() => null),
       ]);
       setSession((s) => (s ? { ...s, profil, menu } : s));
@@ -60,7 +59,6 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     let annule = false;
     Promise.all([
       api<Profil>("/me", { token }),
-      // La personnalisation est un plus (logo, nom) : son échec ne bloque pas l'espace
       api<Personnalisation>("/personnalisation", { token }).catch(() => null),
       api<MenuConfig>("/menu", { token }).catch(() => null),
     ])
@@ -77,7 +75,6 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     };
   }, [router, expirer]);
 
-  // Le tiroir mobile se ferme avec Échap
   useEffect(() => {
     if (!menuOuvert) return;
     const surTouche = (e: KeyboardEvent) => e.key === "Escape" && setMenuOuvert(false);
@@ -85,7 +82,6 @@ export function EspaceShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", surTouche);
   }, [menuOuvert]);
 
-  // La confirmation de déconnexion se ferme avec Échap
   useEffect(() => {
     if (!confirmerDeconnexion || deconnexionEnCours) return;
     const surTouche = (e: KeyboardEvent) => e.key === "Escape" && setConfirmerDeconnexion(false);
@@ -126,7 +122,6 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   }
 
   const { profil, perso, menu } = session;
-  // Garde de route : une page dont l'entrée de menu n'est pas ouverte à ce profil ne se charge pas
   const refus = refusRoute(pathname, profil, menu);
 
   return (

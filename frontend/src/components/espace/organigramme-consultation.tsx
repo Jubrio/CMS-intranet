@@ -18,9 +18,6 @@ import {
 import { Organigramme } from "./organigramme";
 import { OrganigrammePersonnes, type PersonneOrga } from "./organigramme-personnes";
 
-// Organigramme en lecture seule : par personnes (qui dépend de qui) ou par départements.
-// Un clic sur une personne ouvre sa fiche, « Voir l'équipe » liste les membres d'un département.
-
 type Onglet = "personnes" | "departements";
 
 const ONGLETS: { code: Onglet; libelle: string }[] = [

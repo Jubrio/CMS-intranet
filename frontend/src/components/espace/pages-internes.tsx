@@ -91,7 +91,6 @@ export function PagesInternes() {
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -106,14 +105,12 @@ export function PagesInternes() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Liste de l'onglet courant
   const cleCourante = `${statut}|${page}|${q}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
       const p = new URLSearchParams({ statut, page: String(page) });
       if (q) p.set("q", q);
       const res = await api<Pagination<PageInterne>>(`/pages?${p.toString()}`, { token: jeton });
-      // Dernière page vidée (ex. dernière page archivée) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },
@@ -123,7 +120,6 @@ export function PagesInternes() {
   const enChargement = liste.chargement || (liste.donnees !== null && liste.donnees.cle !== cleCourante);
   const res = liste.donnees?.res ?? null;
 
-  // Compteurs des trois onglets (hors recherche)
   const chargerTotaux = useCallback(
     async (jeton: string) => {
       void version;
@@ -136,7 +132,6 @@ export function PagesInternes() {
   );
   const totaux = useDonnees(autorise, chargerTotaux);
 
-  // Départements : liste complète si le rôle y a accès ; sinon le département de l'utilisateur
   const chargerDepartements = useCallback(
     async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
     [],
@@ -153,7 +148,6 @@ export function PagesInternes() {
   const fermerFormulaire = useCallback(() => setFormulaire(null), []);
 
   function apresEnregistrement(texte: string, options?: { echecPublication?: string; rouvrir?: PageInterne }) {
-    // Page créée en brouillon : on reste dans le panneau, en mode modification, pour ajouter des images
     setFormulaire(options?.rouvrir ? { page: options.rouvrir } : null);
     setNotice(
       options?.echecPublication

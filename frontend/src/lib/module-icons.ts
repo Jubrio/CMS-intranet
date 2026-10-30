@@ -17,7 +17,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Icône lucide associée à chaque code de module du catalogue
 const ICONES: Record<string, LucideIcon> = {
   utilisateurs: Users,
   roles: ShieldCheck,
