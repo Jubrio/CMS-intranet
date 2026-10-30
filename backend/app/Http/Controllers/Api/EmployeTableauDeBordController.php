@@ -149,7 +149,8 @@ class EmployeTableauDeBordController extends Controller
 
     private function personne(Utilisateur $m): array
     {
-        return ['id' => $m->id, 'nom' => $m->nom, 'prenom' => $m->prenom, 'poste' => $m->poste, 'photo' => $m->photo];
+        return ['id' => $m->id, 'nom' => $m->nom, 'prenom' => $m->prenom, 'poste' => $m->poste,
+            'photo' => \App\Services\FichiersProfil::url($m->photo)];
     }
 
     // Fil des publications visibles par l'employé, nouveautés par type et notes de service à lire

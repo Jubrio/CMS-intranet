@@ -231,7 +231,7 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
             label={edition ? "Nouveau mot de passe" : "Mot de passe"}
             requis={!edition}
             erreur={err("mot_de_passe")}
-            aide={edition ? "Laissez vide pour conserver le mot de passe actuel." : "8 caractères minimum."}
+            aide={edition ? "Laissez vide pour conserver le mot de passe actuel." : "10 caractères minimum, avec des lettres et des chiffres."}
           >
             <input
               id="f-mdp"

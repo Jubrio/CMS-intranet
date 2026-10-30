@@ -167,7 +167,7 @@ class FormulaireController extends Controller
         // 404 si le formulaire n'est pas dans le public cible (RG05, RG30)
         $f = $this->visibles($u, false, false)->findOrFail($id);
 
-        $valeurs = $request->validate(['valeurs' => 'required|array'])['valeurs'];
+        $valeurs = $request->validate(['valeurs' => 'required|array|max:30'])['valeurs'];
         $propre = $this->controlerValeurs($f, $valeurs);
 
         // Transaction + verrou : deux envois simultanés ne passent pas la réponse unique (RG29)
@@ -280,7 +280,7 @@ class FormulaireController extends Controller
                 'nombre' => is_int($v) || is_float($v) || (is_string($v) && is_numeric($v)),
                 'date' => is_string($v) && strtotime($v) !== false,
                 'choix_unique' => is_string($v) && in_array($v, $c['options'], true),
-                'choix_multiple' => is_array($v) && array_diff($v, $c['options']) === [],
+                'choix_multiple' => is_array($v) && collect($v)->every('is_string') && array_diff($v, $c['options']) === [],
                 default => false,
             };
 

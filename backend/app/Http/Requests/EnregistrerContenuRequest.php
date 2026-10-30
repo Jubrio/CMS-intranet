@@ -27,7 +27,7 @@ class EnregistrerContenuRequest extends FormRequest
 
         return [
             'titre' => [$p, 'string', 'max:150'],
-            'corps' => [$p, 'string'],
+            'corps' => [$p, 'string', 'max:20000'],
             'categorie' => 'nullable|string|max:50',
             'visibilite' => [$p, 'in:entreprise,departement'],
             'departement_id' => ['required_if:visibilite,departement', 'nullable',

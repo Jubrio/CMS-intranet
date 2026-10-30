@@ -106,7 +106,7 @@ class FilController extends Controller
                 'id' => $c->auteur->id,
                 'nom' => $c->auteur->nom,
                 'prenom' => $c->auteur->prenom,
-                'photo' => $c->auteur->photo,
+                'photo' => \App\Services\FichiersProfil::url($c->auteur->photo),
                 'role' => $c->auteur->role?->nom_role,
             ] : null,
             'images' => $c->images->map(fn ($i) => PageImageController::formater($i))->values()->all(),

@@ -10,18 +10,35 @@ use App\Models\Utilisateur;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
+        // Limitation par couple e-mail + IP, en plus du throttle par IP de la route
+        $cle = 'login:'.mb_strtolower((string) $request->email).'|'.$request->ip();
+        if (RateLimiter::tooManyAttempts($cle, 5)) {
+            return response()->json([
+                'message' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($cle).' secondes.',
+            ], 429);
+        }
+
         $utilisateur = Utilisateur::with(['role.permissions', 'entreprise'])
             ->where('email', $request->email)
             ->first();
 
-        if (! $utilisateur || ! Hash::check($request->mot_de_passe, $utilisateur->mot_de_passe)) {
+        // Hash::check est toujours exécuté (hash factice si le compte n'existe pas) :
+        // le temps de réponse ne révèle pas si l'e-mail existe.
+        $hashFactice = '$2y$12$J3bPZ4GK1B9TL4lHlDGY0.gL85q7Q5tcxFTclvWpJIdB4ggMa4n.K';
+        $motDePasseOk = Hash::check($request->mot_de_passe, $utilisateur?->mot_de_passe ?? $hashFactice);
+
+        if (! $utilisateur || ! $motDePasseOk) {
+            RateLimiter::hit($cle, 60);
+
             return response()->json(['message' => 'Identifiants incorrects.'], 401);
         }
+        RateLimiter::clear($cle);
         if ($utilisateur->statut_compte !== 'actif') {
             return response()->json(['message' => 'Compte désactivé.'], 403);
         }
@@ -63,7 +80,7 @@ class AuthController extends Controller
             'departement_id' => $u->departement_id,
             'telephone' => $u->telephone,
             'poste' => $u->poste,
-            'photo' => $u->photo,
+            'photo' => \App\Services\FichiersProfil::url($u->photo),
             'entreprise' => $u->entreprise?->nom_entreprise,
             'permissions' => $u->role->permissions->pluck('code_permission'),
             'modules_actifs' => $modules,

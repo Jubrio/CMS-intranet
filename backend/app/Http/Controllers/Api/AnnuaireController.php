@@ -9,7 +9,7 @@ use App\Services\HierarchieUtilisateurs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use App\Services\FichiersProfil;
 use Illuminate\Validation\Rule;
 
 class AnnuaireController extends Controller
@@ -46,6 +46,7 @@ class AnnuaireController extends Controller
         return response()->json(
             $requete->orderBy('utilisateurs.nom')->orderBy('utilisateurs.prenom')
                 ->select(self::CHAMPS)->paginate(20)
+                ->through(fn ($p) => $this->avecPhotoSignee($p))
         );
     }
 
@@ -56,6 +57,7 @@ class AnnuaireController extends Controller
         $fiche = $this->base($request)->where('utilisateurs.id', $id)
             ->select(array_merge(self::CHAMPS, ['utilisateurs.date_embauche', 'utilisateurs.superieur_id']))->first();
         abort_if(! $fiche, 404);
+        $this->avecPhotoSignee($fiche);
 
         $entrepriseId = $request->user()->entreprise_id;
         $fiche->superieur = $fiche->superieur_id
@@ -115,7 +117,15 @@ class AnnuaireController extends Controller
             ->get(['utilisateurs.id', 'utilisateurs.nom', 'utilisateurs.prenom', 'utilisateurs.poste',
                 'utilisateurs.photo', 'utilisateurs.superieur_id', 'departements.nom_departement']);
 
-        return response()->json($personnes);
+        return response()->json($personnes->map(fn ($p) => $this->avecPhotoSignee($p))->values());
+    }
+
+    // Remplace le chemin de la photo par son adresse signée
+    private function avecPhotoSignee(object $ligne): object
+    {
+        $ligne->photo = FichiersProfil::url($ligne->photo);
+
+        return $ligne;
     }
 
     public function modifier(Request $request, int $id): JsonResponse
@@ -157,14 +167,14 @@ class AnnuaireController extends Controller
         ]);
 
         if ($cible->photo) {
-            Storage::disk('public')->delete($cible->photo);
+            FichierProfilController::supprimer($cible->photo);
         }
-        $chemin = $request->file('photo')->store('photos', 'public');
+        $chemin = $request->file('photo')->store('photos', FichiersProfil::DISQUE);
         $cible->forceFill(['photo' => $chemin])->save();
 
         return response()->json([
-            'photo' => $chemin,
-            'url' => asset('storage/'.$chemin),
+            'photo' => FichiersProfil::url($chemin),
+            'url' => FichiersProfil::url($chemin),
         ]);
     }
 
@@ -182,7 +192,8 @@ class AnnuaireController extends Controller
 
     private function resume(Utilisateur $u): array
     {
-        return $u->only(['id', 'nom', 'prenom', 'email', 'telephone', 'poste', 'photo', 'departement_id', 'superieur_id']);
+        return ['photo' => FichiersProfil::url($u->photo)]
+            + $u->only(['id', 'nom', 'prenom', 'email', 'telephone', 'poste', 'departement_id', 'superieur_id']);
     }
 
     private function base(Request $request)

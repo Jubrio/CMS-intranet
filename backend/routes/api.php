@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DepartementController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EmployeTableauDeBordController;
 use App\Http\Controllers\Api\EvenementController;
+use App\Http\Controllers\Api\FichierProfilController;
 use App\Http\Controllers\Api\FilController;
 use App\Http\Controllers\Api\FormulaireController;
 use App\Http\Controllers\Api\IntranetController;
@@ -43,6 +44,11 @@ Route::get('/images/{id}/fichier', [PageImageController::class, 'fichier'])
 // Fichier d'un document : accès contrôlé par la signature de l'adresse remise par /documents/{id}/lien
 Route::get('/documents/{id}/fichier', [DocumentController::class, 'fichier'])
     ->whereNumber('id')->middleware(['signed', 'throttle:120,1'])->name('documents.fichier');
+
+// Photos de profil et logos : accès contrôlé par la signature de l'adresse (renvoyée par l'API)
+Route::get('/fichiers/{chemin}', [FichierProfilController::class, 'fichier'])
+    ->where('chemin', '(photos/[A-Za-z0-9._-]+|logos/[0-9]+/[A-Za-z0-9._-]+)')
+    ->middleware(['signed', 'throttle:240,1'])->name('profil.fichier');
 
 // Routes protégées (jeton obligatoire)
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {

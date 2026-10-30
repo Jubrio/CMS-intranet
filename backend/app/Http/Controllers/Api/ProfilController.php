@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use App\Services\FichiersProfil;
 
 // Profil de la personne connectée : chacun gère ses propres informations, sans permission particulière.
 // Le rôle, le département, le poste et l'e-mail restent réservés aux gestionnaires (écrans Utilisateurs et Annuaire).
@@ -37,9 +37,9 @@ class ProfilController extends Controller
 
         $utilisateur = $request->user();
         if ($utilisateur->photo) {
-            Storage::disk('public')->delete($utilisateur->photo);
+            FichierProfilController::supprimer($utilisateur->photo);
         }
-        $utilisateur->forceFill(['photo' => $request->file('photo')->store('photos', 'public')])->save();
+        $utilisateur->forceFill(['photo' => $request->file('photo')->store('photos', FichiersProfil::DISQUE)])->save();
 
         return response()->json($this->profil($utilisateur));
     }
@@ -48,7 +48,7 @@ class ProfilController extends Controller
     {
         $donnees = $request->validate([
             'mot_de_passe_actuel' => ['required', 'string'],
-            'nouveau_mot_de_passe' => ['required', 'string', 'min:8', 'max:72', 'confirmed', 'different:mot_de_passe_actuel'],
+            'nouveau_mot_de_passe' => ['required', 'string', 'max:72', 'confirmed', 'different:mot_de_passe_actuel', \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()->uncompromised()],
         ], [
             'nouveau_mot_de_passe.different' => 'Le nouveau mot de passe doit être différent de l’actuel.',
         ]);

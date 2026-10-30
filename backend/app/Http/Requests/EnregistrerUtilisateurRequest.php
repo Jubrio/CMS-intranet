@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
 
 class EnregistrerUtilisateurRequest extends FormRequest
@@ -29,7 +30,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
             'prenom' => [$presence, 'string', 'max:100'],
             'email' => [$presence, 'email', 'max:255',
                 Rule::unique('utilisateurs', 'email')->ignore($id)],
-            'mot_de_passe' => [$presence, 'string', 'min:8', 'max:72'],
+            'mot_de_passe' => [$presence, 'string', 'max:72', Password::min(10)->letters()->numbers()->uncompromised()],
             'role_id' => [$presence, 'integer',
                 Rule::exists('roles', 'id')->where('entreprise_id', $entrepriseId)],
             'departement_id' => ['nullable', 'integer',

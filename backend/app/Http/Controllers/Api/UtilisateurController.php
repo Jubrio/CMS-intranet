@@ -155,7 +155,7 @@ class UtilisateurController extends Controller
             'prenom' => $u->prenom,
             'email' => $u->email,
             'telephone' => $u->telephone,
-            'photo' => $u->photo,
+            'photo' => \App\Services\FichiersProfil::url($u->photo),
             'poste' => $u->poste,
             'date_embauche' => $u->date_embauche,
             'statut_compte' => $u->statut_compte,

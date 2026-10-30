@@ -66,7 +66,9 @@ class NotificationController extends Controller
             'objet_id' => $notif->objet_id,
             'titre' => $notif->titre,
             'departement' => $notif->departement?->nom_departement,
-            'acteur' => $notif->acteur ? $notif->acteur->only(['id', 'nom', 'prenom', 'photo']) : null,
+            'acteur' => $notif->acteur
+                ? $notif->acteur->only(['id', 'nom', 'prenom']) + ['photo' => \App\Services\FichiersProfil::url($notif->acteur->photo)]
+                : null,
             'date' => $notif->created_at?->toIso8601String(),
         ];
     }

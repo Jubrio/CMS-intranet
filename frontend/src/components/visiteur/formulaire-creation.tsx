@@ -12,6 +12,9 @@ import type { ModuleCatalogue } from "@/lib/modules";
 import { enregistrerToken } from "@/lib/session";
 import { Champ, Saisie, SaisieMotDePasse } from "./champs";
 import { ButtonLink, classeBouton } from "./button-link";
+import { Turnstile } from "./turnstile";
+
+const CAPTCHA_ACTIF = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
 const schema = z
   .object({
@@ -23,7 +26,11 @@ const schema = z
       .trim()
       .pipe(z.email("Adresse e-mail invalide."))
       .pipe(z.string().max(100, "100 caractères maximum.")),
-    mot_de_passe: z.string().min(8, "8 caractères minimum."),
+    mot_de_passe: z
+      .string()
+      .min(10, "10 caractères minimum.")
+      .regex(/[A-Za-z]/, "Au moins une lettre.")
+      .regex(/\d/, "Au moins un chiffre."),
     confirmation: z.string().min(1, "Confirmez le mot de passe."),
     modules: z.array(z.string()),
   })
@@ -64,6 +71,7 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
 
   const [etape, setEtape] = useState(0);
   const [envoi, setEnvoi] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
   const [erreurGlobale, setErreurGlobale] = useState<string | null>(null);
   const [resultat, setResultat] = useState<Reponse | null>(null);
 
@@ -105,6 +113,10 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
   }
 
   async function envoyer(v: Valeurs) {
+    if (CAPTCHA_ACTIF && !captcha) {
+      setErreurGlobale("Confirmez que vous n'êtes pas un robot.");
+      return;
+    }
     setErreurGlobale(null);
     setEnvoi(true);
     try {
@@ -117,6 +129,7 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
           email: v.email,
           mot_de_passe: v.mot_de_passe,
           modules: v.modules,
+          turnstile_token: captcha,
         }),
       });
       enregistrerToken(reponse.token);
@@ -276,7 +289,7 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
               <Champ
                 id="mot_de_passe"
                 label="Mot de passe"
-                aide="8 caractères minimum."
+                aide="10 caractères minimum, avec des lettres et des chiffres."
                 erreur={errors.mot_de_passe?.message}
               >
                 <SaisieMotDePasse
@@ -370,6 +383,8 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
               {erreurGlobale}
             </p>
           )}
+
+          {dernier && CAPTCHA_ACTIF ? <Turnstile onToken={setCaptcha} /> : null}
 
           <div className="flex items-center justify-between gap-3 pt-2">
             {etape > 0 ? (
