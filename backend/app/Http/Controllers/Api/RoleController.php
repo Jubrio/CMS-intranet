@@ -16,7 +16,6 @@ class RoleController extends Controller
 {
     public function __construct(private DroitsUtilisateurs $droits) {}
 
-    // Catalogue des permissions : le frontend les regroupe par code_module
     public function permissions(): JsonResponse
     {
         $liste = DB::table('permissions')
@@ -27,7 +26,6 @@ class RoleController extends Controller
         return response()->json($liste);
     }
 
-    // Rôles que l'appelant peut attribuer à un compte (RG32) : utile au formulaire de création de compte
     public function assignables(Request $request): JsonResponse
     {
         $appelant = $request->user();
@@ -43,7 +41,7 @@ class RoleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $entrepriseId = $request->user()->entreprise_id; // RG05
+        $entrepriseId = $request->user()->entreprise_id;
 
         $comptes = Utilisateur::where('entreprise_id', $entrepriseId)
             ->selectRaw('role_id, count(*) as n')
@@ -74,7 +72,7 @@ class RoleController extends Controller
         $appelant = $request->user();
         $donnees = $request->validated();
 
-        if (! $this->detientToutes($appelant, $donnees['permissions'])) { // RG32
+        if (! $this->detientToutes($appelant, $donnees['permissions'])) {
             return response()->json(['message' => 'Vous ne pouvez pas accorder des permissions que vous ne possédez pas.'], 403);
         }
 
@@ -98,16 +96,16 @@ class RoleController extends Controller
         $role = $this->trouver($request, $id);
         $donnees = $request->validated();
 
-        if ($role->role_par_defaut) { // RG10
+        if ($role->role_par_defaut) {
             return response()->json(['message' => 'Les rôles par défaut ne sont pas modifiables.'], 422);
         }
         if (empty($donnees)) {
             return response()->json(['message' => 'Aucun champ à modifier.'], 422);
         }
-        if (! $this->droits->roleAttribuable($appelant, $role)) { // RG32
+        if (! $this->droits->roleAttribuable($appelant, $role)) {
             return response()->json(['message' => 'Ce rôle possède des permissions que vous ne détenez pas.'], 403);
         }
-        if (isset($donnees['permissions']) && ! $this->detientToutes($appelant, $donnees['permissions'])) { // RG32
+        if (isset($donnees['permissions']) && ! $this->detientToutes($appelant, $donnees['permissions'])) {
             return response()->json(['message' => 'Vous ne pouvez pas accorder des permissions que vous ne possédez pas.'], 403);
         }
 
@@ -127,13 +125,13 @@ class RoleController extends Controller
     {
         $role = $this->trouver($request, $id);
 
-        if ($role->role_par_defaut) { // RG10
+        if ($role->role_par_defaut) {
             return response()->json(['message' => 'Un rôle par défaut ne peut pas être supprimé.'], 422);
         }
-        if (Utilisateur::where('role_id', $role->id)->exists()) { // RG10
+        if (Utilisateur::where('role_id', $role->id)->exists()) {
             return response()->json(['message' => 'Ce rôle est attribué à des comptes : réaffectez-les avant de le supprimer.'], 422);
         }
-        if (! $this->droits->roleAttribuable($request->user(), $role)) { // RG32
+        if (! $this->droits->roleAttribuable($request->user(), $role)) {
             return response()->json(['message' => 'Ce rôle possède des permissions que vous ne détenez pas.'], 403);
         }
 
@@ -157,7 +155,6 @@ class RoleController extends Controller
         return Permission::whereIn('code_permission', $codes)->pluck('id')->all();
     }
 
-    // 404 pour un rôle d'une autre entreprise ou pour le rôle Super-administrateur (RG05)
     private function trouver(Request $request, int $id): Role
     {
         return Role::where('entreprise_id', $request->user()->entreprise_id)->findOrFail($id);

@@ -30,7 +30,6 @@ class EnregistrerMenuRequest extends FormRequest
 
         return $communes + [
             'libelle_menu' => [$p, 'string', 'max:50'],
-            // https://... ou chemin interne /... ; jamais http:, javascript:, data:, //hote ni /\hote
             'url_menu' => [$p, 'string', 'max:500', 'regex:#^(https://[^\s\\\\]+|/(?![/\\\\])[^\s\\\\]*)$#'],
         ];
     }

@@ -21,7 +21,7 @@ class EnregistrerEvenementRequest extends FormRequest
             'titre_evenement' => [$p, 'string', 'max:150'],
             'description_evenement' => 'nullable|string|max:5000',
             'date_debut' => [$p, 'date'],
-            'date_fin' => $post ? ['required', 'date', 'after_or_equal:date_debut'] : ['sometimes', 'date'], // RG27
+            'date_fin' => $post ? ['required', 'date', 'after_or_equal:date_debut'] : ['sometimes', 'date'],
             'lieu' => 'nullable|string|max:100',
             'visibilite' => [$p, 'in:entreprise,departement'],
             'departement_id' => ['required_if:visibilite,departement', 'nullable',

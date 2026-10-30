@@ -61,7 +61,7 @@ function Champ({
 }
 
 type Props = {
-  utilisateur: Utilisateur | null; // null = création
+  utilisateur: Utilisateur | null;
   roles: RoleOption[];
   departements: DepartementOption[];
   onFermer: () => void;
@@ -106,7 +106,6 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
     setValeurs((v) => ({ ...v, [champ]: e.target.value }));
   const err = (champ: string) => erreurs[champ]?.[0];
 
-  // Le rôle actuel du compte peut ne pas être attribuable par l'appelant : on l'affiche quand même
   const rolesAffiches =
     utilisateur && !roles.some((r) => r.id === utilisateur.role_id)
       ? [{ id: utilisateur.role_id, nom_role: utilisateur.role ?? "Rôle actuel" }, ...roles]
@@ -231,7 +230,11 @@ export function UtilisateurFormulaire({ utilisateur, roles, departements, onFerm
             label={edition ? "Nouveau mot de passe" : "Mot de passe"}
             requis={!edition}
             erreur={err("mot_de_passe")}
-            aide={edition ? "Laissez vide pour conserver le mot de passe actuel." : "10 caractères minimum, avec des lettres et des chiffres."}
+            aide={
+              edition
+                ? "Laissez vide pour conserver le mot de passe actuel."
+                : "10 caractères minimum, avec des lettres et des chiffres."
+            }
           >
             <input
               id="f-mdp"

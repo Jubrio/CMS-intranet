@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('titre_evenement', 150);
             $table->text('description_evenement')->nullable();
             $table->dateTime('date_debut');
-            $table->dateTime('date_fin');           // RG27 : >= date_debut
+            $table->dateTime('date_fin');
             $table->string('lieu', 100)->nullable();
-            $table->string('visibilite', 15)->default('entreprise'); // entreprise / departement
+            $table->string('visibilite', 15)->default('entreprise');
             $table->timestamps();
 
             $table->index(['entreprise_id', 'date_debut']);

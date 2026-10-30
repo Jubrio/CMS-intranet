@@ -41,7 +41,6 @@ import {
   pourcent,
 } from "./elements-tableau";
 
-// ---- Formes des réponses de l'API ------------------------------------------
 
 type Personne = { id: number; nom: string; prenom: string };
 

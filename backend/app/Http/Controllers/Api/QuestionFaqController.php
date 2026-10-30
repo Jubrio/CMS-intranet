@@ -14,7 +14,7 @@ class QuestionFaqController extends Controller
     {
         $request->validate(['q' => 'nullable|string|max:100', 'categorie' => 'nullable|string|max:50']);
 
-        $requete = QuestionFaq::where('entreprise_id', $request->user()->entreprise_id); // RG05
+        $requete = QuestionFaq::where('entreprise_id', $request->user()->entreprise_id);
         if ($q = trim((string) $request->query('q'))) {
             $motif = '%'.addcslashes($q, '%_\\').'%';
             $requete->where(fn ($w) => $w->where('question', 'ilike', $motif)->orWhere('reponse', 'ilike', $motif));

@@ -49,7 +49,6 @@ function Champ({
   );
 }
 
-// Choix du responsable : recherche dans les comptes actifs de l'entreprise
 function SelecteurResponsable({
   choisi,
   onChoisir,
@@ -186,13 +185,12 @@ function SelecteurResponsable({
 }
 
 type Props = {
-  departement: Departement | null; // null = création
+  departement: Departement | null;
   tous: Departement[];
   onFermer: () => void;
   onEnregistre: (message: string) => void;
 };
 
-// Identifiants du département et de tous ses descendants (ils ne peuvent pas devenir son parent)
 function descendants(id: number, tous: Departement[]): Set<number> {
   const resultat = new Set<number>([id]);
   let ajout = true;

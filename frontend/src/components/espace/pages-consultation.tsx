@@ -9,9 +9,6 @@ import { CHAMP } from "./utilisateur-formulaire";
 import { formaterDate } from "./annuaire-commun";
 import type { PageInterne } from "./page-formulaire";
 
-// Pages internes en lecture seule : liste regroupée par rubrique (emplacement dans le menu),
-// lecture dans un panneau avec images. L'API ne renvoie que les pages publiées qui nous sont destinées.
-
 type Pagination<T> = { data: T[]; current_page: number; last_page: number; total: number };
 type ImagePage = { id: number; nom_image: string; texte_alternatif: string | null; url: string };
 type Detail = PageInterne & { corps: string; images: ImagePage[] };
@@ -122,7 +119,6 @@ export function PagesConsultation() {
   const [page, setPage] = useState(1);
   const [ouverte, setOuverte] = useState<{ id: number; titre: string } | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -146,7 +142,6 @@ export function PagesConsultation() {
   const enChargement = liste.chargement || (liste.donnees !== null && liste.donnees.cle !== cleCourante);
   const res = liste.donnees?.res ?? null;
 
-  // Regroupement par rubrique, dans l'ordre renvoyé par l'API (rubrique puis titre)
   const rubriques = useMemo(() => {
     const m = new Map<string, PageInterne[]>();
     for (const p of res?.data ?? []) {

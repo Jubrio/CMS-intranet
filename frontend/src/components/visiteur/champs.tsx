@@ -14,7 +14,6 @@ type ChampProps = {
   children: ReactNode;
 };
 
-// Étiquette + contrôle + message d'erreur, reliés pour les lecteurs d'écran
 export function Champ({ id, label, erreur, aide, children }: ChampProps) {
   return (
     <div>

@@ -17,8 +17,6 @@ const sora = Sora({
   fallback: ["system-ui", "Segoe UI", "Arial", "sans-serif"],
 });
 
-// Thème choisi par le visiteur (clair/sombre), lu avant le premier affichage.
-// Sans effet hors des pages visiteur : les styles ne s'appliquent qu'avec .visiteur.
 const SCRIPT_THEME = `(function(){try{var t=localStorage.getItem("visiteur-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.visiteurTheme=t}}catch(e){}})();`;
 
 export const metadata: Metadata = {

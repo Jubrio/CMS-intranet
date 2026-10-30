@@ -8,9 +8,6 @@ import { useEspace } from "./espace-context";
 import { CHAMP } from "./utilisateur-formulaire";
 import type { ImageContenu } from "./lecteur-contenu";
 
-// Images d'une actualité, d'une annonce ou d'un article : elles s'affichent dans le fil d'accueil.
-// Ajout et suppression directs : la publication doit déjà exister (enregistrée en brouillon).
-
 const MAX_IMAGES = 6;
 const MAX_KO = 5120;
 const TYPES_ACCEPTES = ["image/jpeg", "image/png", "image/webp"];

@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class EnregistrerUtilisateurRequest extends FormRequest
 {
@@ -22,7 +22,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
         $superieur = ['nullable', 'integer',
             Rule::exists('utilisateurs', 'id')->where('entreprise_id', $entrepriseId)];
         if ($id) {
-            $superieur[] = Rule::notIn([$id]); // pas son propre supérieur
+            $superieur[] = Rule::notIn([$id]);
         }
 
         return [
@@ -34,7 +34,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
             'role_id' => [$presence, 'integer',
                 Rule::exists('roles', 'id')->where('entreprise_id', $entrepriseId)],
             'departement_id' => ['nullable', 'integer',
-                Rule::exists('departements', 'id')->where('entreprise_id', $entrepriseId)], // RG19
+                Rule::exists('departements', 'id')->where('entreprise_id', $entrepriseId)],
             'superieur_id' => $superieur,
             'telephone' => ['nullable', 'string', 'max:30'],
             'poste' => ['nullable', 'string', 'max:100'],

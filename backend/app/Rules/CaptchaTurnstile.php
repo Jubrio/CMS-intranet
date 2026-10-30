@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Http;
 
-// Vérifie le jeton Cloudflare Turnstile. Sans TURNSTILE_SECRET_KEY, la règle ne fait rien (développement).
 class CaptchaTurnstile implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void

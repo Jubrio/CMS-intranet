@@ -96,12 +96,10 @@ export function Contenus({ config }: { config: ConfigContenu }) {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Liste de l'onglet courant
   const cleCourante = `${statut}|${page}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
       const res = await api<Page<Contenu>>(`/contenus/${config.type}?statut=${statut}&page=${page}`, { token: jeton });
-      // Dernière page vidée (ex. dernier contenu archivé) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },
@@ -111,7 +109,6 @@ export function Contenus({ config }: { config: ConfigContenu }) {
   const enChargement = liste.chargement || (liste.donnees !== null && liste.donnees.cle !== cleCourante);
   const res = liste.donnees?.res ?? null;
 
-  // Compteurs des trois onglets
   const chargerTotaux = useCallback(
     async (jeton: string) => {
       void version;
@@ -124,7 +121,6 @@ export function Contenus({ config }: { config: ConfigContenu }) {
   );
   const totaux = useDonnees(autorise, chargerTotaux);
 
-  // Départements : liste complète si le rôle y a accès ; sinon le Manager garde son propre département
   const chargerDepartements = useCallback(
     async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
     [],

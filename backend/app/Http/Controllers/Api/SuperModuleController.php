@@ -9,9 +9,6 @@ use App\Models\ModuleEntreprise;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
-// Catalogue des modules vu par le Super-administrateur (consultation).
-// Le catalogue est défini par le ModuleSeeder, qui réécrit nom et description à chaque
-// exécution : il n'est donc pas modifiable depuis l'API.
 class SuperModuleController extends Controller
 {
     public function index(): JsonResponse

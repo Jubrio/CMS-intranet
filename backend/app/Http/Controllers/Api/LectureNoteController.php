@@ -15,7 +15,6 @@ class LectureNoteController extends Controller
 {
     public function __construct(private AccesContenus $acces) {}
 
-    // Un destinataire confirme avoir lu une note publiee (RG24). Idempotent.
     public function confirmer(Request $request, int $id): JsonResponse
     {
         $u = $request->user();
@@ -23,16 +22,15 @@ class LectureNoteController extends Controller
             abort(403, 'Action non autorisée.');
         }
 
-        $note = $this->noteDestinee($u, $id); // 404 si brouillon, archivee, hors public ou hors entreprise
+        $note = $this->noteDestinee($u, $id);
 
         $cle = ['contenu_id' => $note->id, 'utilisateur_id' => $u->id];
         try {
             $lecture = LectureNote::firstOrCreate($cle, [
-                'entreprise_id' => $u->entreprise_id, // RG05
+                'entreprise_id' => $u->entreprise_id,
                 'date_lecture' => now(),
             ]);
         } catch (UniqueConstraintViolationException) {
-            // deux envois simultanes : la contrainte d'unicite a tranche
             $lecture = LectureNote::where($cle)->firstOrFail();
         }
 
@@ -43,7 +41,6 @@ class LectureNoteController extends Controller
         ], $lecture->wasRecentlyCreated ? 201 : 200);
     }
 
-    // Suivi pour les publicateurs : combien de destinataires, qui a lu et quand
     public function lectures(Request $request, int $id): JsonResponse
     {
         $u = $request->user();
@@ -54,7 +51,6 @@ class LectureNoteController extends Controller
         $note = Contenu::where('entreprise_id', $u->entreprise_id)
             ->where('type_contenu', 'note_service')->findOrFail($id);
 
-        // RG21 : un Manager ne suit que les notes de son departement
         if (! $this->acces->peutCibler($u, $note->visibilite, $note->departement_id)) {
             abort(403, 'Un Manager ne gère que les contenus de son département.');
         }
@@ -82,7 +78,6 @@ class LectureNoteController extends Controller
         ]);
     }
 
-    // Note publiee de l'entreprise, destinee a toute l'entreprise ou au departement de l'appelant
     private function noteDestinee(Utilisateur $u, int $id): Contenu
     {
         return Contenu::where('entreprise_id', $u->entreprise_id)

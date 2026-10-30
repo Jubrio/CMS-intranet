@@ -47,7 +47,7 @@ function Champ({
 }
 
 type Props = {
-  question: QuestionFaq | null; // null = création
+  question: QuestionFaq | null;
   categories: string[];
   categorieParDefaut: string;
   onFermer: () => void;

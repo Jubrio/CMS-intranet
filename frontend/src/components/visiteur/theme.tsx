@@ -8,8 +8,6 @@ type Theme = "light" | "dark";
 const CLE = "visiteur-theme";
 const abonnes = new Set<() => void>();
 
-// Le thème vit dans l'attribut data-visiteur-theme de <html> (posé avant le
-// premier affichage par le script du layout). Sombre = attribut absent ou "dark".
 function abonner(cb: () => void) {
   abonnes.add(cb);
   return () => {
@@ -25,15 +23,12 @@ function appliquer(theme: Theme, memoriser: boolean) {
     try {
       localStorage.setItem(CLE, theme);
     } catch {
-      // stockage indisponible : le choix vaut pour cette visite seulement
+      // stockage indisponible
     }
   }
   abonnes.forEach((cb) => cb());
 }
 
-// Enveloppe de toutes les pages visiteur. Tant qu'elle est montée, les
-// couleurs du site (variables --site-*) sont actives ; en la quittant on
-// retire l'attribut, pour ne pas toucher à l'application connectée.
 export function VisiteurShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {

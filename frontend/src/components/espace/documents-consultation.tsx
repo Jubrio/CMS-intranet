@@ -22,14 +22,10 @@ import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
 import { formaterTaille, type DocumentFichier } from "./document-formulaire";
 
-// Documents en lecture seule : recherche, filtre par catégorie, téléchargement.
-// L'API ne renvoie que les documents visibles par l'utilisateur (entreprise ou son département).
-
 type Pagination<T> = { data: T[]; current_page: number; last_page: number; total: number };
 
 const date = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-// Famille du fichier d'après son type MIME : icône et étiquette
 function famille(mime: string): { icone: LucideIcon; etiquette: string } {
   if (mime === "application/pdf") return { icone: FileText, etiquette: "PDF" };
   if (mime.includes("word") || mime === "application/msword") return { icone: FileText, etiquette: "Word" };
@@ -54,7 +50,6 @@ export function DocumentsConsultation() {
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [erreurTelechargement, setErreurTelechargement] = useState<string | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -75,7 +70,6 @@ export function DocumentsConsultation() {
   );
   const cats = useDonnees(true, chargerCategories);
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
-  // Une catégorie qui n'existe plus ne filtre plus
   const categorie = cats.donnees === null || categories.includes(categorieChoisie) ? categorieChoisie : "";
 
   const cleCourante = `${page}|${q}|${categorie}`;

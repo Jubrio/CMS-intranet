@@ -25,7 +25,6 @@ import { useEspace } from "./espace-context";
 import { ICONES_TYPE, LecteurContenu, type Ouvert, type TypeContenu } from "./lecteur-contenu";
 import { useDonnees } from "./use-donnees";
 
-// ---- Formes des réponses de l'API (GET /employe/tableau-de-bord) -------------------
 
 type Auteur = { id: number; nom: string; prenom: string } | null;
 type Personne = { id: number; nom: string; prenom: string; poste: string | null; photo: string | null };
@@ -101,8 +100,6 @@ const nombre = new Intl.NumberFormat("fr-FR");
 const pluriel = (n: number, singulier: string, plur: string) => (n > 1 ? plur : singulier);
 const nomComplet = (p: { prenom: string; nom: string }) => `${p.prenom} ${p.nom}`;
 const initialesDe = (p: { prenom: string; nom: string }) => `${p.prenom.charAt(0)}${p.nom.charAt(0)}`.toUpperCase();
-
-// "2026-10-23 14:30:00" (heure locale, sans fuseau) -> Date
 const dateLocale = (s: string) => parseISO(s.replace(" ", "T"));
 
 const depuis = (iso: string | null) => (iso ? formatDistanceToNow(new Date(iso), { addSuffix: true, locale: fr }) : "");
@@ -133,7 +130,6 @@ const LIBELLES_MANQUE: Record<string, string> = {
 const BOUTON_PETIT =
   "inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50";
 
-// ---- Éléments d'affichage ----------------------------------------------------------
 
 type Accent = "violet" | "blue" | "cyan";
 
@@ -272,7 +268,6 @@ export function EmployeTableauDeBord() {
   const aujourdhui = format(new Date(), "EEEE d MMMM yyyy", { locale: fr });
   const maintenant = new Date();
 
-  // Première charge : squelette. Les rechargements gardent l'écran affiché.
   if (!d) {
     return (
       <div className="space-y-6">

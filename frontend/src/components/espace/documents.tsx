@@ -32,7 +32,6 @@ type Pagination<T> = { data: T[]; current_page: number; last_page: number; per_p
 const nombre = new Intl.NumberFormat("fr-FR");
 const date = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
-// Famille du fichier d'après son type MIME : icône et étiquette
 function famille(mime: string): { icone: LucideIcon; etiquette: string } {
   if (mime === "application/pdf") return { icone: FileText, etiquette: "PDF" };
   if (mime.includes("word") || mime === "application/msword") return { icone: FileText, etiquette: "Word" };
@@ -118,7 +117,6 @@ export function Documents() {
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -133,7 +131,6 @@ export function Documents() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  // Catégories existantes (filtre et suggestions du formulaire)
   const chargerCategories = useCallback(
     async (jeton: string) => {
       void version;
@@ -143,10 +140,8 @@ export function Documents() {
   );
   const cats = useDonnees(autorise, chargerCategories);
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
-  // Une catégorie qui n'existe plus (dernier document supprimé) ne filtre plus
   const categorie = cats.donnees === null || categories.includes(categorieChoisie) ? categorieChoisie : "";
 
-  // Total de tous les documents visibles, sans filtre
   const chargerTotal = useCallback(
     async (jeton: string) => {
       void version;
@@ -156,7 +151,6 @@ export function Documents() {
   );
   const total = useDonnees(autorise, chargerTotal);
 
-  // Liste filtrée
   const cleCourante = `${page}|${q}|${categorie}|${version}`;
   const chargerListe = useCallback(
     async (jeton: string) => {
@@ -164,7 +158,6 @@ export function Documents() {
       if (q) p.set("q", q);
       if (categorie) p.set("categorie", categorie);
       const res = await api<Pagination<DocumentFichier>>(`/documents?${p.toString()}`, { token: jeton });
-      // Dernière page vidée (ex. dernier document supprimé) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },
@@ -174,7 +167,6 @@ export function Documents() {
   const enChargement = liste.chargement || (liste.donnees !== null && liste.donnees.cle !== cleCourante);
   const res = liste.donnees?.res ?? null;
 
-  // Départements : liste complète si le rôle y a accès ; sinon le département de l'utilisateur
   const chargerDepartements = useCallback(
     async (jeton: string) => api<DepartementOption[]>("/departements", { token: jeton }),
     [],

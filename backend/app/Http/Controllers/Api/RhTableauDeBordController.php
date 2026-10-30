@@ -10,9 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-// Tableau de bord des ressources humaines : effectifs, arrivées, ancienneté, qualité des fiches.
-// Tout est calculé sur l'entreprise de l'appelant (RG05) et réservé à « utilisateurs.gerer ».
-// Les comptes sont lus en une fois (colonnes utiles seulement) : adapté à une entreprise, pas à une plateforme.
 class RhTableauDeBordController extends Controller
 {
     private const NB_MOIS = 12;
@@ -73,7 +70,6 @@ class RhTableauDeBordController extends Controller
         ];
     }
 
-    // Embauches par mois sur 12 mois, d'après la date d'embauche renseignée
     private function arriveesParMois($actifs, Carbon $aujourdhui): array
     {
         $debut = $aujourdhui->copy()->startOfMonth()->subMonths(self::NB_MOIS - 1);
@@ -132,7 +128,6 @@ class RhTableauDeBordController extends Controller
             ])->values()->all();
     }
 
-    // Complétude des fiches des comptes actifs : champs utiles au suivi RH
     private function fiches($actifs): array
     {
         $criteres = [
@@ -163,7 +158,6 @@ class RhTableauDeBordController extends Controller
             }
         }
 
-        // Les fiches les plus lacunaires d'abord
         usort($incompletes, fn ($a, $b) => count($b['manque']) <=> count($a['manque']) ?: strcmp($a['nom'], $b['nom']));
 
         return [

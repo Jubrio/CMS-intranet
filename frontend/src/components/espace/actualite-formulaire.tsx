@@ -56,11 +56,10 @@ function Champ({
 }
 
 type Props = {
-  actualite: Actualite | null; // null = création
+  actualite: Actualite | null;
   departements: DepartementOption[];
-  manager: boolean; // RG21 : un Manager ne publie que pour son département
+  manager: boolean;
   onFermer: () => void;
-  // `publiee` : l'actualité a aussi été publiée ; `echecPublication` : enregistrée mais non publiée
   onEnregistre: (message: string, echecPublication?: string) => void;
 };
 
@@ -84,7 +83,6 @@ export function ActualiteFormulaire({ actualite, departements, manager, onFermer
   const [message, setMessage] = useState<string | null>(null);
   const premierChamp = useRef<HTMLInputElement>(null);
 
-  // Le corps complet n'est pas dans la liste
   const actualiteId = actualite?.id ?? null;
   useEffect(() => {
     if (actualiteId === null) return;

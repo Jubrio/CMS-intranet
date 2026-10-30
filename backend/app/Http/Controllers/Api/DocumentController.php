@@ -52,7 +52,6 @@ class DocumentController extends Controller
         return response()->json($this->formater($d));
     }
 
-    // RG21 : un Manager ne gère que les documents de son département
     private function verifierPortee(Utilisateur $u, string $visibilite, $departementId): void
     {
         $dept = $departementId ? (int) $departementId : null;
@@ -70,7 +69,6 @@ class DocumentController extends Controller
         ]);
     }
 
-    // Fichier du document. Route HORS authentification : l'accès est contrôlé par la signature de l'adresse.
     public function fichier(Request $request, int $id)
     {
         return $this->envoyer(Document::findOrFail($id));
@@ -82,7 +80,6 @@ class DocumentController extends Controller
         $disque = Storage::disk('local');
         abort_unless($disque->exists($d->fichier), 404);
 
-        // Nom proposé : celui du document + l'extension du fichier, sans caractère interdit dans un en-tête
         $nom = trim(preg_replace('/[\/\\\\"\x00-\x1F\x7F]+/', '-', $d->nom_document), ' .-');
         $extension = pathinfo($d->fichier, PATHINFO_EXTENSION);
 
@@ -104,7 +101,7 @@ class DocumentController extends Controller
         $chemin = $fichier->store('documents/'.$u->entreprise_id, 'local');
 
         $doc = Document::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
             'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null,
             'nom_document' => Str::limit($nom, 150, ''),
@@ -115,7 +112,6 @@ class DocumentController extends Controller
             'visibilite' => $d['visibilite'],
         ]);
 
-        // Notifie toute l'entreprise, ou seulement le département ciblé
         $this->notifications->publier($u, 'depose', 'document', $doc->id, $doc->nom_document, $doc->departement_id);
 
         return response()->json($this->formater($doc->load('auteur:id,nom,prenom')), 201);
@@ -125,7 +121,7 @@ class DocumentController extends Controller
     {
         $u = $request->user();
         $doc = Document::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
-        $this->verifierPortee($u, $doc->visibilite, $doc->departement_id); // l'existant
+        $this->verifierPortee($u, $doc->visibilite, $doc->departement_id);
 
         $d = $request->validated();
         if (empty($d)) {
@@ -141,7 +137,7 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Un département est requis.',
                 'errors' => ['departement_id' => ['Un département est requis.']]], 422);
         }
-        $this->verifierPortee($u, $visibilite, $dept); // la nouvelle valeur
+        $this->verifierPortee($u, $visibilite, $dept);
 
         $doc->update(Arr::only($d, ['nom_document', 'categorie']) + ['visibilite' => $visibilite, 'departement_id' => $dept]);
 
@@ -161,7 +157,6 @@ class DocumentController extends Controller
         return response()->json(['message' => 'Document supprimé.']);
     }
 
-    // Documents de l'entreprise, destinés à tous, à mon département, ou que j'ai déposés (RG05, RG26)
     private function visibles(Utilisateur $u): Builder
     {
         return Document::where('entreprise_id', $u->entreprise_id)

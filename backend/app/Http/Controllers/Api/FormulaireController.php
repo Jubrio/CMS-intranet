@@ -32,7 +32,6 @@ class FormulaireController extends Controller
         $page = $requete->withCount('reponses')->with('auteur:id,nom,prenom')
             ->orderByDesc('id')->paginate(20);
 
-        // formulaires déjà remplis par l'appelant (une seule requête pour la page)
         $remplis = Reponse::where('utilisateur_id', $u->id)
             ->whereIn('formulaire_id', $page->pluck('id'))
             ->pluck('formulaire_id')->all();
@@ -62,7 +61,7 @@ class FormulaireController extends Controller
         $d = $request->validated();
 
         $f = Formulaire::create([
-            'entreprise_id' => $u->entreprise_id, // RG05
+            'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
             'departement_id' => $d['visibilite'] === 'departement' ? $d['departement_id'] : null,
             'titre_formulaire' => $d['titre_formulaire'],
@@ -138,12 +137,11 @@ class FormulaireController extends Controller
 
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $this->gerer($request, $id)->delete(); // les réponses suivent (cascade)
+        $this->gerer($request, $id)->delete();
 
         return response()->json(['message' => 'Formulaire supprimé.']);
     }
 
-    // Réponses d'un formulaire (gestionnaires seulement)
     public function reponses(Request $request, int $id): JsonResponse
     {
         $f = $this->gerer($request, $id);
@@ -164,13 +162,11 @@ class FormulaireController extends Controller
     public function repondre(Request $request, int $id): JsonResponse
     {
         $u = $request->user();
-        // 404 si le formulaire n'est pas dans le public cible (RG05, RG30)
         $f = $this->visibles($u, false, false)->findOrFail($id);
 
         $valeurs = $request->validate(['valeurs' => 'required|array|max:30'])['valeurs'];
         $propre = $this->controlerValeurs($f, $valeurs);
 
-        // Transaction + verrou : deux envois simultanés ne passent pas la réponse unique (RG29)
         $reponse = DB::transaction(function () use ($f, $u, $propre) {
             $f = Formulaire::whereKey($f->id)->lockForUpdate()->first();
 
@@ -192,14 +188,11 @@ class FormulaireController extends Controller
         return response()->json(['message' => 'Réponse enregistrée.', 'id' => $reponse->id], 201);
     }
 
-    // ---------- outils ----------
-
     private function peutGerer(Utilisateur $u): bool
     {
         return $u->role->permissions()->where('code_permission', 'formulaires.gerer')->exists();
     }
 
-    // Gestionnaire : 404 hors entreprise (RG05)
     private function gerer(Request $request, int $id): Formulaire
     {
         $u = $request->user();
@@ -232,7 +225,6 @@ class FormulaireController extends Controller
         });
     }
 
-    // On ne garde que les clés connues d'un champ ; les options n'existent que pour les choix
     private function nettoyerChamps(array $champs): array
     {
         return array_values(array_map(function ($c) {
@@ -250,7 +242,6 @@ class FormulaireController extends Controller
         }, $champs));
     }
 
-    // Contrôle des valeurs saisies contre la définition du formulaire
     private function controlerValeurs(Formulaire $f, array $valeurs): array
     {
         $erreurs = [];

@@ -11,8 +11,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
-// Tableau de bord de la plateforme (Super-administrateur).
-// Ne renvoie que des compteurs et la configuration : jamais les contenus des entreprises (RG06).
 class SuperTableauDeBordController extends Controller
 {
     private const NB_MOIS = 12;
@@ -30,7 +28,6 @@ class SuperTableauDeBordController extends Controller
         $nbComptes = (clone $comptes)->count();
         $nbComptesActifs = (clone $comptes)->where('statut_compte', 'actif')->count();
 
-        // Modules : nombre d'entreprises qui utilisent chacun
         $usages = ModuleEntreprise::where('module_actif', true)
             ->select('module_id', DB::raw('count(*) as nb'))
             ->groupBy('module_id')
@@ -76,7 +73,6 @@ class SuperTableauDeBordController extends Controller
         ]);
     }
 
-    // Créations par mois sur les 12 derniers mois (calculé en PHP : indépendant du SGBD)
     private function croissance(Carbon $maintenant): array
     {
         $debut = $maintenant->copy()->startOfMonth()->subMonths(self::NB_MOIS - 1);
@@ -130,18 +126,15 @@ class SuperTableauDeBordController extends Controller
             ->all();
     }
 
-    // Points d'attention : chaque alerte donne le total et un échantillon d'entreprises
     private function alertes(): array
     {
         $suspendues = Entreprise::where('statut_entreprise', '!=', 'active');
 
-        // Intranet actif dont plus aucun administrateur ne peut se connecter
         $sansAdmin = Entreprise::where('statut_entreprise', 'active')
             ->whereDoesntHave('utilisateurs', fn ($q) => $q
                 ->where('statut_compte', 'actif')
                 ->whereHas('role', fn ($r) => $r->where('nom_role', 'Administrateur')));
 
-        // Intranet actif qui n'a activé aucun module optionnel : probablement pas encore adopté
         $sansOptionnel = Entreprise::where('statut_entreprise', 'active')
             ->whereDoesntHave('modules', fn ($q) => $q
                 ->where('module_actif', true)

@@ -9,11 +9,6 @@ use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
-    // Menu de l'appelant (RG36, RG37) :
-    //  - modules actifs dont son role a au moins une permission, avec les reglages de l'administrateur
-    //  - liens personnalises visibles pour son role
-    //  - pages publiees qui lui sont destinees, groupees par rubrique (RG35)
-    // Le menu ne donne jamais un droit que les permissions refusent.
     public function index(Request $request): JsonResponse
     {
         $u = $request->user();
@@ -25,8 +20,6 @@ class MenuController extends Controller
         $lignes = Menu::where('entreprise_id', $u->entreprise_id)->with('roles')->get();
         $parModule = $lignes->where('type_menu', 'module')->keyBy('module_id');
 
-        // Une entree est montree si elle n'est pas masquee et si le role est autorise
-        // (liste de roles vide + roles_limites = personne : on ne s'ouvre jamais par erreur)
         $montre = fn (Menu $l) => $l->visible
             && (! $l->roles_limites || $l->roles->contains('id', $u->role_id));
 
@@ -42,7 +35,6 @@ class MenuController extends Controller
                     'code' => $m->code_module,
                     'libelle' => $l?->libelle_menu ?? $m->nom_module,
                     'ordre' => $l?->ordre_menu ?? $m->id * 10,
-                    // Réglages de l'administrateur seuls (null = comportement par défaut)
                     'libelle_perso' => $l?->libelle_menu,
                     'ordre_perso' => $l?->ordre_menu,
                 ];
@@ -59,7 +51,6 @@ class MenuController extends Controller
                 'ordre' => $l->ordre_menu ?? MenuGestionController::ORDRE_LIEN,
             ])->values();
 
-        // Pages : seulement si le module pages est actif ET que le role peut les consulter
         $pagesActives = $actifs->contains(fn ($m) => $m->code_module === 'pages')
             && $codes->contains('pages.consulter');
 

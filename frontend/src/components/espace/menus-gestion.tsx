@@ -8,9 +8,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { CHAMP } from "./utilisateur-formulaire";
 
-// Configuration du menu de l'intranet : libellé, ordre, visibilité et rôles autorisés de chaque
-// module, plus des liens personnalisés (page web externe ou chemin interne). Réservé à l'administrateur.
-
 type ModuleMenu = {
   code: string;
   libelle_defaut: string;
@@ -32,8 +29,7 @@ type VueMenus = { modules: ModuleMenu[]; liens: LienMenu[] };
 type RoleOption = { id: number; nom_role: string };
 type Edition = { type: "module"; module: ModuleMenu } | { type: "lien"; lien: LienMenu | null };
 
-const MAX_LIENS = 30; // identique au serveur
-// Même règle que le serveur : https://… ou chemin interne /…, jamais http:, javascript:, data: ni //hôte
+const MAX_LIENS = 30;
 const REGEX_URL = /^(https:\/\/[^\s\\]+|\/(?![/\\])[^\s\\]*)$/;
 
 function Squelette({ className }: { className?: string }) {
@@ -154,7 +150,7 @@ function Modale({
   );
 }
 
-// ---- Formulaire d'une entrée (module ou lien) ---------------------------------------
+// ---- Formulaire d'une entrée  ---------------------------------------
 
 function FormulaireEntree({
   edition,
@@ -211,7 +207,6 @@ function FormulaireEntree({
     }
 
     const corps: Record<string, unknown> = {
-      // Module : un libellé vide ou identique à celui d'origine revient au nom par défaut
       libelle_menu: estModule ? (nom === "" || nom === entreeModule?.libelle_defaut ? null : nom) : nom,
       ordre_menu: ordre.trim() === "" ? null : Number(ordre),
       visible,
@@ -436,7 +431,6 @@ function FormulaireEntree({
 
 export function MenusGestion() {
   const { profil, token, expirer, actualiser } = useEspace();
-  // Même permission que côté serveur pour les routes /menus
   const autorise = profil.permissions.includes("personnalisation.parametres");
 
   const [version, setVersion] = useState(0);
@@ -473,7 +467,7 @@ export function MenusGestion() {
 
   const fermer = useCallback(() => setEdition(null), []);
   const apresEnregistrement = (texte: string) => {
-    void actualiser(); // le menu latéral suit aussitôt
+    void actualiser();
     setEdition(null);
     setNotice({ type: "ok", texte });
     setVersion((v) => v + 1);
@@ -484,7 +478,7 @@ export function MenusGestion() {
     setNotice(null);
     try {
       await requete();
-      await actualiser(); // le menu latéral suit aussitôt
+      await actualiser();
       setNotice({ type: "ok", texte: succes });
       setVersion((v) => v + 1);
     } catch (err) {

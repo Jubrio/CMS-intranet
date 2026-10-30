@@ -19,7 +19,6 @@ const normaliser = (s: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-// Liste ordonnée « arbre » : chaque département suit son parent, avec sa profondeur
 function aplatir(liste: Departement[]): Noeud[] {
   const ids = new Set(liste.map((d) => d.id));
   const enfants = new Map<number | null, Departement[]>();
@@ -39,7 +38,6 @@ function aplatir(liste: Departement[]): Noeud[] {
     }
   };
   visiter(null, 0);
-  // Garde-fou : une éventuelle boucle de données n'est jamais masquée
   for (const d of liste) {
     if (!vus.has(d.id)) {
       vus.add(d.id);
@@ -141,7 +139,6 @@ export function Departements() {
 
   const arbre = useMemo(() => (donnees ? aplatir(donnees) : []), [donnees]);
 
-  // Recherche : on garde les départements trouvés et leurs ancêtres pour conserver l'arbre lisible
   const visibles = useMemo(() => {
     const terme = normaliser(recherche.trim());
     if (!terme) return arbre;

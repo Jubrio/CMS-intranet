@@ -12,9 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-// Gestion des intranets (entreprises) par le Super-administrateur de la plateforme.
-// Le contrôleur ne lit que des compteurs et la configuration : jamais les contenus des
-// entreprises (RG06).
 class SuperIntranetController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -32,7 +29,6 @@ class SuperIntranetController extends Controller
             $requete->where('statut_entreprise', $request->query('statut') === 'suspendue' ? 'suspendue' : 'active');
         }
 
-        // ilike (insensible à la casse sous PostgreSQL) et échappement de %, _ et \
         if ($request->filled('q')) {
             $q = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $request->query('q')).'%';
             $requete->where(fn ($w) => $w->where('nom_entreprise', 'ilike', $q)
@@ -92,7 +88,6 @@ class SuperIntranetController extends Controller
         DB::transaction(function () use ($entreprise, $donnees) {
             $entreprise->update(['statut_entreprise' => $donnees['statut']]);
 
-            // Suspension : les sessions ouvertes de l'entreprise sont fermées aussitôt
             if ($donnees['statut'] === 'suspendue') {
                 DB::table('personal_access_tokens')
                     ->where('tokenable_type', Utilisateur::class)

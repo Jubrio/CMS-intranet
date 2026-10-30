@@ -11,8 +11,6 @@ import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { ICONES_TYPE, LecteurContenu, type ImageContenu, type Ouvert, type TypeContenu } from "./lecteur-contenu";
 
-// Accueil de l'employé : un fil de publications façon réseau social, de la plus récente à la plus
-// ancienne (actualités, annonces, articles, notes de service). Les pages se chargent au défilement.
 
 type Post = {
   type: TypeContenu;
@@ -52,7 +50,7 @@ const COULEUR_TYPE: Record<TypeContenu, string> = {
   note_service: "bg-brand-violet/12 text-brand-violet",
 };
 
-const LONGUEUR_VISIBLE = 320; // au-delà, « Voir plus » ouvre la lecture complète
+const LONGUEUR_VISIBLE = 320; 
 
 const BOUTON_PETIT =
   "inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1 text-xs font-semibold text-site-ink transition-colors hover:border-brand-violet/60 disabled:pointer-events-none disabled:opacity-50";
@@ -60,7 +58,6 @@ const BOUTON_PETIT =
 const nomComplet = (p: { prenom: string; nom: string }) => `${p.prenom} ${p.nom}`;
 const initialesDe = (p: { prenom: string; nom: string }) => `${p.prenom.charAt(0)}${p.nom.charAt(0)}`.toUpperCase();
 
-// « 3 février, 10:30 », avec l'année si elle n'est pas l'année en cours
 function dateAffichee(iso: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -69,8 +66,6 @@ function dateAffichee(iso: string | null) {
 
 const ilYA = (iso: string | null) =>
   iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "";
-
-// ---- Éléments d'affichage ----------------------------------------------------------
 
 function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
@@ -119,7 +114,6 @@ function Avatar({ auteur }: { auteur: Post["auteur"] }) {
   );
 }
 
-// Images de la publication : 1 grande, 2 côte à côte, 3 (1 + 2), 4 ou plus (grille 2×2 avec « +N »)
 function Galerie({ images, onOuvrir }: { images: ImageContenu[]; onOuvrir: () => void }) {
   const n = images.length;
   if (n === 0) return null;
@@ -215,7 +209,6 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
       </header>
 
       {estArticle ? (
-        // Article : carte « lien » avec couverture, titre et résumé
         <button
           type="button"
           onClick={onOuvrir}
@@ -298,8 +291,6 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
   );
 }
 
-// ---- Flux : première page + pages suivantes au défilement --------------------------
-
 function Flux({ type }: { type: Filtre }) {
   const { token, expirer } = useEspace();
   const [ouvert, setOuvert] = useState<Ouvert | null>(null);
@@ -349,7 +340,6 @@ function Flux({ type }: { type: Filtre }) {
     }
   }, [prochaine, filtreUrl, token, expirer]);
 
-  // Défilement infini : quand le bas du fil approche, on charge la page suivante
   useEffect(() => {
     const cible = sentinelle.current;
     if (!cible || !encore || chargementSuite || erreurSuite) return;
@@ -444,11 +434,9 @@ function Flux({ type }: { type: Filtre }) {
   );
 }
 
-// ---- Écran Accueil -----------------------------------------------------------------
 
 const TYPES_CONTENU: TypeContenu[] = ["actualite", "annonce", "article", "note_service"];
 
-// « ?ouvrir=actualite-12 » : publication à ouvrir directement (clic sur une notification)
 function lireCible(valeur: string | null): Ouvert | null {
   const m = valeur?.match(/^([a-z_]+)-(\d+)$/);
   if (!m || !TYPES_CONTENU.includes(m[1] as TypeContenu)) return null;

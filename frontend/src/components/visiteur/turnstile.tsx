@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-// Captcha Cloudflare Turnstile. Affiché seulement si NEXT_PUBLIC_TURNSTILE_SITE_KEY est défini.
 const SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 type Api = {

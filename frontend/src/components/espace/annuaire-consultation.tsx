@@ -17,8 +17,6 @@ import {
 } from "./annuaire-commun";
 import { PanneauFiche } from "./organigramme-consultation";
 
-// Annuaire en lecture seule : retrouver un collègue par nom, prénom, poste ou département.
-// Un clic ouvre sa fiche (coordonnées, supérieur, équipe directe).
 
 function Squelette({ className }: { className?: string }) {
   return <div aria-hidden className={cn("animate-pulse rounded-md bg-site-line", className)} />;
@@ -31,7 +29,6 @@ export function AnnuaireConsultation() {
   const [page, setPage] = useState(1);
   const [ficheId, setFicheId] = useState<number | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -40,11 +37,9 @@ export function AnnuaireConsultation() {
     return () => clearTimeout(t);
   }, [saisie]);
 
-  // Départements : alimentent le filtre (l'organigramme est lisible avec le même droit que l'annuaire)
   const chargerOrga = useCallback((jeton: string) => api<NoeudOrga[]>("/organigramme", { token: jeton }), []);
   const orga = useDonnees(true, chargerOrga);
   const departements = useMemo(() => (orga.donnees ? aplatirOrga(orga.donnees) : []), [orga.donnees]);
-  // Un département qui n'existe plus ne filtre plus
   const departementActif =
     orga.donnees === null || departements.some((d) => String(d.id) === departement) ? departement : "";
 
@@ -55,7 +50,6 @@ export function AnnuaireConsultation() {
       if (q) p.set("q", q);
       if (departementActif) p.set("departement_id", departementActif);
       const res = await api<Pagination<Employe>>(`/annuaire?${p.toString()}`, { token: jeton });
-      // Dernière page vidée : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },

@@ -72,7 +72,7 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
       setBase(res);
       setNom(res.nom_entreprise);
       setEmail(res.email_contact ?? "");
-      majPerso(res); // le nom change aussitôt dans le menu et l'en-tête
+      majPerso(res);
       setNotice({ type: "ok", texte: "Les paramètres sont enregistrés." });
     } catch (e2) {
       if (e2 instanceof ApiError && e2.status === 401) {

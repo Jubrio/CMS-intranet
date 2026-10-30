@@ -28,7 +28,7 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    // Captcha Cloudflare Turnstile pour la création publique d'intranet (désactivé si la clé est absente)
+    // Captcha Cloudflare Turnstile pour la création publique d'intranet
     'turnstile' => [
         'secret' => env('TURNSTILE_SECRET_KEY'),
     ],

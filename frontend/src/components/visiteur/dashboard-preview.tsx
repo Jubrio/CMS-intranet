@@ -1,6 +1,5 @@
 import { Bell, CheckCircle2, FolderOpen, Layers, LayoutDashboard, Newspaper, Settings, Users } from "lucide-react";
 
-// Maquette illustrative d'un intranet : aucune donnée réelle
 export function DashboardPreview({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (

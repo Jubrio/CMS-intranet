@@ -7,6 +7,7 @@ use App\Http\Requests\LoginRequest;
 use App\Models\Module;
 use App\Models\ModuleEntreprise;
 use App\Models\Utilisateur;
+use App\Services\FichiersProfil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,6 @@ class AuthController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
-        // Limitation par couple e-mail + IP, en plus du throttle par IP de la route
         $cle = 'login:'.mb_strtolower((string) $request->email).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($cle, 5)) {
             return response()->json([
@@ -28,8 +28,6 @@ class AuthController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        // Hash::check est toujours exécuté (hash factice si le compte n'existe pas) :
-        // le temps de réponse ne révèle pas si l'e-mail existe.
         $hashFactice = '$2y$12$J3bPZ4GK1B9TL4lHlDGY0.gL85q7Q5tcxFTclvWpJIdB4ggMa4n.K';
         $motDePasseOk = Hash::check($request->mot_de_passe, $utilisateur?->mot_de_passe ?? $hashFactice);
 
@@ -80,7 +78,7 @@ class AuthController extends Controller
             'departement_id' => $u->departement_id,
             'telephone' => $u->telephone,
             'poste' => $u->poste,
-            'photo' => \App\Services\FichiersProfil::url($u->photo),
+            'photo' => FichiersProfil::url($u->photo),
             'entreprise' => $u->entreprise?->nom_entreprise,
             'permissions' => $u->role->permissions->pluck('code_permission'),
             'modules_actifs' => $modules,

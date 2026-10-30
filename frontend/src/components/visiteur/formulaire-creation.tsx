@@ -58,7 +58,6 @@ type Reponse = {
   token: string;
 };
 
-// Retrouve l'étape qui porte un champ renvoyé en erreur par l'API
 function etapeDuChamp(champ: string): number {
   const base = champ.split(".")[0];
   const i = ETAPES.findIndex((e) => (e.champs as string[]).includes(base));

@@ -9,7 +9,6 @@ import { CHAMP } from "./utilisateur-formulaire";
 import { formaterDate } from "./annuaire-commun";
 import type { CategorieFaq, QuestionFaq } from "./faq-formulaire";
 
-// FAQ en lecture seule : recherche, filtre par catégorie, réponses dépliables.
 
 type Pagination<T> = { data: T[]; current_page: number; last_page: number; total: number };
 
@@ -24,7 +23,6 @@ export function FaqConsultation() {
   const [page, setPage] = useState(1);
   const [ouvertes, setOuvertes] = useState<Set<number>>(new Set());
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -39,7 +37,6 @@ export function FaqConsultation() {
   );
   const cats = useDonnees(true, chargerCategories);
   const categories = useMemo(() => cats.donnees ?? [], [cats.donnees]);
-  // Une catégorie qui n'existe plus ne filtre plus
   const categorie =
     cats.donnees === null || categories.some((c) => c.categorie === categorieChoisie) ? categorieChoisie : "";
 

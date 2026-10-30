@@ -8,7 +8,6 @@ export function Hero({ nombreModules }: { nombreModules: number }) {
   return (
     <section id="top" className="v-noise relative overflow-hidden px-6 pb-24 pt-40 lg:px-10 lg:pb-32 lg:pt-48">
       <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[55%_45%]">
-        {/* Colonne texte : entre de la gauche vers la droite */}
         <div>
           <Entree depuis="gauche" delay={0.05}>
             <h1 className="font-display text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.4rem]">
@@ -77,8 +76,6 @@ export function Hero({ nombreModules }: { nombreModules: number }) {
             </dl>
           </Entree>
         </div>
-
-        {/* Aperçu : entre de la droite vers la gauche */}
         <Entree depuis="droite" delay={0.3} className="relative">
           <DashboardPreview compact />
           <div className="v-glass absolute -bottom-6 -left-6 hidden items-center gap-3 rounded-xl border border-site-line px-4 py-3 shadow-xl sm:flex">

@@ -16,7 +16,6 @@ type ModuleEtat = {
   actif: boolean;
 };
 
-// Dépendances imposées par les routes du serveur : « code » ne fonctionne que si ses prérequis sont actifs
 const DEPENDANCES: Record<string, string[]> = { evenements: ["calendrier"] };
 
 const nombre = new Intl.NumberFormat("fr-FR");
@@ -118,7 +117,7 @@ export function ModulesEntreprise() {
       });
       setSurcharge((s) => ({ ...s, [m.code_module]: actif }));
       setVersion((v) => v + 1);
-      await actualiser(); // le menu latéral suit aussitôt
+      await actualiser();
       const manquants = actif ? (DEPENDANCES[m.code_module] ?? []).filter((c) => !estActif(c)) : [];
       setNotice(
         manquants.length > 0
@@ -152,7 +151,6 @@ export function ModulesEntreprise() {
   const nbActifs = modules ? modules.filter((m) => m.actif).length : null;
   const nbOptionnelsActifs = modules ? optionnels.filter((m) => m.actif).length : null;
 
-  // Modules actifs qui dépendent de celui qu'on s'apprête à désactiver
   const dependants = aDesactiver
     ? Object.entries(DEPENDANCES)
         .filter(([code, pre]) => pre.includes(aDesactiver.code_module) && estActif(code))

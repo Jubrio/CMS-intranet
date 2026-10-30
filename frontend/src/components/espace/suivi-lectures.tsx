@@ -27,7 +27,6 @@ const dateHeure = new Intl.DateTimeFormat("fr-FR", {
   minute: "2-digit",
 });
 
-// Qui a confirmé avoir lu la note de service (RG24)
 export function SuiviLectures({ noteId, titre, onFermer }: { noteId: number; titre: string; onFermer: () => void }) {
   const [page, setPage] = useState(1);
 

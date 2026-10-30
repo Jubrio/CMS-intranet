@@ -3,7 +3,6 @@
 import { useId, useState } from "react";
 import { cn } from "@/lib/utils";
 
-// Palette tirée des variables du thème visiteur : elle suit le mode clair/sombre.
 export const COULEURS_SERIE = [
   "var(--brand-violet)",
   "var(--brand-blue)",
@@ -12,8 +11,6 @@ export const COULEURS_SERIE = [
   "color-mix(in oklab, var(--brand-blue) 55%, transparent)",
   "color-mix(in oklab, var(--brand-cyan) 55%, transparent)",
 ];
-
-// ---- Anneau ------------------------------------------------------------------
 
 type Segment = { label: string; valeur: number; couleur: string };
 
@@ -86,11 +83,8 @@ export function Anneau({
   );
 }
 
-// ---- Courbe en aire (série temporelle) ----------------------------------------
-
 type Point = { label: string; valeur: number; infobulle?: string };
 
-// `unite` et `prefixeDate` ne servent qu'à l'infobulle ; sans eux, elle parle de publications par semaine.
 export function CourbeAire({
   donnees,
   description,
@@ -235,8 +229,6 @@ export function CourbeAire({
     </div>
   );
 }
-
-// ---- Liste de barres horizontales ----------------------------------------------
 
 type Ligne = { id: string | number; label: string; valeur: number; sousTitre?: string };
 

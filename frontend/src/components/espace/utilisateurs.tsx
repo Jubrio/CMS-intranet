@@ -142,7 +142,6 @@ export function Utilisateurs() {
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
-  // Recherche : on attend la fin de la frappe
   useEffect(() => {
     const t = setTimeout(() => {
       setQ(saisie.trim());
@@ -170,7 +169,6 @@ export function Utilisateurs() {
   const chargerListe = useCallback(
     async (jeton: string) => {
       const res = await api<Page<Utilisateur>>(`/utilisateurs?${requete}`, { token: jeton });
-      // Dernière page vidée (ex. compte désactivé sous un filtre) : on recule jusqu'à la dernière page existante
       if (res.data.length === 0 && res.current_page > 1) setPage(Math.max(1, res.last_page));
       return { cle: cleCourante, res };
     },
@@ -191,7 +189,6 @@ export function Utilisateurs() {
   );
   const stats = useDonnees(autorise, chargerStats);
 
-  // Rôles attribuables et départements : si l'un échoue (droits), on continue sans
   const chargerOptions = useCallback(async (jeton: string) => {
     const [r, d] = await Promise.allSettled([
       api<RoleOption[]>("/roles/assignables", { token: jeton }),
