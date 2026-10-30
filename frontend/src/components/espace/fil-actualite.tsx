@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format, formatDistanceToNowStrict, isSameYear, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BookCheck, CheckCircle2, Globe, Newspaper, RefreshCw, ShieldCheck, Users } from "lucide-react";
@@ -445,10 +446,22 @@ function Flux({ type }: { type: Filtre }) {
 
 // ---- Écran Accueil -----------------------------------------------------------------
 
+const TYPES_CONTENU: TypeContenu[] = ["actualite", "annonce", "article", "note_service"];
+
+// « ?ouvrir=actualite-12 » : publication à ouvrir directement (clic sur une notification)
+function lireCible(valeur: string | null): Ouvert | null {
+  const m = valeur?.match(/^([a-z_]+)-(\d+)$/);
+  if (!m || !TYPES_CONTENU.includes(m[1] as TypeContenu)) return null;
+  return { type: m[1] as TypeContenu, id: Number(m[2]), titre: "" };
+}
+
 export function FilActualite() {
   const { profil } = useEspace();
+  const router = useRouter();
+  const cible = lireCible(useSearchParams().get("ouvrir"));
   const [filtre, setFiltre] = useState<Filtre>("tous");
   const [version, setVersion] = useState(0);
+  const fermerCible = useCallback(() => router.replace("/espace/accueil"), [router]);
 
   const disponibles = useMemo(
     () =>
@@ -499,6 +512,8 @@ export function FilActualite() {
       ) : (
         <Flux key={`${filtre}-${version}`} type={filtre} />
       )}
+
+      {cible && <LecteurContenu key={`${cible.type}-${cible.id}`} ouvert={cible} onFermer={fermerCible} onLu={() => setVersion((v) => v + 1)} />}
     </div>
   );
 }

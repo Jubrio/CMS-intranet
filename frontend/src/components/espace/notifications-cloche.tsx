@@ -39,18 +39,17 @@ const PHRASES: Record<string, string> = {
   "depose:document": "a déposé le document",
 };
 
-// Écran où l'objet se consulte, pour tous les rôles qui le reçoivent
-const ADRESSES: Record<string, string> = {
-  actualite: "/espace/accueil",
-  annonce: "/espace/accueil",
-  article: "/espace/accueil",
-  note_service: "/espace/accueil",
-  evenement: "/espace/calendrier",
-  document: "/espace/consulter-documents",
-};
+// Écran où l'objet se consulte, pour tous les rôles qui le reçoivent.
+// Publications et événements s'ouvrent directement (paramètre « ouvrir ») ; un document se trouve dans la liste.
+const CONTENUS = ["actualite", "annonce", "article", "note_service"];
 
 const phrase = (n: Notif) => PHRASES[`${n.action}:${n.objet_type}`] ?? "a ajouté";
-const adresse = (n: Notif) => ADRESSES[n.objet_type] ?? "/espace";
+function adresse(n: Notif): string {
+  if (CONTENUS.includes(n.objet_type)) return `/espace/accueil?ouvrir=${n.objet_type}-${n.objet_id}`;
+  if (n.objet_type === "evenement") return `/espace/calendrier?ouvrir=${n.objet_id}`;
+  if (n.objet_type === "document") return "/espace/consulter-documents";
+  return "/espace";
+}
 
 const ilYA = (iso: string | null) =>
   iso ? formatDistanceToNowStrict(new Date(iso), { addSuffix: true, locale: fr }) : "";

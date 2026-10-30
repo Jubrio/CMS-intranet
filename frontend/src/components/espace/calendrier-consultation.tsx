@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, CalendarDays, ChevronLeft, ChevronRight, List, MapPin, Users, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useRouter, useSearchParams } from "next/navigation";
+import { api, ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
 import { cleJour, lireDate, type Evenement } from "./evenement-formulaire";
 
@@ -169,6 +171,28 @@ export function CalendrierConsultation() {
   const [vue, setVue] = useState<Vue>("calendrier");
   const [jourChoisi, setJourChoisi] = useState<string | null>(() => cleJour(new Date()));
   const [ouvert, setOuvert] = useState<Evenement | null>(null);
+  const { token, expirer } = useEspace();
+  const router = useRouter();
+  const idCible = useSearchParams().get("ouvrir");
+
+  // Clic sur une notification : l'événement s'ouvre directement (« ?ouvrir=12 »)
+  useEffect(() => {
+    if (!idCible || !/^\d+$/.test(idCible)) return;
+    let annule = false;
+    api<Evenement>(`/evenements/${idCible}`, { token })
+      .then((e) => {
+        if (annule) return;
+        setOuvert(e);
+        setMois(debutDuMois(lireDate(e.date_debut)));
+        setJourChoisi(jourDe(e.date_debut));
+      })
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) expirer();
+      });
+    return () => {
+      annule = true;
+    };
+  }, [idCible, token, expirer]);
 
   const grille = useMemo(() => construireGrille(mois), [mois]);
   const premierJour = cleJour(grille[0]);
@@ -227,7 +251,10 @@ export function CalendrierConsultation() {
     [joursDuMois, parJour],
   );
 
-  const fermer = useCallback(() => setOuvert(null), []);
+  const fermer = useCallback(() => {
+    setOuvert(null);
+    if (idCible) router.replace("/espace/calendrier");
+  }, [idCible, router]);
   const duJourChoisi = jourChoisi ? (parJour.get(jourChoisi) ?? []) : [];
 
   return (
