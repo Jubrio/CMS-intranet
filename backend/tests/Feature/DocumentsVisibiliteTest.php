@@ -23,7 +23,7 @@ class DocumentsVisibiliteTest extends IntranetTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('local');
+        Storage::fake('fichiers');
 
         [$this->entreprise, $this->admin] = $this->creerEntreprise('Alpha', ['documents']);
         $this->compta = Departement::create(['entreprise_id' => $this->entreprise->id, 'nom_departement' => 'Comptabilité']);
@@ -33,7 +33,7 @@ class DocumentsVisibiliteTest extends IntranetTestCase
     private function document(string $nom, string $visibilite = 'entreprise', ?Departement $departement = null, ?Utilisateur $auteur = null): Document
     {
         $chemin = 'documents/'.$this->entreprise->id.'/'.md5($nom).'.pdf';
-        Storage::disk('local')->put($chemin, "contenu de {$nom}");
+        Storage::disk('fichiers')->put($chemin, "contenu de {$nom}");
 
         return Document::create([
             'entreprise_id' => $this->entreprise->id,
@@ -187,7 +187,7 @@ class DocumentsVisibiliteTest extends IntranetTestCase
             'departement_id' => $this->compta->id,
             'nom_document' => 'note',
         ]);
-        Storage::disk('local')->assertExists(Document::find($reponse->json('id'))->fichier);
+        Storage::disk('fichiers')->assertExists(Document::find($reponse->json('id'))->fichier);
     }
 
     public function test_un_employe_ne_peut_pas_deposer_un_document(): void
@@ -224,7 +224,7 @@ class DocumentsVisibiliteTest extends IntranetTestCase
         $this->connecter($manager)->deleteJson("/api/documents/{$document->id}")->assertOk();
 
         $this->assertDatabaseMissing('documents', ['id' => $document->id]);
-        Storage::disk('local')->assertMissing($document->fichier);
+        Storage::disk('fichiers')->assertMissing($document->fichier);
     }
 
     public function test_la_modification_exige_un_departement_pour_la_visibilite_departement(): void

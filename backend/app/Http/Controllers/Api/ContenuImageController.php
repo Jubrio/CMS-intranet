@@ -31,7 +31,7 @@ class ContenuImageController extends Controller
         $nom = Str::limit(pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME), 150, '');
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        $chemin = $fichier->store('contenus/'.$u->entreprise_id, 'local');
+        $chemin = $fichier->store('contenus/'.$u->entreprise_id, \App\Services\FichiersProfil::DISQUE);
 
         $image = Image::create([
             'entreprise_id' => $u->entreprise_id,
@@ -54,7 +54,7 @@ class ContenuImageController extends Controller
 
         $chemin = $image->fichier;
         $image->delete();
-        Storage::disk('local')->delete($chemin);
+        Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($chemin);
 
         return response()->json(['message' => 'Image supprimée.']);
     }

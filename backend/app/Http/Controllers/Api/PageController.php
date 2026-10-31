@@ -126,7 +126,7 @@ class PageController extends Controller
         $c = $this->gerer($request, $id);
         $chemins = Image::where('contenu_id', $c->id)->pluck('fichier')->all();
         $c->delete();
-        Storage::disk('local')->delete($chemins);
+        Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($chemins);
 
         return response()->json(['message' => 'Page supprimée.']);
     }

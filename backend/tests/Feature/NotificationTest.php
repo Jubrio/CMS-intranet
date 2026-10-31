@@ -172,7 +172,7 @@ class NotificationTest extends IntranetTestCase
 
     public function test_un_document_depose_notifie_toute_lentreprise(): void
     {
-        Storage::fake('local');
+        Storage::fake('fichiers');
 
         $this->connecter($this->admin)->postJson('/api/documents', [
             'fichier' => UploadedFile::fake()->create('reglement.pdf', 20, 'application/pdf'),

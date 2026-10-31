@@ -65,6 +65,12 @@ return [
             'transport' => 'resend',
         ],
 
+        // Envoi par API HTTPS (aucun port SMTP) : clé API dans BREVO_API_KEY
+        'brevo' => [
+            'transport' => 'brevo',
+            'key' => env('BREVO_API_KEY'),
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
