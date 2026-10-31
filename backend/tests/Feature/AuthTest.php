@@ -14,6 +14,7 @@ class AuthTest extends IntranetTestCase
             'nom' => 'Rakoto',
             'prenom' => 'Jean',
             'email' => 'jean@societe.test',
+            'jeton_verification' => $this->jetonVerifie('jean@societe.test'),
             'mot_de_passe' => 'MotDePasse123!',
             'modules' => ['annuaire'],
         ]);
@@ -57,11 +58,13 @@ class AuthTest extends IntranetTestCase
         $this->postJson('/api/intranets', [
             'nom_entreprise' => 'Beta', 'nom' => 'X', 'prenom' => 'Y',
             'email' => $admin->email, 'mot_de_passe' => 'MotDePasse123!',
+            'jeton_verification' => $this->jetonVerifie($admin->email),
         ])->assertStatus(422)->assertJsonValidationErrors('email');
 
         $this->postJson('/api/intranets', [
             'nom_entreprise' => 'Beta', 'nom' => 'X', 'prenom' => 'Y',
             'email' => 'neuf@beta.test', 'mot_de_passe' => 'MotDePasse123!',
+            'jeton_verification' => $this->jetonVerifie('neuf@beta.test'),
             'modules' => ['inexistant'],
         ])->assertStatus(422)->assertJsonValidationErrors('modules.0');
     }

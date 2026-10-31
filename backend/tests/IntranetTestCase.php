@@ -2,14 +2,17 @@
 
 namespace Tests;
 
+use App\Mail\CodeVerificationMail;
 use App\Models\Entreprise;
 use App\Models\Module;
 use App\Models\ModuleEntreprise;
 use App\Models\Role;
 use App\Models\Utilisateur;
+use App\Services\CodesVerification;
 use App\Services\CreationIntranetService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 
 /**
@@ -23,6 +26,23 @@ abstract class IntranetTestCase extends TestCase
     public const MOT_DE_PASSE = 'MotDePasse123!';
 
     private int $compteur = 0;
+
+    /** Fait vérifier une adresse (code reçu puis confirmé) et renvoie le jeton à joindre à la création d'intranet. */
+    protected function jetonVerifie(string $email): string
+    {
+        Mail::fake();
+        $codes = app(CodesVerification::class);
+        $codes->envoyer($email, CodesVerification::INSCRIPTION);
+
+        $code = null;
+        Mail::assertSent(CodeVerificationMail::class, function ($m) use (&$code) {
+            $code = $m->code;
+
+            return true;
+        });
+
+        return $codes->confirmerInscription($email, $code);
+    }
 
     protected function setUp(): void
     {

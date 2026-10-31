@@ -14,4 +14,4 @@ if [ "$RUN_SEEDER" = "true" ]; then
     php artisan db:seed --force
 fi
 
-exec php artisan serve --host=0.0.0.0 --port="${PORT:-10000}"
+exec php artisan serve --no-reload --host=0.0.0.0 --port="${PORT:-10000}"

@@ -47,7 +47,7 @@ class ProfilController extends Controller
     {
         $donnees = $request->validate([
             'mot_de_passe_actuel' => ['required', 'string'],
-            'nouveau_mot_de_passe' => ['required', 'string', 'max:72', 'confirmed', 'different:mot_de_passe_actuel', Password::min(10)->letters()->numbers()->uncompromised()],
+            'nouveau_mot_de_passe' => ['required', 'string', 'max:72', 'confirmed', 'different:mot_de_passe_actuel', Password::default()],
         ], [
             'nouveau_mot_de_passe.different' => 'Le nouveau mot de passe doit être différent de l’actuel.',
         ]);

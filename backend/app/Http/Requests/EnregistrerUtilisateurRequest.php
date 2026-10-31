@@ -30,7 +30,7 @@ class EnregistrerUtilisateurRequest extends FormRequest
             'prenom' => [$presence, 'string', 'max:100'],
             'email' => [$presence, 'email', 'max:255',
                 Rule::unique('utilisateurs', 'email')->ignore($id)],
-            'mot_de_passe' => [$presence, 'string', 'max:72', Password::min(10)->letters()->numbers()->uncompromised()],
+            'mot_de_passe' => [$presence, 'string', 'max:72', Password::default()],
             'role_id' => [$presence, 'integer',
                 Rule::exists('roles', 'id')->where('entreprise_id', $entrepriseId)],
             'departement_id' => ['nullable', 'integer',

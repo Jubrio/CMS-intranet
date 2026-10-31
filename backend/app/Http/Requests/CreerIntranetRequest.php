@@ -20,8 +20,10 @@ class CreerIntranetRequest extends FormRequest
             'nom_entreprise' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:50'],
             'prenom' => ['required', 'string', 'max:60'],
-            'email' => ['required', 'email', 'max:100', 'unique:utilisateurs,email'],
-            'mot_de_passe' => ['required', 'string', 'max:72', Password::min(10)->letters()->numbers()->uncompromised()],
+            // L'unicité de l'e-mail est contrôlée par IntranetController, après la vérification de l'adresse
+            'email' => ['required', 'email', 'max:100'],
+            'jeton_verification' => ['required', 'string', 'max:100'],
+            'mot_de_passe' => ['required', 'string', 'max:72', Password::default()],
             'turnstile_token' => [Rule::requiredIf(fn () => filled(config('services.turnstile.secret'))),
                 'nullable', 'string', 'max:2048', new CaptchaTurnstile],
             'modules' => ['nullable', 'array'],
@@ -32,7 +34,6 @@ class CreerIntranetRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
             'modules.*.exists' => 'Module inconnu : :input.',
         ];
     }
