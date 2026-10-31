@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnnuaireController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CodesVerificationController;
 use App\Http\Controllers\Api\ContenuController;
 use App\Http\Controllers\Api\ContenuImageController;
 use App\Http\Controllers\Api\DepartementController;
@@ -36,6 +37,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/modules/catalogue', [ModuleController::class, 'catalogue']);
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/intranets', [IntranetController::class, 'creer'])->middleware('throttle:5,1');
+
+// Codes à 6 chiffres par e-mail : vérification avant création d'intranet, mot de passe oublié
+Route::post('/intranets/verification/envoyer', [CodesVerificationController::class, 'envoyerInscription'])
+    ->middleware('throttle:5,1');
+Route::post('/intranets/verification/confirmer', [CodesVerificationController::class, 'confirmerInscription'])
+    ->middleware('throttle:10,1');
+Route::post('/mot-de-passe/oublie', [CodesVerificationController::class, 'oublie'])->middleware('throttle:5,1');
+Route::post('/mot-de-passe/reinitialiser', [CodesVerificationController::class, 'reinitialiser'])
+    ->middleware('throttle:10,1');
 
 // Fichier d'image
 Route::get('/images/{id}/fichier', [PageImageController::class, 'fichier'])

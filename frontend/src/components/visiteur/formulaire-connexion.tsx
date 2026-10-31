@@ -57,6 +57,12 @@ export function FormulaireConnexion() {
           />
         </Champ>
 
+        <p className="-mt-2 text-right text-sm">
+          <Link href="/mot-de-passe-oublie" className="font-medium text-brand-violet hover:underline">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+
         {erreur && (
           <p
             role="alert"
