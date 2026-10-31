@@ -32,7 +32,7 @@ class PageImageController extends Controller
         $nom = Str::limit(pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME), 150, '');
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        $chemin = $fichier->store('pages/'.$u->entreprise_id, 'local');
+        $chemin = $fichier->store('pages/'.$u->entreprise_id, \App\Services\FichiersProfil::DISQUE);
 
         $image = Image::create([
             'entreprise_id' => $u->entreprise_id,
@@ -54,7 +54,7 @@ class PageImageController extends Controller
         $image = $page->images()->findOrFail($imageId);
         $chemin = $image->fichier;
         $image->delete();
-        Storage::disk('local')->delete($chemin);
+        Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($chemin);
 
         return response()->json(['message' => 'Image supprimée.']);
     }
@@ -64,7 +64,7 @@ class PageImageController extends Controller
         $image = Image::findOrFail($id);
 
         /** @var FilesystemAdapter $disque */
-        $disque = Storage::disk('local');
+        $disque = Storage::disk(\App\Services\FichiersProfil::DISQUE);
         abort_unless($disque->exists($image->fichier), 404);
 
         return $disque->response($image->fichier, null, [

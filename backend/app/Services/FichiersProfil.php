@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\URL;
 
 class FichiersProfil
 {
-    public const DISQUE = 'local';
+    public const DISQUE = 'fichiers';
 
     private const VALIDITE_HEURES = 2;
 

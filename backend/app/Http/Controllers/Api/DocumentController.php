@@ -77,7 +77,7 @@ class DocumentController extends Controller
     private function envoyer(Document $d)
     {
         /** @var FilesystemAdapter $disque */
-        $disque = Storage::disk('local');
+        $disque = Storage::disk(\App\Services\FichiersProfil::DISQUE);
         abort_unless($disque->exists($d->fichier), 404);
 
         $nom = trim(preg_replace('/[\/\\\\"\x00-\x1F\x7F]+/', '-', $d->nom_document), ' .-');
@@ -98,7 +98,7 @@ class DocumentController extends Controller
         $nom = $d['nom_document'] ?? pathinfo($fichier->getClientOriginalName(), PATHINFO_FILENAME);
         $mime = $fichier->getMimeType();
         $taille = (int) ceil($fichier->getSize() / 1024);
-        $chemin = $fichier->store('documents/'.$u->entreprise_id, 'local');
+        $chemin = $fichier->store('documents/'.$u->entreprise_id, \App\Services\FichiersProfil::DISQUE);
 
         $doc = Document::create([
             'entreprise_id' => $u->entreprise_id,
@@ -150,7 +150,7 @@ class DocumentController extends Controller
         $doc = Document::where('entreprise_id', $u->entreprise_id)->findOrFail($id);
         $this->verifierPortee($u, $doc->visibilite, $doc->departement_id);
 
-        Storage::disk('local')->delete($doc->fichier);
+        Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($doc->fichier);
         $doc->delete();
         $this->notifications->retirer('document', $id);
 

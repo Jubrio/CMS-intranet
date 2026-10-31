@@ -164,7 +164,7 @@ class ContenuController extends Controller
         $fichiers = $c->images()->pluck('fichier')->all();
         $c->delete();
         $this->notifications->retirer($type, $c->id);
-        Storage::disk('local')->delete($fichiers);
+        Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($fichiers);
 
         return response()->json(['message' => 'Contenu supprimé.']);
     }

@@ -38,6 +38,31 @@ return [
             'report' => false,
         ],
 
+        // Disque des fichiers envoyés (photos, logos, documents, images de contenu).
+        // FILES_DISK=local : dossier privé du serveur. FILES_DISK=s3 : bucket S3 compatible
+        // (Cloudflare R2, Backblaze B2, Supabase, AWS...), configuré par les variables AWS_*.
+        'fichiers' => env('FILES_DISK', 'local') === 's3'
+            ? [
+                'driver' => 's3',
+                'key' => env('AWS_ACCESS_KEY_ID'),
+                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                'region' => env('AWS_DEFAULT_REGION', 'auto'),
+                'bucket' => env('AWS_BUCKET'),
+                'endpoint' => env('AWS_ENDPOINT'),
+                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+                // Évite les en-têtes de somme de contrôle non gérés par certains services compatibles S3
+                'request_checksum_calculation' => 'when_required',
+                'response_checksum_validation' => 'when_required',
+                'throw' => true,
+                'report' => true,
+            ]
+            : [
+                'driver' => 'local',
+                'root' => storage_path('app/private'),
+                'throw' => false,
+                'report' => false,
+            ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

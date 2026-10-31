@@ -27,7 +27,7 @@ class IsolationEntreprisesTest extends IntranetTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('local');
+        Storage::fake('fichiers');
 
         [$this->a, $this->adminA] = $this->creerEntreprise('Alpha', ['annuaire', 'documents']);
         [$this->b] = $this->creerEntreprise('Beta', ['annuaire', 'documents']);
@@ -106,7 +106,7 @@ class IsolationEntreprisesTest extends IntranetTestCase
     public function test_les_documents_d_une_autre_entreprise_sont_invisibles_et_intouchables(): void
     {
         $document = $this->documentDeB();
-        Storage::disk('local')->put($document->fichier, 'contenu secret');
+        Storage::disk('fichiers')->put($document->fichier, 'contenu secret');
         $this->connecter($this->adminA);
 
         $liste = $this->getJson('/api/documents')->assertOk();
@@ -118,7 +118,7 @@ class IsolationEntreprisesTest extends IntranetTestCase
         $this->deleteJson("/api/documents/{$document->id}")->assertNotFound();
 
         $this->assertDatabaseHas('documents', ['id' => $document->id, 'categorie' => 'Interne']);
-        Storage::disk('local')->assertExists($document->fichier);
+        Storage::disk('fichiers')->assertExists($document->fichier);
     }
 
     public function test_un_document_ne_peut_pas_viser_le_departement_d_une_autre_entreprise(): void
