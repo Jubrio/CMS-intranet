@@ -65,7 +65,7 @@ class AuthController extends Controller
     public function profil(Utilisateur $u): array
     {
         $modules = $u->entreprise_id
-            ? Module::whereIn('id', ModuleEntreprise::where('entreprise_id', $u->entreprise_id)
+            ? Module::auCatalogue()->whereIn('id', ModuleEntreprise::where('entreprise_id', $u->entreprise_id)
                 ->where('module_actif', true)->pluck('module_id'))->pluck('code_module')
             : collect();
 

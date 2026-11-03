@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Blocks, Building2, KeyRound, Lock, Power, X, type LucideIcon } from "lucide-react";
-import { api } from "@/lib/api";
+import { Blocks, Building2, KeyRound, Lock, Pencil, Plus, Power, Trash2, X, type LucideIcon } from "lucide-react";
+import { api, ApiError, messageErreur } from "@/lib/api";
 import { estSuperAdmin } from "@/lib/espace";
 import { iconeModule } from "@/lib/module-icons";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
 import { useDonnees } from "./use-donnees";
+import { ModuleCatalogueFormulaire } from "./module-catalogue-formulaire";
 
 type ModuleCatalogue = {
   code_module: string;
   nom_module: string;
   description_module: string | null;
   module_obligatoire: boolean;
+  actif_global: boolean;
   nb_permissions: number;
   nb_entreprises: number;
 };
@@ -56,9 +58,77 @@ function Stat({ icone, libelle, valeur }: { icone: LucideIcon; libelle: string; 
 
 const pluriel = (n: number, un: string, plusieurs: string) => `${nombre.format(n)} ${n > 1 ? plusieurs : un}`;
 
-function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
-  const charger = useCallback((jeton: string) => api<ModuleDetail>(`/super/modules/${code}`, { token: jeton }), [code]);
+function Fiche({
+  code,
+  onFermer,
+  onChange,
+}: {
+  code: string;
+  onFermer: () => void;
+  /** Appelé après une modification, un changement d'état ou un retrait (retire = fiche à fermer). */
+  onChange: (texte: string, retire?: boolean) => void;
+}) {
+  const { token, expirer } = useEspace();
+  const [version, setVersion] = useState(0);
+  const charger = useCallback(
+    (jeton: string) => api<ModuleDetail>(`/super/modules/${code}?v=${version}`, { token: jeton }),
+    [code, version],
+  );
   const { donnees: m, erreur, reessayer } = useDonnees(true, charger);
+  const [edition, setEdition] = useState(false);
+  const [confirmation, setConfirmation] = useState<null | { nb: number }>(null);
+  const [enCours, setEnCours] = useState(false);
+  const [probleme, setProbleme] = useState<string | null>(null);
+
+  async function appeler(action: () => Promise<void>) {
+    setEnCours(true);
+    setProbleme(null);
+    try {
+      await action();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        expirer();
+        return;
+      }
+      if (err instanceof ApiError && err.status === 409) return; // confirmation requise : gérée par l'appelant
+      setProbleme(messageErreur(err));
+    } finally {
+      setEnCours(false);
+    }
+  }
+
+  const basculer = (m: ModuleDetail) =>
+    appeler(async () => {
+      await api(`/super/modules/${m.code_module}/etat`, {
+        method: "PUT",
+        token,
+        body: JSON.stringify({ actif_global: !m.actif_global }),
+      });
+      onChange(
+        m.actif_global
+          ? `Le module « ${m.nom_module} » n’est plus proposé aux nouvelles entreprises. Les entreprises qui l’utilisent le conservent.`
+          : `Le module « ${m.nom_module} » est de nouveau proposé.`,
+      );
+      setVersion((v) => v + 1);
+    });
+
+  const retirer = (m: ModuleDetail, confirmer: boolean) =>
+    appeler(async () => {
+      try {
+        await api(`/super/modules/${m.code_module}`, {
+          method: "DELETE",
+          token,
+          body: JSON.stringify({ confirmer }),
+        });
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          setConfirmation({ nb: m.nb_entreprises });
+          throw err;
+        }
+        throw err;
+      }
+      onChange(`Le module « ${m.nom_module} » a été retiré du catalogue. Les données des entreprises sont conservées.`, true);
+    });
 
   useEffect(() => {
     const surTouche = (ev: KeyboardEvent) => ev.key === "Escape" && onFermer();
@@ -140,6 +210,92 @@ function Fiche({ code, onFermer }: { code: string; onFermer: () => void }) {
               </div>
 
               {m.description_module && <p className="text-sm text-site-muted">{m.description_module}</p>}
+
+              {!m.actif_global && !m.module_obligatoire && (
+                <p className="rounded-lg bg-site-line px-3 py-2 text-xs text-site-muted">
+                  Désactivé globalement : non proposé aux nouvelles entreprises. Celles qui l’utilisent déjà le conservent.
+                </p>
+              )}
+
+              <section aria-label="Actions sur le module" className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEdition(true)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-site-line px-4 text-xs font-semibold hover:border-brand-violet/60"
+                  >
+                    <Pencil size={14} aria-hidden />
+                    Modifier
+                  </button>
+                  {!m.module_obligatoire && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={enCours}
+                        onClick={() => basculer(m)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-site-line px-4 text-xs font-semibold hover:border-brand-violet/60 disabled:opacity-60"
+                      >
+                        <Power size={14} aria-hidden />
+                        {m.actif_global ? "Désactiver globalement" : "Réactiver"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={enCours}
+                        onClick={() => (m.nb_entreprises > 0 ? setConfirmation({ nb: m.nb_entreprises }) : setConfirmation({ nb: 0 }))}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-site-danger/40 px-4 text-xs font-semibold text-site-danger hover:bg-site-danger/10 disabled:opacity-60"
+                      >
+                        <Trash2 size={14} aria-hidden />
+                        Retirer
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {confirmation && (
+                  <div role="alertdialog" aria-label="Confirmer le retrait" className="rounded-xl border border-site-danger/40 bg-site-danger/10 p-3 text-sm">
+                    <p>
+                      {confirmation.nb > 0
+                        ? `Ce module est utilisé par ${pluriel(confirmation.nb, "entreprise", "entreprises")}. Le retirer le masque du catalogue ; leurs données sont conservées.`
+                        : "Retirer ce module du catalogue ?"}
+                    </p>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        type="button"
+                        disabled={enCours}
+                        onClick={() => retirer(m, true)}
+                        className="h-8 rounded-full bg-site-danger px-4 text-xs font-semibold text-white disabled:opacity-60"
+                      >
+                        Confirmer le retrait
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmation(null)}
+                        className="h-8 rounded-full border border-site-line px-4 text-xs font-semibold"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {probleme && (
+                  <p role="alert" className="text-xs text-site-danger">
+                    {probleme}
+                  </p>
+                )}
+              </section>
+
+              {edition && (
+                <ModuleCatalogueFormulaire
+                  module={m}
+                  onFermer={() => setEdition(false)}
+                  onEnregistre={(texte) => {
+                    setEdition(false);
+                    onChange(texte);
+                    setVersion((v) => v + 1);
+                  }}
+                />
+              )}
 
               <section>
                 <h3 className="mb-2 font-display text-sm font-semibold">
@@ -230,6 +386,11 @@ function CarteModule({ m, total, onOuvrir }: { m: ModuleCatalogue; total: number
                 Obligatoire
               </span>
             )}
+            {!m.module_obligatoire && !m.actif_global && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-site-line px-2 py-0.5 text-[10px] font-semibold text-site-muted">
+                Désactivé
+              </span>
+            )}
           </div>
           <p className="truncate font-mono text-[11px] text-site-muted">{m.code_module}</p>
           {m.description_module && <p className="mt-1.5 text-xs text-site-muted">{m.description_module}</p>}
@@ -261,8 +422,14 @@ export function ModulesCatalogue() {
   const { profil } = useEspace();
   const autorise = estSuperAdmin(profil);
   const [selection, setSelection] = useState<string | null>(null);
+  const [creation, setCreation] = useState(false);
+  const [version, setVersion] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const charger = useCallback((jeton: string) => api<Catalogue>("/super/modules", { token: jeton }), []);
+  const charger = useCallback(
+    (jeton: string) => api<Catalogue>(`/super/modules?v=${version}`, { token: jeton }),
+    [version],
+  );
   const { donnees, erreur, reessayer } = useDonnees(autorise, charger);
 
   const fermerFiche = useCallback(() => setSelection(null), []);
@@ -282,9 +449,23 @@ export function ModulesCatalogue() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-2xl font-bold">Catalogue de modules</h1>
+        <button
+          type="button"
+          onClick={() => setCreation(true)}
+          className="v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold"
+        >
+          <Plus size={16} aria-hidden />
+          Ajouter un module
+        </button>
       </div>
+
+      {notice && (
+        <p role="status" className="rounded-xl border border-site-line bg-site-surface px-4 py-3 text-sm">
+          {notice}
+        </p>
+      )}
 
       {erreur ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-site-line bg-site-surface p-6 text-sm text-site-muted shadow-sm">
@@ -341,7 +522,30 @@ export function ModulesCatalogue() {
         </>
       )}
 
-      {selection !== null && <Fiche key={selection} code={selection} onFermer={fermerFiche} />}
+      {selection !== null && (
+        <Fiche
+          key={selection}
+          code={selection}
+          onFermer={fermerFiche}
+          onChange={(texte, retire) => {
+            setNotice(texte);
+            setVersion((v) => v + 1);
+            if (retire) setSelection(null);
+          }}
+        />
+      )}
+
+      {creation && (
+        <ModuleCatalogueFormulaire
+          module={null}
+          onFermer={() => setCreation(false)}
+          onEnregistre={(texte) => {
+            setCreation(false);
+            setNotice(texte);
+            setVersion((v) => v + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

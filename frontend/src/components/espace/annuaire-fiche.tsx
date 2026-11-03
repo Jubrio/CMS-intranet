@@ -10,7 +10,9 @@ import {
   Pencil,
   Phone,
   Search,
+  Trash2,
   UserRound,
+  UserX,
   Users,
   X,
 } from "lucide-react";
@@ -504,8 +506,39 @@ type Props = {
 };
 
 export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEquipe, onModifie }: Props) {
+  const { token, expirer } = useEspace();
   const [edition, setEdition] = useState(false);
   const [version, setVersion] = useState(0);
+  const [confirmation, setConfirmation] = useState<null | "desactiver" | "supprimer">(null);
+  const [enCours, setEnCours] = useState(false);
+  const [problemeAction, setProblemeAction] = useState<string | null>(null);
+
+  async function retirerDeLAnnuaire(mode: "desactiver" | "supprimer") {
+    if (!fiche) return;
+    setEnCours(true);
+    setProblemeAction(null);
+    try {
+      if (mode === "desactiver") {
+        await api(`/annuaire/${fiche.id}/statut`, { method: "PUT", token, body: JSON.stringify({ actif: false }) });
+      } else {
+        await api(`/annuaire/${fiche.id}`, { method: "DELETE", token });
+      }
+      onModifie(
+        mode === "desactiver"
+          ? `La fiche de ${fiche.prenom} ${fiche.nom} a été désactivée : elle disparaît de l’annuaire, l’historique est conservé.`
+          : `La fiche de ${fiche.prenom} ${fiche.nom} a été supprimée.`,
+      );
+      onFermer();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        expirer();
+        return;
+      }
+      setProblemeAction(messageErreur(err));
+    } finally {
+      setEnCours(false);
+    }
+  }
 
   const charger = useCallback(
     async (jeton: string) => {
@@ -674,6 +707,62 @@ export function AnnuaireFiche({ id, departements, onFermer, onOuvrir, onVoirEqui
                     </li>
                   ))}
                 </ul>
+              )}
+            </section>
+
+            <section aria-label="Retirer la fiche" className="space-y-3 border-t border-site-line pt-5">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={enCours}
+                  onClick={() => setConfirmation("desactiver")}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-site-line px-4 text-xs font-semibold hover:border-brand-violet/60 disabled:opacity-60"
+                >
+                  <UserX size={14} aria-hidden />
+                  Désactiver la fiche
+                </button>
+                <button
+                  type="button"
+                  disabled={enCours}
+                  onClick={() => setConfirmation("supprimer")}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-site-danger/40 px-4 text-xs font-semibold text-site-danger hover:bg-site-danger/10 disabled:opacity-60"
+                >
+                  <Trash2 size={14} aria-hidden />
+                  Supprimer la fiche
+                </button>
+              </div>
+
+              {confirmation && (
+                <div role="alertdialog" aria-label="Confirmation" className="rounded-xl border border-site-danger/40 bg-site-danger/10 p-3 text-sm">
+                  <p>
+                    {confirmation === "desactiver"
+                      ? "Désactiver cette fiche ? Le compte ne pourra plus se connecter et la personne disparaît de l’annuaire et de l’organigramme. L’historique est conservé."
+                      : "Supprimer définitivement cette fiche et le compte associé ? Impossible si la personne a déjà publié ou répondu : désactivez-la alors."}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      disabled={enCours}
+                      onClick={() => retirerDeLAnnuaire(confirmation)}
+                      className="h-8 rounded-full bg-site-danger px-4 text-xs font-semibold text-white disabled:opacity-60"
+                    >
+                      Confirmer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmation(null)}
+                      className="h-8 rounded-full border border-site-line px-4 text-xs font-semibold"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {problemeAction && (
+                <p role="alert" className="text-xs text-site-danger">
+                  {problemeAction}
+                </p>
               )}
             </section>
           </div>

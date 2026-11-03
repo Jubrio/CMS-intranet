@@ -35,9 +35,18 @@ class ContenuController extends Controller
             return response()->json(['message' => 'Réservé aux personnes autorisées à publier.'], 403);
         }
 
+        $request->validate(['q' => 'nullable|string|max:100', 'categorie' => 'nullable|string|max:50']);
+
         $requete = $this->visibles($u, $type)->where('statut_contenu', $statut);
         if ($statut === 'publie' && $type === 'annonce') {
             $this->sansExpirees($requete);
+        }
+        if ($request->filled('categorie')) {
+            $requete->where('categorie', $request->query('categorie'));
+        }
+        if ($request->filled('q')) {
+            $motif = '%'.addcslashes(trim((string) $request->query('q')), '%_\\').'%';
+            $requete->where(fn ($w) => $w->where('titre', 'ilike', $motif)->orWhere('corps', 'ilike', $motif));
         }
 
         $page = $requete->with('auteur:id,nom,prenom')

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Entreprise;
+use App\Models\JournalOperation;
+use App\Services\JournalOperations;
+use App\Services\SuppressionEntreprise;
 use App\Models\Module;
 use App\Models\ModuleEntreprise;
 use App\Models\Utilisateur;
@@ -84,9 +87,18 @@ class SuperIntranetController extends Controller
         ]);
 
         $entreprise = $this->trouver($id);
+        $ancien = $entreprise->statut_entreprise;
 
-        DB::transaction(function () use ($entreprise, $donnees) {
+        DB::transaction(function () use ($request, $entreprise, $donnees, $ancien) {
             $entreprise->update(['statut_entreprise' => $donnees['statut']]);
+            JournalOperations::enregistrer(
+                $request->user(),
+                $donnees['statut'] === 'suspendue' ? 'suspendre' : 'reactiver',
+                'entreprise',
+                $entreprise->id,
+                $entreprise->nom_entreprise,
+                ['statut_avant' => $ancien, 'statut_apres' => $donnees['statut']],
+            );
 
             if ($donnees['statut'] === 'suspendue') {
                 DB::table('personal_access_tokens')
@@ -97,6 +109,44 @@ class SuperIntranetController extends Controller
         });
 
         return response()->json($this->formater($this->trouver($id)));
+    }
+
+    /**
+     * Supprime définitivement une entreprise et toutes ses données. Opération irréversible :
+     * le super-administrateur doit retaper l'adresse (slug) de l'entreprise pour confirmer.
+     */
+    public function destroy(Request $request, int $id, SuppressionEntreprise $suppression): JsonResponse
+    {
+        $entreprise = Entreprise::findOrFail($id);
+
+        $request->validate(['confirmation' => ['required', 'string']], [
+            'confirmation.required' => "Saisissez l'adresse de l'entreprise pour confirmer la suppression.",
+        ]);
+        if (! hash_equals($entreprise->slug, (string) $request->input('confirmation'))) {
+            return response()->json(['message' => "L'adresse saisie ne correspond pas à celle de l'entreprise."], 422);
+        }
+
+        $details = [
+            'slug' => $entreprise->slug,
+            'nb_utilisateurs' => $entreprise->utilisateurs()->count(),
+        ];
+        $nom = $entreprise->nom_entreprise;
+
+        $suppression->supprimer($entreprise);
+        JournalOperations::enregistrer($request->user(), 'supprimer', 'entreprise', $id, $nom, $details);
+
+        return response()->json(['message' => "L'entreprise « {$nom} » a été supprimée."]);
+    }
+
+    /** Journal des opérations effectuées par le super-administrateur sur les entreprises. */
+    public function journal(Request $request): JsonResponse
+    {
+        $requete = JournalOperation::query()->orderByDesc('created_at')->orderByDesc('id');
+        if ($request->filled('entreprise_id')) {
+            $requete->where('cible_type', 'entreprise')->where('cible_id', (int) $request->query('entreprise_id'));
+        }
+
+        return response()->json($requete->paginate(20));
     }
 
     private function trouver(int $id): Entreprise

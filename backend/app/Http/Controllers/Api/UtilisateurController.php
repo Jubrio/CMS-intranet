@@ -11,6 +11,8 @@ use App\Services\FichiersProfil;
 use App\Services\HierarchieUtilisateurs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class UtilisateurController extends Controller
 {
@@ -135,6 +137,53 @@ class UtilisateurController extends Controller
         }
 
         return response()->json($this->formater($cible->load('role:id,nom_role')));
+    }
+
+    /**
+     * Supprime un compte. La suppression n'est possible que si le compte n'a rien produit :
+     * un compte auteur de contenus, documents, événements, FAQ, formulaires ou réponses doit être
+     * désactivé, afin de conserver l'historique (même règle que pour la fiche d'annuaire).
+     */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $appelant = $request->user();
+        $cible = $this->trouver($request, $id);
+
+        if ($cible->id === $appelant->id) {
+            return response()->json(['message' => 'Vous ne pouvez pas supprimer votre propre compte.'], 422);
+        }
+        if (! $this->droits->peutGerer($appelant, $cible)) {
+            return response()->json(['message' => 'Ce compte possède des droits supérieurs aux vôtres.'], 403);
+        }
+        if ($this->droits->estDernierAdminActif($cible)) {
+            return response()->json(['message' => 'Le dernier administrateur actif ne peut pas être supprimé.'], 422);
+        }
+
+        $liens = [
+            'contenus' => 'auteur_id', 'documents' => 'auteur_id', 'evenements' => 'auteur_id',
+            'questions_faq' => 'auteur_id', 'formulaires' => 'auteur_id', 'images' => 'auteur_id',
+            'reponses' => 'utilisateur_id', 'notifications' => 'acteur_id',
+        ];
+        foreach ($liens as $table => $colonne) {
+            if (DB::table($table)->where($colonne, $cible->id)->exists()) {
+                return response()->json([
+                    'message' => 'Ce compte a déjà publié ou répondu dans l’intranet : désactivez-le pour conserver l’historique.',
+                    'desactivation_conseillee' => true,
+                ], 409);
+            }
+        }
+
+        $photo = $cible->photo;
+        DB::transaction(function () use ($cible) {
+            $cible->tokens()->delete();
+            DB::table('lectures_notes')->where('utilisateur_id', $cible->id)->delete();
+            $cible->delete();
+        });
+        if ($photo) {
+            Storage::disk(FichiersProfil::DISQUE)->delete($photo);
+        }
+
+        return response()->json(['message' => 'Le compte a été supprimé.']);
     }
 
     private function trouver(Request $request, int $id): Utilisateur

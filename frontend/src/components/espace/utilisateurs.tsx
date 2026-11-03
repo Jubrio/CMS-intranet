@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Search, UserCheck, UserX, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2, UserCheck, UserX, Users, X } from "lucide-react";
 import { api, ApiError, messageErreur, urlStockage } from "@/lib/api";
 import { initiales } from "@/lib/espace";
 import { cn } from "@/lib/utils";
@@ -139,6 +139,7 @@ export function Utilisateurs() {
 
   const [formulaire, setFormulaire] = useState<{ utilisateur: Utilisateur | null } | null>(null);
   const [aDesactiver, setADesactiver] = useState<Utilisateur | null>(null);
+  const [aSupprimer, setASupprimer] = useState<Utilisateur | null>(null);
   const [enCoursId, setEnCoursId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
@@ -236,6 +237,24 @@ export function Utilisateurs() {
         type: "ok",
         texte: actif ? `${u.prenom} ${u.nom} est de nouveau actif.` : `${u.prenom} ${u.nom} a été désactivé.`,
       });
+      setVersion((v) => v + 1);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        expirer();
+        return;
+      }
+      setNotice({ type: "erreur", texte: messageErreur(err) });
+    } finally {
+      setEnCoursId(null);
+    }
+  }
+
+  async function supprimer(u: Utilisateur) {
+    setASupprimer(null);
+    setEnCoursId(u.id);
+    try {
+      await api<{ message: string }>(`/utilisateurs/${u.id}`, { method: "DELETE", token });
+      setNotice({ type: "ok", texte: `Le compte de ${u.prenom} ${u.nom} a été supprimé.` });
       setVersion((v) => v + 1);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -489,6 +508,16 @@ export function Utilisateurs() {
                             {actif ? <UserX size={16} aria-hidden /> : <UserCheck size={16} aria-hidden />}
                           </BoutonIcone>
                         )}
+                        {!soi && (
+                          <BoutonIcone
+                            libelle={`Supprimer ${u.prenom} ${u.nom}`}
+                            danger
+                            disabled={enCoursId === u.id}
+                            onClick={() => setASupprimer(u)}
+                          >
+                            <Trash2 size={16} aria-hidden />
+                          </BoutonIcone>
+                        )}
                       </div>
                     </li>
                   );
@@ -538,6 +567,49 @@ export function Utilisateurs() {
           onFermer={fermerFormulaire}
           onEnregistre={apresEnregistrement}
         />
+      )}
+
+      {aSupprimer && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression-compte"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setASupprimer(null)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
+            <h2 id="titre-suppression-compte" className="font-display text-base font-semibold">
+              Supprimer ce compte ?
+            </h2>
+            <p className="mt-2 text-sm text-site-muted">
+              Le compte de {aSupprimer.prenom} {aSupprimer.nom} sera supprimé définitivement. Si cette personne a déjà
+              publié ou répondu dans l’intranet, la suppression est refusée : désactivez le compte pour conserver
+              l’historique.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setASupprimer(null)}
+                className="h-10 rounded-full border border-site-line px-5 text-sm font-semibold transition-colors hover:border-brand-violet/60"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => supprimer(aSupprimer)}
+                className="h-10 rounded-full bg-site-danger px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {aDesactiver && (

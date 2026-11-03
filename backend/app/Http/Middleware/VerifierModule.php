@@ -15,7 +15,7 @@ class VerifierModule
 
         $actif = $entrepriseId && ModuleEntreprise::where('entreprise_id', $entrepriseId)
             ->where('module_actif', true)
-            ->whereHas('module', fn ($q) => $q->where('code_module', $code))
+            ->whereHas('module', fn ($q) => $q->where('code_module', $code)->whereNull('retire_le'))
             ->exists();
 
         if (! $actif) {

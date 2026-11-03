@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { api, messageErreur } from "@/lib/api";
+import { consommerMessageInactivite } from "@/lib/inactivite";
 import { enregistrerToken } from "@/lib/session";
 import { Champ, Saisie, SaisieMotDePasse } from "./champs";
 import { classeBouton } from "./button-link";
@@ -22,6 +23,13 @@ type Valeurs = z.infer<typeof schema>;
 export function FormulaireConnexion() {
   const router = useRouter();
   const [erreur, setErreur] = useState<string | null>(null);
+  const [inactivite, setInactivite] = useState(false);
+
+  useEffect(() => {
+    // Lecture après l'hydratation : sessionStorage n'existe pas côté serveur
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInactivite(consommerMessageInactivite());
+  }, []);
   const {
     register,
     handleSubmit,
@@ -43,6 +51,11 @@ export function FormulaireConnexion() {
     <section className="mx-auto w-full max-w-md rounded-2xl border border-site-line bg-site-surface p-6 sm:p-8">
       <h1 className="font-display text-2xl font-bold sm:text-3xl">Connexion</h1>
       <p className="mt-2 text-sm text-site-muted">Accédez à l&apos;intranet de votre entreprise.</p>
+      {inactivite && (
+        <p role="status" className="mt-4 rounded-lg bg-site-line px-3 py-2 text-sm">
+          Vous avez été déconnecté après une période d&apos;inactivité. Reconnectez-vous pour continuer.
+        </p>
+      )}
 
       <form onSubmit={handleSubmit(envoyer)} noValidate className="mt-7 space-y-5">
         <Champ id="email" label="Adresse e-mail" erreur={errors.email?.message}>

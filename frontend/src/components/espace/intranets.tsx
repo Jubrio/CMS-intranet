@@ -12,6 +12,7 @@ import {
   Lock,
   Mail,
   PauseCircle,
+  Trash2,
   Search,
   ShieldAlert,
   Users,
@@ -175,10 +176,12 @@ function Fiche({
   id: number;
   version: number;
   onFermer: () => void;
-  onChangement: (notice: Notice) => void;
+  onChangement: (notice: Notice, fermer?: boolean) => void;
 }) {
   const { token, expirer } = useEspace();
   const [confirmer, setConfirmer] = useState(false);
+  const [suppression, setSuppression] = useState(false);
+  const [saisie, setSaisie] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [erreurAction, setErreurAction] = useState<string | null>(null);
 
@@ -215,6 +218,29 @@ function Fiche({
             ? `L'intranet « ${e.nom_entreprise} » est suspendu.`
             : `L'intranet « ${e.nom_entreprise} » est de nouveau actif.`,
       });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        expirer();
+        return;
+      }
+      setErreurAction(messageErreur(err));
+    } finally {
+      setEnCours(false);
+    }
+  }
+
+  async function supprimer() {
+    if (!e) return;
+    setEnCours(true);
+    setErreurAction(null);
+    try {
+      await api<{ message: string }>(`/super/intranets/${e.id}`, {
+        method: "DELETE",
+        token,
+        body: JSON.stringify({ confirmation: saisie.trim() }),
+      });
+      setSuppression(false);
+      onChangement({ type: "ok", texte: `L'intranet « ${e.nom_entreprise} » a été supprimé définitivement.` }, true);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         expirer();
@@ -410,9 +436,78 @@ function Fiche({
                 {enCours ? "Suspension…" : "Suspendre l’intranet"}
               </button>
             )}
+            <button
+              type="button"
+              disabled={enCours}
+              onClick={() => {
+                setSaisie("");
+                setErreurAction(null);
+                setSuppression(true);
+              }}
+              className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-site-danger transition-colors hover:bg-site-danger/10 disabled:opacity-60"
+            >
+              <Trash2 size={16} aria-hidden />
+              Supprimer définitivement
+            </button>
           </div>
         )}
       </aside>
+
+      {suppression && e && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="titre-suppression"
+        >
+          <button
+            type="button"
+            aria-label="Annuler"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSuppression(false)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl border border-site-line bg-site-surface p-6 shadow-2xl">
+            <h2 id="titre-suppression" className="flex items-start gap-2 font-display text-base font-semibold">
+              <ShieldAlert size={18} aria-hidden className="mt-0.5 shrink-0 text-site-danger" />
+              Supprimer « {e.nom_entreprise} » ?
+            </h2>
+            <p className="mt-2 text-sm text-site-muted">
+              Les {nombre.format(e.nb_utilisateurs)} comptes et toutes les données de cette entreprise seront effacés.
+              Cette opération est irréversible. Pour confirmer, saisissez l’adresse de l’intranet :{" "}
+              <span className="font-mono text-site-ink">{e.slug}</span>
+            </p>
+            <input
+              aria-label="Adresse de l’intranet"
+              className={`${CHAMP} mt-3 font-mono`}
+              value={saisie}
+              autoFocus
+              onChange={(ev) => setSaisie(ev.target.value)}
+            />
+            {erreurAction && (
+              <p role="alert" className="mt-2 text-xs text-site-danger">
+                {erreurAction}
+              </p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setSuppression(false)}
+                className="h-10 rounded-full border border-site-line px-5 text-sm font-semibold transition-colors hover:border-brand-violet/60"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={enCours || saisie.trim() !== e.slug}
+                onClick={supprimer}
+                className="h-10 rounded-full bg-site-danger px-5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {enCours ? "Suppression…" : "Supprimer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmer && e && (
         <div
@@ -722,9 +817,10 @@ export function Intranets() {
           id={selection}
           version={version}
           onFermer={fermerFiche}
-          onChangement={(n) => {
+          onChangement={(n, fermer) => {
             setNotice(n);
             setVersion((v) => v + 1);
+            if (fermer) setSelection(null);
           }}
         />
       )}

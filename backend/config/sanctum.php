@@ -53,6 +53,12 @@ return [
     'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 480),
 
     /*
+    | Expiration par inactivité (cas « Se déconnecter ») : un jeton non utilisé pendant ce nombre
+    | de minutes est refusé, même s'il n'a pas atteint la durée de vie ci-dessus. 0 désactive la règle.
+    */
+    'inactivite' => (int) env('SANCTUM_INACTIVITE_MINUTES', 30),
+
+    /*
     |--------------------------------------------------------------------------
     | Token Prefix
     |--------------------------------------------------------------------------

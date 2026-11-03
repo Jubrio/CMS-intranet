@@ -43,12 +43,14 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
   const [base, setBase] = useState(initial);
   const [nom, setNom] = useState(initial.nom_entreprise);
   const [email, setEmail] = useState(initial.email_contact ?? "");
+  const [slug, setSlug] = useState(initial.slug);
   const [envoi, setEnvoi] = useState(false);
   const [erreurs, setErreurs] = useState<Record<string, string[]>>({});
   const [notice, setNotice] = useState<{ type: "ok" | "erreur"; texte: string } | null>(null);
 
   const err = (champ: string) => erreurs[champ]?.[0];
-  const modifie = nom.trim() !== base.nom_entreprise || email.trim() !== (base.email_contact ?? "");
+  const modifie =
+    nom.trim() !== base.nom_entreprise || email.trim() !== (base.email_contact ?? "") || slug.trim() !== base.slug;
 
   async function soumettre(e: FormEvent) {
     e.preventDefault();
@@ -67,11 +69,12 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
       const res = await api<Personnalisation>("/entreprise", {
         method: "PUT",
         token,
-        body: JSON.stringify({ nom_entreprise: nom.trim(), email_contact: email.trim() || null }),
+        body: JSON.stringify({ nom_entreprise: nom.trim(), email_contact: email.trim() || null, slug: slug.trim() }),
       });
       setBase(res);
       setNom(res.nom_entreprise);
       setEmail(res.email_contact ?? "");
+      setSlug(res.slug);
       majPerso(res);
       setNotice({ type: "ok", texte: "Les paramètres sont enregistrés." });
     } catch (e2) {
@@ -159,9 +162,18 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
         <Champ
           id="p-slug"
           label="Identifiant de l’intranet"
-          aide="Défini à la création de l’intranet, il ne peut pas être modifié."
+          erreur={err("slug")}
+          aide="Adresse de votre intranet : minuscules, chiffres et tirets. Elle doit être unique sur la plateforme."
         >
-          <input id="p-slug" className={cn(CHAMP, "font-mono")} value={base.slug} readOnly />
+          <input
+            id="p-slug"
+            className={cn(CHAMP, "font-mono")}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value.toLowerCase())}
+            maxLength={50}
+            autoComplete="off"
+            spellCheck={false}
+          />
         </Champ>
 
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-site-line pt-4">
@@ -170,6 +182,7 @@ function FormulaireParametres({ initial }: { initial: Personnalisation }) {
             onClick={() => {
               setNom(base.nom_entreprise);
               setEmail(base.email_contact ?? "");
+              setSlug(base.slug);
               setErreurs({});
             }}
             disabled={!modifie || envoi}

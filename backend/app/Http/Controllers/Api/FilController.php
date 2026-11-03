@@ -29,6 +29,8 @@ class FilController extends Controller
         $request->validate([
             'type' => 'nullable|in:'.implode(',', array_keys(self::TYPES)),
             'page' => 'nullable|integer|min:1',
+            'q' => 'nullable|string|max:100',
+            'categorie' => 'nullable|string|max:50',
         ]);
 
         $u = $request->user();
@@ -50,7 +52,7 @@ class FilController extends Controller
             ]);
         }
 
-        $page = Contenu::where('entreprise_id', $u->entreprise_id)
+        $requete = Contenu::where('entreprise_id', $u->entreprise_id)
             ->whereIn('type_contenu', $demandes)
             ->where('statut_contenu', 'publie')
             ->where(function ($q) use ($u) {
@@ -62,7 +64,21 @@ class FilController extends Controller
             })
             ->where(fn ($q) => $q->where('type_contenu', '!=', 'annonce')
                 ->orWhereNull('date_expiration')
-                ->orWhere('date_expiration', '>=', today()->toDateString()))
+                ->orWhere('date_expiration', '>=', today()->toDateString()));
+
+        // Catégories disponibles (avant filtrage par catégorie et recherche, pour alimenter la liste de choix)
+        $categories = (clone $requete)->whereNotNull('categorie')->where('categorie', '!=', '')
+            ->distinct()->orderBy('categorie')->pluck('categorie')->all();
+
+        if ($request->filled('categorie')) {
+            $requete->where('categorie', $request->query('categorie'));
+        }
+        if ($request->filled('q')) {
+            $motif = '%'.addcslashes(trim((string) $request->query('q')), '%_\\').'%';
+            $requete->where(fn ($w) => $w->where('titre', 'ilike', $motif)->orWhere('corps', 'ilike', $motif));
+        }
+
+        $page = $requete
             ->with(['auteur:id,nom,prenom,photo,role_id', 'auteur.role:id,nom_role', 'departement:id,nom_departement', 'images'])
             ->orderByDesc('date_publication')->orderByDesc('id')
             ->paginate(self::PAR_PAGE);
@@ -77,6 +93,7 @@ class FilController extends Controller
             'last_page' => $page->lastPage(),
             'total' => $page->total(),
             'types' => $types,
+            'categories' => $categories,
         ]);
     }
 

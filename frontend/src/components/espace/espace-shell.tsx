@@ -6,9 +6,11 @@ import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { estSuperAdmin, refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { variablesTheme } from "@/lib/apparence";
+import { marquerInactivite } from "@/lib/inactivite";
 import { effacerToken, lireToken } from "@/lib/session";
 import { ThemeToggle } from "@/components/visiteur/theme";
 import { EspaceContext } from "./espace-context";
+import { useInactivite } from "./use-inactivite";
 import { Sidebar } from "./sidebar";
 import { AccesRefuse } from "./acces-refuse";
 import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
@@ -37,6 +39,15 @@ export function EspaceShell({ children }: { children: ReactNode }) {
   }, []);
 
   const jeton = session?.token;
+
+  // Déconnexion automatique après inactivité : on ferme la session côté serveur puis on revient à la connexion
+  const deconnecterPourInactivite = useCallback(() => {
+    if (jeton) void api("/logout", { method: "POST", token: jeton }).catch(() => undefined);
+    marquerInactivite();
+    effacerToken();
+    router.replace("/connexion");
+  }, [jeton, router]);
+  useInactivite(jeton, deconnecterPourInactivite, expirer);
   const actualiser = useCallback(async () => {
     if (!jeton) return;
     try {

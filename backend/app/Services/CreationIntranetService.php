@@ -26,8 +26,10 @@ class CreationIntranetService
             ]);
 
             $this->rolesParDefaut->creerPour($entreprise);
-            $modules = Module::where('module_obligatoire', true)
-                ->orWhereIn('code_module', $data['modules'] ?? [])
+            $codesChoisis = $data['modules'] ?? [];
+            $modules = Module::auCatalogue()
+                ->where(fn ($q) => $q->where('module_obligatoire', true)
+                    ->orWhere(fn ($q2) => $q2->where('actif_global', true)->whereIn('code_module', $codesChoisis)))
                 ->get();
             foreach ($modules as $module) {
                 ModuleEntreprise::create([

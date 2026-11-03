@@ -89,8 +89,14 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/intranets', [SuperIntranetController::class, 'index']);
         Route::get('/intranets/{id}', [SuperIntranetController::class, 'show'])->whereNumber('id');
         Route::put('/intranets/{id}/statut', [SuperIntranetController::class, 'changerStatut'])->whereNumber('id');
+        Route::delete('/intranets/{id}', [SuperIntranetController::class, 'destroy'])->whereNumber('id');
+        Route::get('/journal', [SuperIntranetController::class, 'journal']);
         Route::get('/modules', [SuperModuleController::class, 'index']);
         Route::get('/modules/{code}', [SuperModuleController::class, 'show'])->where('code', '[a-z_]+');
+        Route::post('/modules', [SuperModuleController::class, 'store']);
+        Route::put('/modules/{code}', [SuperModuleController::class, 'update'])->where('code', '[a-z_]+');
+        Route::put('/modules/{code}/etat', [SuperModuleController::class, 'changerEtat'])->where('code', '[a-z_]+');
+        Route::delete('/modules/{code}', [SuperModuleController::class, 'destroy'])->where('code', '[a-z_]+');
     });
     // Modules
     Route::get('/modules', [ModuleEntrepriseController::class, 'index'])
@@ -112,6 +118,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::get('/utilisateurs/{id}', [UtilisateurController::class, 'show'])->whereNumber('id');
         Route::put('/utilisateurs/{id}', [UtilisateurController::class, 'update'])->whereNumber('id');
         Route::put('/utilisateurs/{id}/statut', [UtilisateurController::class, 'changerStatut'])->whereNumber('id');
+        Route::delete('/utilisateurs/{id}', [UtilisateurController::class, 'destroy'])->whereNumber('id');
     });
     // Départements
     Route::middleware('permission:utilisateurs.departements')->group(function () {
@@ -166,6 +173,9 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::middleware(['module:annuaire', 'permission:annuaire.gerer'])->group(function () {
         Route::put('/annuaire/{id}', [AnnuaireController::class, 'modifier'])->whereNumber('id');
         Route::post('/annuaire/{id}/photo', [AnnuaireController::class, 'photo'])->whereNumber('id');
+        // Désactivation et suppression d'une fiche : mêmes règles que pour les comptes
+        Route::put('/annuaire/{id}/statut', [UtilisateurController::class, 'changerStatut'])->whereNumber('id');
+        Route::delete('/annuaire/{id}', [UtilisateurController::class, 'destroy'])->whereNumber('id');
     });
     // Documents
     Route::middleware('module:documents')->group(function () {

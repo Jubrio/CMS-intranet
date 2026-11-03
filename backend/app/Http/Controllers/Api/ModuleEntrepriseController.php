@@ -20,13 +20,15 @@ class ModuleEntrepriseController extends Controller
         $etats = ModuleEntreprise::where('entreprise_id', $entrepriseId)
             ->pluck('module_actif', 'module_id');
 
-        $modules = Module::orderByDesc('module_obligatoire')->orderBy('nom_module')->get()
+        $modules = Module::auCatalogue()->orderByDesc('module_obligatoire')->orderBy('nom_module')->get()
             ->map(fn ($m) => [
                 'code_module' => $m->code_module,
                 'nom_module' => $m->nom_module,
                 'description_module' => $m->description_module,
                 'module_obligatoire' => $m->module_obligatoire,
                 'actif' => (bool) ($etats[$m->id] ?? false),
+                // Désactivé globalement par la plateforme : activable uniquement s'il est déjà utilisé
+                'disponible' => $m->actif_global || (bool) ($etats[$m->id] ?? false),
             ]);
 
         return response()->json($modules);
@@ -41,13 +43,16 @@ class ModuleEntrepriseController extends Controller
 
         $request->validate(['actif' => ['required', 'boolean']]);
         $actif = $request->boolean('actif');
-        $module = Module::where('code_module', $code)->firstOrFail();
+        $module = Module::auCatalogue()->where('code_module', $code)->firstOrFail();
 
         if ($module->module_obligatoire && ! $actif) {
             return response()->json(['message' => 'Ce module est obligatoire et ne peut pas être désactivé.'], 422);
         }
 
         $ligne = ModuleEntreprise::firstOrNew(['entreprise_id' => $entrepriseId, 'module_id' => $module->id]);
+        if ($actif && ! $module->actif_global && ! $ligne->module_actif) {
+            return response()->json(['message' => "Ce module n'est plus proposé par la plateforme."], 422);
+        }
         $ligne->module_actif = $actif;
         if ($actif) {
             $ligne->date_activation = now();

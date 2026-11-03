@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, formatDistanceToNowStrict, isSameYear, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BookCheck, CheckCircle2, Globe, Newspaper, RefreshCw, ShieldCheck, Users } from "lucide-react";
+import { BookCheck, CheckCircle2, Globe, Newspaper, RefreshCw, Search, ShieldCheck, Users } from "lucide-react";
 import { api, ApiError, urlStockage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useEspace } from "./espace-context";
@@ -30,7 +30,7 @@ type Post = {
   lu: boolean | null;
 };
 
-type Reponse = { data: Post[]; current_page: number; last_page: number; total: number };
+type Reponse = { data: Post[]; current_page: number; last_page: number; total: number; categories?: string[] };
 
 type Filtre = "tous" | TypeContenu;
 
@@ -291,7 +291,17 @@ function Publication({ post, lu, onOuvrir }: { post: Post; lu: boolean; onOuvrir
   );
 }
 
-function Flux({ type }: { type: Filtre }) {
+function Flux({
+  type,
+  q,
+  categorie,
+  onCategories,
+}: {
+  type: Filtre;
+  q: string;
+  categorie: string;
+  onCategories: (liste: string[]) => void;
+}) {
   const { token, expirer } = useEspace();
   const [ouvert, setOuvert] = useState<Ouvert | null>(null);
   const [lus, setLus] = useState<Set<string>>(() => new Set());
@@ -301,12 +311,19 @@ function Flux({ type }: { type: Filtre }) {
   const [erreurSuite, setErreurSuite] = useState(false);
   const sentinelle = useRef<HTMLDivElement>(null);
 
-  const filtreUrl = type === "tous" ? "" : `&type=${type}`;
+  const filtreUrl =
+    (type === "tous" ? "" : `&type=${type}`) +
+    (q ? `&q=${encodeURIComponent(q)}` : "") +
+    (categorie ? `&categorie=${encodeURIComponent(categorie)}` : "");
   const chargerPremiere = useCallback(
     (jeton: string) => api<Reponse>(`/fil?page=1${filtreUrl}`, { token: jeton }),
     [filtreUrl],
   );
   const premiere = useDonnees(true, chargerPremiere);
+
+  useEffect(() => {
+    if (premiere.donnees?.categories) onCategories(premiere.donnees.categories);
+  }, [premiere.donnees, onCategories]);
 
   const posts = useMemo(() => {
     const tous = [...(premiere.donnees?.data ?? []), ...suite];
@@ -385,9 +402,13 @@ function Flux({ type }: { type: Filtre }) {
         <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-violet/15 text-brand-violet">
           <Newspaper size={22} aria-hidden />
         </span>
-        <p className="font-display text-base font-semibold">Rien à afficher pour le moment</p>
+        <p className="font-display text-base font-semibold">
+          {q || categorie ? "Aucun résultat" : "Rien à afficher pour le moment"}
+        </p>
         <p className="max-w-xs text-sm text-site-muted">
-          Les actualités, annonces et notes de votre entreprise apparaîtront ici dès leur publication.
+          {q || categorie
+            ? "Aucune publication ne correspond à votre recherche. Modifiez le mot-clé ou la catégorie."
+            : "Les actualités, annonces et notes de votre entreprise apparaîtront ici dès leur publication."}
         </p>
       </Carte>
     );
@@ -449,6 +470,15 @@ export function FilActualite() {
   const cible = lireCible(useSearchParams().get("ouvrir"));
   const [filtre, setFiltre] = useState<Filtre>("tous");
   const [version, setVersion] = useState(0);
+  const [saisie, setSaisie] = useState("");
+  const [q, setQ] = useState("");
+  const [categorie, setCategorie] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setQ(saisie.trim()), 300);
+    return () => clearTimeout(t);
+  }, [saisie]);
   const fermerCible = useCallback(() => router.replace("/espace/accueil"), [router]);
 
   const disponibles = useMemo(
@@ -493,12 +523,44 @@ export function FilActualite() {
         </div>
       )}
 
+      {disponibles.length > 0 && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <Search size={15} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-site-muted" />
+            <input
+              type="search"
+              aria-label="Rechercher dans les publications"
+              placeholder="Rechercher un mot-clé…"
+              value={saisie}
+              maxLength={100}
+              onChange={(e) => setSaisie(e.target.value)}
+              className="h-10 w-full rounded-full border border-site-line bg-site-base/60 pl-9 pr-4 text-sm outline-none transition-colors placeholder:text-site-muted/70 focus:border-brand-violet"
+            />
+          </div>
+          {categories.length > 0 && (
+            <select
+              aria-label="Filtrer par catégorie"
+              value={categorie}
+              onChange={(e) => setCategorie(e.target.value)}
+              className="h-10 rounded-full border border-site-line bg-site-base/60 px-4 text-sm outline-none focus:border-brand-violet"
+            >
+              <option value="">Toutes les catégories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
       {disponibles.length === 0 ? (
         <Carte className="p-6 text-center text-sm text-site-muted">
           Aucun module de publication n&apos;est activé pour votre entreprise.
         </Carte>
       ) : (
-        <Flux key={`${filtre}-${version}`} type={filtre} />
+        <Flux key={`${filtre}-${version}-${q}-${categorie}`} type={filtre} q={q} categorie={categorie} onCategories={setCategories} />
       )}
 
       {cible && <LecteurContenu key={`${cible.type}-${cible.id}`} ouvert={cible} onFermer={fermerCible} onLu={() => setVersion((v) => v + 1)} />}

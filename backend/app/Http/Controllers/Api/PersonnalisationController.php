@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
 class PersonnalisationController extends Controller
@@ -70,6 +71,15 @@ class PersonnalisationController extends Controller
         $data = $request->validate([
             'nom_entreprise' => ['sometimes', 'string', 'max:100'],
             'email_contact' => ['sometimes', 'nullable', 'email', 'max:100'],
+            'slug' => [
+                'sometimes', 'string', 'min:3', 'max:50',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('entreprises', 'slug')->ignore($entreprise->id),
+            ],
+        ], [
+            'slug.unique' => 'Cette adresse est déjà utilisée par une autre entreprise.',
+            'slug.regex' => 'L’adresse ne peut contenir que des minuscules, des chiffres et des tirets.',
+            'slug.min' => 'L’adresse doit contenir au moins 3 caractères.',
         ]);
         $entreprise->update($data);
 

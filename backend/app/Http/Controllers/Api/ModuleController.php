@@ -11,7 +11,8 @@ class ModuleController extends Controller
     public function catalogue(): JsonResponse
     {
         return response()->json(
-            Module::orderByDesc('module_obligatoire')
+            Module::propose()
+                ->orderByDesc('module_obligatoire')
                 ->orderBy('nom_module')
                 ->get(['code_module', 'nom_module', 'description_module', 'module_obligatoire'])
         );
