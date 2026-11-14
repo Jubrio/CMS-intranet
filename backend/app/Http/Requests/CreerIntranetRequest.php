@@ -20,7 +20,6 @@ class CreerIntranetRequest extends FormRequest
             'nom_entreprise' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:50'],
             'prenom' => ['required', 'string', 'max:60'],
-            // L'unicité de l'e-mail est contrôlée par IntranetController, après la vérification de l'adresse
             'email' => ['required', 'email', 'max:100'],
             'jeton_verification' => ['required', 'string', 'max:100'],
             'mot_de_passe' => ['required', 'string', 'max:72', Password::default()],

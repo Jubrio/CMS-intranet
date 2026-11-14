@@ -171,7 +171,7 @@ class DocumentsVisibiliteTest extends IntranetTestCase
 
     public function test_un_manager_depose_un_document_rattache_a_son_entreprise(): void
     {
-        $manager = $this->creerUtilisateur($this->entreprise, 'Manager');
+        $manager = $this->creerUtilisateur($this->entreprise, 'Manager', ['departement_id' => $this->compta->id]);
 
         $reponse = $this->connecter($manager)->post('/api/documents', [
             'fichier' => UploadedFile::fake()->create('note.pdf', 50, 'application/pdf'),
@@ -218,8 +218,8 @@ class DocumentsVisibiliteTest extends IntranetTestCase
 
     public function test_supprimer_un_document_efface_aussi_le_fichier(): void
     {
-        $document = $this->document('Règlement');
-        $manager = $this->creerUtilisateur($this->entreprise, 'Manager');
+        $document = $this->document('Règlement', 'departement', $this->compta);
+        $manager = $this->creerUtilisateur($this->entreprise, 'Manager', ['departement_id' => $this->compta->id]);
 
         $this->connecter($manager)->deleteJson("/api/documents/{$document->id}")->assertOk();
 
@@ -229,8 +229,8 @@ class DocumentsVisibiliteTest extends IntranetTestCase
 
     public function test_la_modification_exige_un_departement_pour_la_visibilite_departement(): void
     {
-        $document = $this->document('Règlement');
-        $manager = $this->creerUtilisateur($this->entreprise, 'Manager');
+        $document = $this->document('Règlement', 'departement', $this->compta);
+        $manager = $this->creerUtilisateur($this->entreprise, 'Manager', ['departement_id' => $this->compta->id]);
         $this->connecter($manager);
 
         $this->putJson("/api/documents/{$document->id}", ['visibilite' => 'departement'])->assertStatus(422);

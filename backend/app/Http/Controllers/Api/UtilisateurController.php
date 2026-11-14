@@ -139,11 +139,6 @@ class UtilisateurController extends Controller
         return response()->json($this->formater($cible->load('role:id,nom_role')));
     }
 
-    /**
-     * Supprime un compte. La suppression n'est possible que si le compte n'a rien produit :
-     * un compte auteur de contenus, documents, événements, FAQ, formulaires ou réponses doit être
-     * désactivé, afin de conserver l'historique (même règle que pour la fiche d'annuaire).
-     */
     public function destroy(Request $request, int $id): JsonResponse
     {
         $appelant = $request->user();
