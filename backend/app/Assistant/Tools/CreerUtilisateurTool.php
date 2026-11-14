@@ -6,14 +6,14 @@ use App\Models\Departement;
 use App\Models\Role;
 use App\Models\Utilisateur;
 use App\Services\DroitsUtilisateurs;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class CreerUtilisateurTool implements ToolInterface
 {
+    use ResoutParNom;
+
     public function __construct(private DroitsUtilisateurs $droits) {}
 
     public function name(): string
@@ -154,18 +154,5 @@ class CreerUtilisateurTool implements ToolInterface
             ],
             'secret' => ['mot_de_passe_temporaire' => $motDePasse],
         ];
-    }
-
-    /** Compare sans tenir compte de la casse ni des accents ("employe" retrouve "Employé"). */
-    private function trouverParNom(Collection $liste, string $colonne, string $nom): ?Model
-    {
-        $cle = $this->normaliser($nom);
-
-        return $liste->first(fn ($element) => $this->normaliser($element->{$colonne}) === $cle);
-    }
-
-    private function normaliser(string $texte): string
-    {
-        return Str::lower(Str::ascii(trim($texte)));
     }
 }

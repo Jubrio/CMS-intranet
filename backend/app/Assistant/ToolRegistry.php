@@ -3,6 +3,7 @@
 namespace App\Assistant;
 
 use App\Assistant\Tools\CreerUtilisateurTool;
+use App\Assistant\Tools\PublierContenuTool;
 use App\Assistant\Tools\ToolInterface;
 use App\Models\Utilisateur;
 
@@ -15,9 +16,9 @@ class ToolRegistry
     /** @var array<string, ToolInterface> */
     private array $outils = [];
 
-    public function __construct(CreerUtilisateurTool $creerUtilisateur)
+    public function __construct(CreerUtilisateurTool $creerUtilisateur, PublierContenuTool $publierContenu)
     {
-        foreach ([$creerUtilisateur] as $outil) {
+        foreach ([$creerUtilisateur, $publierContenu] as $outil) {
             $this->outils[$outil->name()] = $outil;
         }
     }

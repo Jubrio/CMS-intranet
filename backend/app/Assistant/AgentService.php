@@ -25,6 +25,7 @@ class AgentService
         .'Réponds toujours en français, de façon brève. '
         ."Tu n'agis sur l'intranet qu'en appelant les outils fournis : n'affirme jamais qu'une action est faite sans appel d'outil. "
         .'Ne demande jamais de mot de passe : il est généré automatiquement. '
+        ."Pour publier un contenu, rédige le texte uniquement à partir des informations de l'administrateur : n'invente jamais de faits (dates, lieux, chiffres). "
         ."Si une information obligatoire manque, demande-la à l'administrateur au lieu de l'inventer. "
         .'Si la demande dépasse ce que les outils permettent, dis-le simplement.';
 
@@ -210,7 +211,7 @@ class AgentService
             ->values()
             ->all();
 
-        return array_merge([['role' => 'system', 'content' => self::INVITE]], $historique);
+        return array_merge([['role' => 'system', 'content' => self::INVITE.' Date du jour : '.now()->format('d/m/Y').'.']], $historique);
     }
 
     private function appelerModele(array $messages, array $schemas): array
