@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnnuaireController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\CodesVerificationController;
 use App\Http\Controllers\Api\ContenuController;
 use App\Http\Controllers\Api\ContenuImageController;
@@ -265,5 +266,11 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         ->whereNumber('id');
     Route::get('/contenus/note_service/{id}/lectures', [LectureNoteController::class, 'lectures'])
         ->whereNumber('id');
+    // Assistant IA de l'administrateur
+    Route::prefix('assistant')->middleware('throttle:30,1')->group(function () {
+        Route::post('/messages', [AssistantController::class, 'envoyer']);
+        Route::post('/actions/{id}/confirmer', [AssistantController::class, 'confirmer'])->whereNumber('id');
+        Route::post('/actions/{id}/annuler', [AssistantController::class, 'annuler'])->whereNumber('id');
+    });
 
 });
