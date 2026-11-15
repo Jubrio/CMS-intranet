@@ -26,7 +26,12 @@ class AgentService
         ."Tu n'agis sur l'intranet qu'en appelant les outils fournis : n'affirme jamais qu'une action est faite sans appel d'outil. "
         .'Ne demande jamais de mot de passe : il est généré automatiquement. '
         ."Pour publier un contenu, rédige le texte uniquement à partir des informations de l'administrateur : n'invente jamais de faits (dates, lieux, chiffres). "
+        .'Désigne toujours une personne par son adresse e-mail, jamais par son seul nom. '
         ."Si une information obligatoire manque, demande-la à l'administrateur au lieu de l'inventer. "
+        ."Pour modifier, publier ou archiver un contenu existant, appelle d'abord lister_contenus pour trouver son identifiant, puis utilise cet identifiant. "
+        .'Quand tu présentes une liste, écris pour chaque personne ou élément les libellés explicites, par exemple « Jean Rakoto — rôle : Administrateur, département : aucun, statut : actif ». '
+        .'Réponds en texte brut, sans mise en forme Markdown : jamais de **, de # ni de tableaux. Pour une liste, une ligne par élément commençant par un tiret, par exemple « - Pas de travail demain — Jean Rakoto, 15/11/2026 ». '
+        ."Pour modifier, publier, archiver ou clôturer un élément existant (contenu, page, événement, question FAQ, document, formulaire), appelle d'abord l'outil lister correspondant pour trouver son identifiant, puis utilise cet identifiant. "
         .'Si la demande dépasse ce que les outils permettent, dis-le simplement.';
 
     public function __construct(private ToolRegistry $outils) {}
@@ -55,7 +60,7 @@ class AgentService
             $appels = $reponse['tool_calls'] ?? [];
 
             if (empty($appels)) {
-                $contenu = trim((string) ($reponse['content'] ?? ''));
+                $contenu = $this->nettoyer((string) ($reponse['content'] ?? ''));
                 if ($contenu === '') {
                     $contenu = "Je n'ai pas compris la demande. Pouvez-vous la reformuler ?";
                 }
@@ -63,6 +68,17 @@ class AgentService
 
                 return $this->resultat($conversation, $contenu, $actions);
             }
+
+            // Ollama exige des arguments sous forme d'objet JSON : un « {} » vide ne doit pas devenir « [] ».
+            $appels = array_map(function (array $appel) {
+                $args = $appel['function']['arguments'] ?? [];
+                if (is_string($args)) {
+                    $args = json_decode($args, true) ?: [];
+                }
+                $appel['function']['arguments'] = $args === [] ? new \stdClass : $args;
+
+                return $appel;
+            }, $appels);
 
             $messages[] = ['role' => 'assistant', 'content' => (string) ($reponse['content'] ?? ''), 'tool_calls' => $appels];
 
@@ -220,7 +236,7 @@ class AgentService
             'model' => config('assistant.modele'),
             'stream' => false,
             'messages' => $messages,
-            'options' => ['temperature' => 0.1],
+            'options' => ['temperature' => 0.1, 'num_ctx' => 8192],
         ];
         if ($schemas) {
             $corps['tools'] = $schemas;
@@ -237,6 +253,17 @@ class AgentService
         }
 
         return $reponse->json('message') ?? [];
+    }
+
+    /** Le panneau affiche du texte brut : on retire le Markdown que le modèle ajoute par habitude. */
+    private function nettoyer(string $texte): string
+    {
+        $texte = str_replace(['**', '__'], '', $texte);
+        $texte = preg_replace('/^\s{0,3}#{1,6}\s*/m', '', $texte);
+        $texte = preg_replace('/^\s*\*\s+/m', '- ', $texte);
+        $texte = preg_replace('/[ \t]+$/m', '', $texte);
+
+        return trim($texte);
     }
 
     private function noter(int $conversationId, string $role, string $contenu): void
