@@ -15,6 +15,7 @@ import { Sidebar } from "./sidebar";
 import { AccesRefuse } from "./acces-refuse";
 import { PastilleProfil, ProfilPanneau } from "./profil-panneau";
 import { NotificationsCloche } from "./notifications-cloche";
+import { AssistantPanneau } from "./assistant-panneau";
 
 type Session = { token: string; profil: Profil; perso: Personnalisation | null; menu: MenuConfig | null };
 
@@ -68,11 +69,15 @@ export function EspaceShell({ children }: { children: ReactNode }) {
       return;
     }
     let annule = false;
-    Promise.all([
-      api<Profil>("/me", { token }),
-      api<Personnalisation>("/personnalisation", { token }).catch(() => null),
-      api<MenuConfig>("/menu", { token }).catch(() => null),
-    ])
+    // Le super-administrateur n'a pas d'entreprise : pas de thème à charger (évite une erreur 403)
+    api<Profil>("/me", { token })
+      .then((profil) =>
+        Promise.all([
+          profil,
+          profil.entreprise ? api<Personnalisation>("/personnalisation", { token }).catch(() => null) : null,
+          api<MenuConfig>("/menu", { token }).catch(() => null),
+        ]),
+      )
       .then(([profil, perso, menu]) => {
         if (!annule) setSession({ token, profil, perso, menu });
       })
@@ -226,7 +231,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
         </div>
 
         {profilOuvert && <ProfilPanneau onFermer={fermerProfil} />}
-
+        <AssistantPanneau />
         {/* Confirmation avant de quitter la session */}
         {confirmerDeconnexion && (
           <div
