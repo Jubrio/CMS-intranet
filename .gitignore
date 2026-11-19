@@ -7,5 +7,6 @@ dist/
 uploads/
 postman/
 .postman/
+/docs/logo/
 espace-admin.patch
 espace-admin.zip
