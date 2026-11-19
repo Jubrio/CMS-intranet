@@ -18,4 +18,7 @@ return [
     // Nombre de messages précédents renvoyés au modèle pour qu'il suive la conversation.
     'historique' => 20,
 
+    // Mode formulaire : le modèle choisit l'action, la personne vérifie et complète les champs avant confirmation.
+    'formulaires' => (bool) env('ASSISTANT_FORMULAIRES', false),
+
 ];

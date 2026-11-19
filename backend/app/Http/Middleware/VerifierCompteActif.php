@@ -16,6 +16,10 @@ class VerifierCompteActif
             return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 
+        // Entreprise, rôle et permissions sont chargés ici une seule fois par requête ; les middlewares
+        // de permission et les contrôleurs réutilisent ces relations au lieu de les redemander à la base.
+        $utilisateur?->loadMissing(['entreprise', 'role.permissions']);
+
         if ($utilisateur?->entreprise_id && $utilisateur->entreprise?->statut_entreprise !== 'active') {
             return response()->json(['message' => 'Entreprise suspendue.'], 403);
         }

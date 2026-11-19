@@ -5,7 +5,7 @@ import { FormulaireCreation } from "@/components/visiteur/formulaire-creation";
 
 export const metadata: Metadata = {
   title: "Créer mon intranet — CMS Intranet",
-  description: "Créez l'intranet de votre entreprise en 3 étapes.",
+  description: "Créez l'intranet de votre entreprise en 4 étapes.",
 };
 
 export const revalidate = 300;

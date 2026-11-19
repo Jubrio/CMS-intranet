@@ -1,4 +1,4 @@
-import { Blocks, Building2, UserRound } from "lucide-react";
+import { Blocks, Building2, MailCheck, UserRound } from "lucide-react";
 import { ButtonLink } from "../button-link";
 import { Reveal, RevealItem } from "../reveal";
 
@@ -14,6 +14,11 @@ const ETAPES = [
     texte: "Renseignez vos informations : vous gérez ensuite les utilisateurs, les rôles et les contenus.",
   },
   {
+    icone: MailCheck,
+    titre: "Vérification de l'e-mail",
+    texte: "Saisissez le code à 6 chiffres reçu par e-mail pour confirmer votre adresse.",
+  },
+  {
     icone: Blocks,
     titre: "Vos modules",
     texte: "Sélectionnez les modules à activer. Vous pourrez en changer plus tard.",
@@ -25,11 +30,11 @@ export function Etapes() {
     <section id="etapes" className="px-6 py-24 lg:px-10">
       <div className="mx-auto max-w-6xl">
         <Reveal className="text-center">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">Prêt en 3 étapes</h2>
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">Prêt en 4 étapes</h2>
           <p className="mt-4 text-site-muted">Aucune installation : tout se passe dans votre navigateur.</p>
         </Reveal>
 
-        <ol className="mt-14 grid gap-6 md:grid-cols-3">
+        <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {ETAPES.map(({ icone: Icone, titre, texte }, i) => (
             <RevealItem
               key={titre}

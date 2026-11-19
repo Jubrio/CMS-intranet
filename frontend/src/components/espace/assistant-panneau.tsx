@@ -8,27 +8,43 @@ import {
   EyeOff,
   KeyRound,
   Loader2,
-  Megaphone,
   MessageSquarePlus,
   SendHorizontal,
   Sparkles,
-  UserPlus,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { ApiError, messageErreur } from "@/lib/api";
-import { annulerAction, confirmerAction, envoyerMessage, type ActionPropose } from "@/lib/assistant";
+import {
+  annulerAction,
+  confirmerAction,
+  envoyerMessage,
+  formulaireVide,
+  soumettreFormulaire,
+  type ActionPropose,
+  type FormulaireAssistant,
+  type ValeursFormulaire,
+} from "@/lib/assistant";
 import { estSuperAdmin } from "@/lib/espace";
 import { cn } from "@/lib/utils";
+import { OUTILS, SuggestionsAssistant, type SuggestionChoisie } from "./assistant-catalogue";
+import { FormulaireAssistantCarte } from "./assistant-formulaire";
 import { useEspace } from "./espace-context";
 
-const PERMISSIONS_PUBLICATION = ["actualites.publier", "annonces.publier", "articles.publier"];
+/** Droits de gestion qui ouvrent au moins un outil de l'assistant (le serveur reste l'arbitre). */
+const PERMISSIONS_ASSISTANT = [
+  "utilisateurs.gerer",
+  "utilisateurs.departements",
+  "actualites.publier",
+  "annonces.publier",
+  "articles.publier",
+  "notes_service.publier",
+  "evenements.gerer",
+  "faq.gerer",
+  "pages.gerer",
+  "documents.gerer",
+  "formulaires.gerer",
+];
 const DUREE_MOT_DE_PASSE = 10 * 60 * 1000;
-
-const OUTILS: Record<string, { libelle: string; Icone: LucideIcon }> = {
-  creer_utilisateur: { libelle: "Créer un compte", Icone: UserPlus },
-  publier_contenu: { libelle: "Publier un contenu", Icone: Megaphone },
-};
 
 type EtatCarte = "attente" | "envoi" | "fait" | "annule" | "echec";
 
@@ -39,16 +55,15 @@ type Contenu =
   | { type: "moi"; texte: string }
   | { type: "assistant"; texte: string }
   | { type: "erreur"; texte: string }
-  | { type: "cartes"; cartes: Carte[] };
+  | { type: "cartes"; cartes: Carte[] }
+  | { type: "formulaire"; formulaire: FormulaireAssistant; etat: "saisie" | "envoi" | "envoye" | "annule"; erreur?: string };
 
 type Element = Contenu & { id: number };
 
 /** Affiche le panneau seulement à ceux qui ont au moins un outil : le serveur reste l'arbitre. */
 export function AssistantPanneau() {
   const { profil } = useEspace();
-  const autorise =
-    !estSuperAdmin(profil) &&
-    profil.permissions.some((p) => p === "utilisateurs.gerer" || PERMISSIONS_PUBLICATION.includes(p));
+  const autorise = !estSuperAdmin(profil) && profil.permissions.some((p) => PERMISSIONS_ASSISTANT.includes(p));
 
   if (!autorise) return null;
   return <Assistant />;
@@ -65,8 +80,6 @@ function Assistant() {
   const corps = useRef<HTMLDivElement>(null);
   const champ = useRef<HTMLTextAreaElement>(null);
 
-  const peutGererUtilisateurs = profil.permissions.includes("utilisateurs.gerer");
-  const peutPublier = profil.permissions.some((p) => PERMISSIONS_PUBLICATION.includes(p));
   const motDePasseAffiche = elements.some(
     (e) => e.type === "cartes" && e.cartes.some((c) => typeof c.motDePasse === "string"),
   );
@@ -122,7 +135,10 @@ function Assistant() {
     try {
       const r = await envoyerMessage(token, message, conversationId);
       setConversationId(r.conversation_id);
-      if (r.actions.length > 0) {
+      if (r.formulaires && r.formulaires.length > 0) {
+        ajouter({ type: "assistant", texte: r.reponse });
+        for (const formulaire of r.formulaires) ajouter({ type: "formulaire", formulaire, etat: "saisie" });
+      } else if (r.actions.length > 0) {
         ajouter({ type: "cartes", cartes: r.actions.map((a) => ({ ...a, etat: "attente" as const })) });
       } else {
         ajouter({ type: "assistant", texte: r.reponse });
@@ -160,9 +176,42 @@ function Assistant() {
     champ.current?.focus();
   }
 
-  function suggerer(modele: string) {
-    setSaisie(modele);
-    champ.current?.focus();
+  const majFormulaire = useCallback((id: number, patch: { etat?: "saisie" | "envoi" | "envoye" | "annule"; erreur?: string }) => {
+    setElements((liste) => liste.map((e) => (e.id === id && e.type === "formulaire" ? { ...e, ...patch } : e)));
+  }, []);
+
+  /** Une suggestion ouvre directement le bon formulaire (sans passer par le modèle), ou prépare une phrase à compléter. */
+  async function suggerer(choix: SuggestionChoisie) {
+    if (!choix.outil) {
+      setSaisie(choix.modele ?? "");
+      champ.current?.focus();
+      return;
+    }
+    if (attente) return;
+    setAttente(true);
+    try {
+      const f = await formulaireVide(token, choix.outil);
+      const vides = Array.isArray(f.valeurs) ? {} : f.valeurs;
+      ajouter({ type: "formulaire", formulaire: { ...f, valeurs: { ...vides, ...(choix.valeurs ?? {}) } }, etat: "saisie" });
+    } catch (err) {
+      ajouter({ type: "erreur", texte: texteErreur(err) });
+    } finally {
+      setAttente(false);
+    }
+  }
+
+  async function validerFormulaire(id: number, outil: string, valeurs: ValeursFormulaire) {
+    majFormulaire(id, { etat: "envoi", erreur: undefined });
+    try {
+      const r = await soumettreFormulaire(token, outil, valeurs, conversationId);
+      setConversationId(r.conversation_id);
+      majFormulaire(id, { etat: "envoye" });
+      ajouter({ type: "cartes", cartes: r.actions.map((a) => ({ ...a, etat: "attente" as const })) });
+    } catch (err) {
+      // 422 : le serveur explique ce qui est refusé (champ manquant, droit, état incohérent) ; la personne corrige
+      const message = err instanceof ApiError && err.status === 422 ? err.message : texteErreur(err);
+      majFormulaire(id, { etat: "saisie", erreur: message });
+    }
   }
 
   function surTouche(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -243,28 +292,7 @@ function Assistant() {
                   Demandez-moi une tâche en une phrase. Je la prépare, vous vérifiez le détail, puis vous confirmez :
                   rien n&apos;est fait sans votre accord.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {peutGererUtilisateurs && (
-                    <button
-                      type="button"
-                      onClick={() => suggerer("Crée un compte pour ")}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1.5 text-xs font-medium text-site-ink transition-colors hover:border-brand-violet/60"
-                    >
-                      <UserPlus size={14} aria-hidden />
-                      Créer un utilisateur
-                    </button>
-                  )}
-                  {peutPublier && (
-                    <button
-                      type="button"
-                      onClick={() => suggerer("Publie une actualité : ")}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-site-line px-3 py-1.5 text-xs font-medium text-site-ink transition-colors hover:border-brand-violet/60"
-                    >
-                      <Megaphone size={14} aria-hidden />
-                      Publier une actualité
-                    </button>
-                  )}
-                </div>
+                <SuggestionsAssistant permissions={profil.permissions} onChoisir={(choix) => void suggerer(choix)} />
               </div>
             )}
 
@@ -298,6 +326,25 @@ function Assistant() {
                   >
                     {e.texte}
                   </p>
+                );
+              }
+              if (e.type === "formulaire") {
+                if (e.etat === "envoye" || e.etat === "annule") {
+                  return (
+                    <p key={e.id} className="text-xs text-site-muted">
+                      {e.formulaire.titre} : {e.etat === "envoye" ? "formulaire envoyé, vérifiez la carte ci-dessous." : "annulé."}
+                    </p>
+                  );
+                }
+                return (
+                  <FormulaireAssistantCarte
+                    key={e.id}
+                    formulaire={e.formulaire}
+                    enCours={e.etat === "envoi"}
+                    erreur={e.erreur}
+                    onValider={(valeurs) => void validerFormulaire(e.id, e.formulaire.outil, valeurs)}
+                    onAnnuler={() => majFormulaire(e.id, { etat: "annule" })}
+                  />
                 );
               }
               return (

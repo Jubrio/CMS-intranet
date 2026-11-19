@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers } from "lucide-react";
+import { LogoMark } from "@/components/visiteur/logo";
 import { estSuperAdmin, menuPour, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +27,7 @@ export function Sidebar({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={perso.logo_url} alt="" className="size-9 shrink-0 rounded-lg bg-site-surface2 object-contain p-1" />
         ) : (
-          <span className="v-gradient-btn flex size-9 shrink-0 items-center justify-center rounded-lg">
-            <Layers size={18} strokeWidth={2.25} aria-hidden />
-          </span>
+          <LogoMark className="size-9 rounded-lg p-1" />
         )}
         <div className="min-w-0 leading-tight">
           <p className="truncate font-display text-sm font-semibold">{nom}</p>

@@ -11,8 +11,10 @@ class VerifierPermission
     public function handle(Request $request, Closure $next, string $code): Response
     {
         $utilisateur = $request->user();
-        $autorise = $utilisateur
-            && $utilisateur->role->permissions()->where('code_permission', $code)->exists();
+
+        // Relations déjà chargées par « compte.actif » : aucune requête supplémentaire par permission vérifiée
+        $utilisateur?->loadMissing('role.permissions');
+        $autorise = (bool) $utilisateur?->role?->permissions->contains('code_permission', $code);
 
         if (! $autorise) {
             return response()->json(['message' => 'Action non autorisée pour votre rôle.'], 403);

@@ -14,7 +14,7 @@ class MenuController extends Controller
         $u = $request->user();
         $actifs = Menu::modulesActifs($u->entreprise_id);
 
-        $codes = $u->role->permissions()->pluck('code_permission');
+        $codes = $u->loadMissing('role.permissions')->role->permissions->pluck('code_permission');
         $permis = $codes->map(fn ($c) => explode('.', $c)[0])->unique()->all();
 
         $lignes = Menu::where('entreprise_id', $u->entreprise_id)->with('roles')->get();

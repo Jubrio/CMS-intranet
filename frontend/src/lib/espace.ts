@@ -82,6 +82,17 @@ export type MenuConfig = {
   liens: { id: number; libelle: string; url: string; ordre: number }[];
 };
 
+// Libellé affiché pour un rôle : les rôles par défaut ont un nom d'affichage,
+// les rôles personnalisés s'affichent tels que l'entreprise les a nommés.
+const LIBELLES_ROLES: Record<string, string> = {
+  Administrateur: "Administrateur",
+  RH: "Ressources humaines",
+  Manager: "Manager",
+  "Employé": "Employé",
+};
+
+export const libelleRole = (role: string) => LIBELLES_ROLES[role] ?? role;
+
 export const estSuperAdmin = (p: Pick<Profil, "role" | "entreprise">) =>
   p.role === "Super-administrateur" && p.entreprise === null;
 
@@ -299,6 +310,7 @@ export const NAV_PLATEFORME: GroupeNav[] = [
     entrees: [
       { libelle: "Intranets", icone: Landmark, href: "/espace/intranets", superAdmin: true },
       { libelle: "Catalogue de modules", icone: Blocks, href: "/espace/catalogue-modules", superAdmin: true },
+      { libelle: "Journal des opérations", icone: ScrollText, href: "/espace/journal", superAdmin: true },
     ],
   },
 ];

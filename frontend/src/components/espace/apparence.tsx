@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { Camera, Check, ImageIcon, Layers, Loader2, RotateCcw, TriangleAlert, X } from "lucide-react";
+import { Camera, Check, ImageIcon, Loader2, RotateCcw, TriangleAlert, X } from "lucide-react";
+import { LogoMark } from "@/components/visiteur/logo";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import type { Personnalisation } from "@/lib/espace";
 import { COULEURS_PAR_DEFAUT, FORMAT_COULEUR, PALETTES, contrasteAvecBlanc, variablesTheme } from "@/lib/apparence";
@@ -88,9 +89,7 @@ function Apercu({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={perso.logo_url} alt="" className="size-9 shrink-0 rounded-lg bg-site-surface2 object-contain p-1" />
         ) : (
-          <span className="v-gradient-btn flex size-9 shrink-0 items-center justify-center rounded-lg">
-            <Layers size={18} strokeWidth={2.25} aria-hidden />
-          </span>
+          <LogoMark className="size-9 rounded-lg p-1" />
         )}
         <div className="min-w-0 leading-tight">
           <p className="truncate font-display text-sm font-semibold">{perso.nom_entreprise}</p>

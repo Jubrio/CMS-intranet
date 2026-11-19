@@ -29,7 +29,7 @@ class ReinitialiserMotDePasseTool implements ToolInterface
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
-                        'email' => ['type' => 'string', 'description' => "Adresse e-mail du compte"],
+                        'email' => ['type' => 'string', 'description' => 'E-mail du compte, ou son nom complet (prénom nom) si l\'e-mail n\'est pas connu. Ne jamais inventer d\'adresse.'],
                     ],
                     'required' => ['email'],
                 ],
@@ -49,7 +49,7 @@ class ReinitialiserMotDePasseTool implements ToolInterface
 
     public function validate(Utilisateur $utilisateur, array $params): array
     {
-        $validateur = Validator::make($params, ['email' => ['required', 'email']]);
+        $validateur = Validator::make($params, ['email' => ['required', 'string', 'max:255']]);
         if ($validateur->fails()) {
             throw new ToolException('Données invalides : '.implode(' ', $validateur->errors()->all()));
         }

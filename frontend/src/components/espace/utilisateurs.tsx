@@ -284,7 +284,7 @@ export function Utilisateurs() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold">Utilisateurs</h1>
-          <p className="mt-1 text-sm text-site-muted">Gérez les comptes, les rôles et l’accès à l’intranet.</p>
+          <p className="mt-1 text-sm text-site-muted">Gérez les comptes, les rôles et l accès à l intranet.</p>
         </div>
         <button
           type="button"

@@ -34,7 +34,7 @@ class ModifierUtilisateurTool implements ToolInterface
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
-                        'email' => ['type' => 'string', 'description' => 'Adresse e-mail ACTUELLE du compte à modifier'],
+                        'email' => ['type' => 'string', 'description' => 'E-mail ACTUEL du compte à modifier, ou son nom complet (prénom nom) si l\'e-mail n\'est pas connu. Ne jamais inventer d\'adresse.'],
                         'nouveau_nom' => ['type' => 'string', 'description' => 'Nouveau nom de famille'],
                         'nouveau_prenom' => ['type' => 'string', 'description' => 'Nouveau prénom'],
                         'nouvel_email' => ['type' => 'string', 'description' => 'Nouvelle adresse e-mail'],
@@ -63,7 +63,7 @@ class ModifierUtilisateurTool implements ToolInterface
     public function validate(Utilisateur $utilisateur, array $params): array
     {
         $validateur = Validator::make($this->renseignes($params), [
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string', 'max:255'],
             'nouveau_nom' => ['nullable', 'string', 'max:100'],
             'nouveau_prenom' => ['nullable', 'string', 'max:100'],
             'nouvel_email' => ['nullable', 'email', 'max:255'],

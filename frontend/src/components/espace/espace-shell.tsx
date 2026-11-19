@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import { estSuperAdmin, refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
+import { estSuperAdmin, libelleRole, refusRoute, type MenuConfig, type Personnalisation, type Profil } from "@/lib/espace";
 import { variablesTheme } from "@/lib/apparence";
 import { marquerInactivite } from "@/lib/inactivite";
 import { effacerToken, lireToken } from "@/lib/session";
@@ -69,17 +69,10 @@ export function EspaceShell({ children }: { children: ReactNode }) {
       return;
     }
     let annule = false;
-    // Le super-administrateur n'a pas d'entreprise : pas de thème à charger (évite une erreur 403)
-    api<Profil>("/me", { token })
-      .then((profil) =>
-        Promise.all([
-          profil,
-          profil.entreprise ? api<Personnalisation>("/personnalisation", { token }).catch(() => null) : null,
-          api<MenuConfig>("/menu", { token }).catch(() => null),
-        ]),
-      )
-      .then(([profil, perso, menu]) => {
-        if (!annule) setSession({ token, profil, perso, menu });
+    // Une seule requête : profil, apparence de l'entreprise et menu (perso vaut null pour le super-administrateur)
+    api<{ profil: Profil; personnalisation: Personnalisation | null; menu: MenuConfig | null }>("/session", { token })
+      .then(({ profil, personnalisation, menu }) => {
+        if (!annule) setSession({ token, profil, perso: personnalisation, menu });
       })
       .catch((err) => {
         if (annule) return;
@@ -184,7 +177,7 @@ export function EspaceShell({ children }: { children: ReactNode }) {
             </button>
 
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-sm font-semibold">Administration</p>
+              <p className="truncate text-sm font-semibold">{libelleRole(profil.role)}</p>
               <p className="hidden truncate text-xs text-site-muted sm:block">
                 {perso?.nom_entreprise ?? profil.entreprise}
               </p>

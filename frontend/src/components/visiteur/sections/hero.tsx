@@ -64,7 +64,7 @@ export function Hero({ nombreModules }: { nombreModules: number }) {
               <div>
                 <dt className="sr-only">Mise en route</dt>
                 <dd>
-                  <span className="font-display text-2xl font-bold text-site-ink">3</span> étapes pour démarrer
+                  <span className="font-display text-2xl font-bold text-site-ink">4</span> étapes pour démarrer
                 </dd>
               </div>
               <div>

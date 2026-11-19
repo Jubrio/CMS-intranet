@@ -2,7 +2,7 @@ import { Rocket, ShieldCheck, SlidersHorizontal, Target } from "lucide-react";
 import { Reveal, RevealItem } from "../reveal";
 
 const AVANTAGES = [
-  { icone: Rocket, titre: "Plus simple", texte: "Un intranet opérationnel en 3 étapes." },
+  { icone: Rocket, titre: "Plus simple", texte: "Un intranet opérationnel en 4 étapes." },
   { icone: Target, titre: "Plus ciblé", texte: "Chaque message atteint le bon public." },
   { icone: ShieldCheck, titre: "Plus sûr", texte: "Permissions précises et données isolées." },
   { icone: SlidersHorizontal, titre: "Plus flexible", texte: "Activez les modules selon l'évolution de vos besoins." },

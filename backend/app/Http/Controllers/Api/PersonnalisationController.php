@@ -86,7 +86,7 @@ class PersonnalisationController extends Controller
         return response()->json($this->donnees($entreprise->fresh()));
     }
 
-    private function donnees($entreprise): array
+    public function donnees($entreprise): array
     {
         $p = $entreprise->personnalisation;
 

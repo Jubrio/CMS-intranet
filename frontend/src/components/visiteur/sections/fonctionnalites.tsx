@@ -38,7 +38,7 @@ export function Fonctionnalites() {
   return (
     <section id="fonctionnalites" className="px-6 py-24 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <Reveal className="max-w-xl">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">
             Tout ce qu&apos;il faut pour animer votre entreprise
           </h2>

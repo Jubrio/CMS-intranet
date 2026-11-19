@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AnnuaireController;
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AssistantController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CodesVerificationController;
 use App\Http\Controllers\Api\ContenuController;
 use App\Http\Controllers\Api\ContenuImageController;
@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\QuestionFaqController;
 use App\Http\Controllers\Api\RhTableauDeBordController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SuperIntranetController;
 use App\Http\Controllers\Api\SuperModuleController;
 use App\Http\Controllers\Api\SuperTableauDeBordController;
@@ -64,6 +65,7 @@ Route::get('/fichiers/{chemin}', [FichierProfilController::class, 'fichier'])
 Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'moi']);
+    Route::get('/session', SessionController::class);
     Route::put('/me', [ProfilController::class, 'modifier']);
     Route::post('/me/photo', [ProfilController::class, 'photo']);
     Route::put('/me/mot-de-passe', [ProfilController::class, 'motDePasse'])->middleware('throttle:10,1');
@@ -271,6 +273,9 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->group(function () {
         Route::post('/messages', [AssistantController::class, 'envoyer']);
         Route::post('/actions/{id}/confirmer', [AssistantController::class, 'confirmer'])->whereNumber('id');
         Route::post('/actions/{id}/annuler', [AssistantController::class, 'annuler'])->whereNumber('id');
+        Route::get('/formulaires', [AssistantController::class, 'formulaires']);
+        Route::get('/formulaires/{outil}', [AssistantController::class, 'formulaire'])->where('outil', '[a-z_]+');
+        Route::post('/formulaires/{outil}', [AssistantController::class, 'soumettre'])->where('outil', '[a-z_]+');
     });
 
 });

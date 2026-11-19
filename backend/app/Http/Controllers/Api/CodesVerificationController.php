@@ -17,6 +17,8 @@ class CodesVerificationController extends Controller
 
     private const CODE_INVALIDE = 'Code invalide ou expiré.';
 
+    private const EMAIL_DEJA_UTILISE = 'Cette adresse e-mail est déjà utilisée.';
+
     public function __construct(private CodesVerification $codes) {}
 
     // Inscription, étape 1 : envoi du code
@@ -24,12 +26,18 @@ class CodesVerificationController extends Controller
     {
         $donnees = $request->validate(['email' => $this->regleEmail()]);
 
-        // Une adresse déjà utilisée ne reçoit rien, mais la réponse reste la même
-        if (! Utilisateur::where('email', $donnees['email'])->exists()) {
-            $this->codes->envoyer($donnees['email'], CodesVerification::INSCRIPTION);
+        // Adresse déjà liée à un compte : on bloque ici, le formulaire reste à l'étape « Compte administrateur ».
+        // (La création d'intranet révèle déjà cette information, il n'y a donc rien de plus à protéger.)
+        if (Utilisateur::where('email', $donnees['email'])->exists()) {
+            return response()->json([
+                'message' => self::EMAIL_DEJA_UTILISE,
+                'errors' => ['email' => [self::EMAIL_DEJA_UTILISE]],
+            ], 422);
         }
 
-        return response()->json(['message' => self::MESSAGE_ENVOI]);
+        $this->codes->envoyer($donnees['email'], CodesVerification::INSCRIPTION);
+
+        return response()->json(['message' => 'Un code à 6 chiffres vient d\'être envoyé à cette adresse. Pensez à vérifier les courriers indésirables.']);
     }
 
     // Inscription, étape 2 : le code donne un jeton, à renvoyer lors de la création de l'intranet

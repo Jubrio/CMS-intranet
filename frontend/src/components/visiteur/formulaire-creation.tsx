@@ -121,7 +121,6 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
   const adresse = () => getValues("email").trim();
   const adresseDejaVerifiee = () => jeton !== null && emailVerifie === adresse();
 
-  // Envoie (ou renvoie) le code à 6 chiffres. Retourne vrai si l'envoi a été accepté.
   async function envoyerCode(): Promise<boolean> {
     setErreurGlobale(null);
     setErreurCode(null);
@@ -184,7 +183,6 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
     if (!(await trigger(ETAPES[etape].champs))) return;
     setErreurGlobale(null);
     if (etape === ETAPE_COMPTE) {
-      // Adresse déjà confirmée (retour en arrière) : pas de nouveau code
       if (adresseDejaVerifiee()) {
         setEtape(ETAPE_VERIFICATION + 1);
       } else if (await envoyerCode()) {
@@ -197,7 +195,6 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
 
   function precedent() {
     setErreurGlobale(null);
-    // L'étape de vérification est sautée quand l'adresse est déjà confirmée
     setEtape((e) => (e === ETAPE_VERIFICATION + 1 && adresseDejaVerifiee() ? ETAPE_COMPTE : e - 1));
   }
 
@@ -232,7 +229,6 @@ export function FormulaireCreation({ modules }: { modules: ModuleCatalogue[] }) 
           const base = champ.split(".")[0] as keyof Valeurs;
           premiere = Math.min(premiere, etapeDuChamp(champ));
           if (champ === "jeton_verification") {
-            // Vérification expirée ou refusée : il faut redemander un code
             setJeton(null);
             setEmailVerifie(null);
             setErreurCode(messages[0]);

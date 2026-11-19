@@ -59,14 +59,15 @@ class AuthController extends Controller
 
     public function moi(Request $request): JsonResponse
     {
-        return response()->json($this->profil($request->user()->load(['role.permissions', 'entreprise'])));
+        return response()->json($this->profil($request->user()->loadMissing(['role.permissions', 'entreprise'])));
     }
 
     public function profil(Utilisateur $u): array
     {
+        // Une seule requête (sous-requête SQL) au lieu de deux allers-retours vers la base
         $modules = $u->entreprise_id
             ? Module::auCatalogue()->whereIn('id', ModuleEntreprise::where('entreprise_id', $u->entreprise_id)
-                ->where('module_actif', true)->pluck('module_id'))->pluck('code_module')
+                ->where('module_actif', true)->select('module_id'))->pluck('code_module')
             : collect();
 
         return [
