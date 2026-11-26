@@ -17,6 +17,8 @@ class NotificationService
         'note_service' => [['notes_service'], ['notes_service.consulter']],
         'evenement' => [['calendrier', 'evenements'], ['calendrier.consulter', 'evenements.consulter']],
         'document' => [['documents'], ['documents.consulter']],
+        'page' => [['pages'], ['pages.consulter']],
+        'faq' => [['faq'], ['faq.consulter']],
     ];
 
     private const PAR_LOT = 500;

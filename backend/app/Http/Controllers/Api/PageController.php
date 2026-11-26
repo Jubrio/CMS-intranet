@@ -7,6 +7,7 @@ use App\Http\Requests\EnregistrerPageRequest;
 use App\Models\Contenu;
 use App\Models\Image;
 use App\Models\Utilisateur;
+use App\Services\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
+    public function __construct(private NotificationService $notifications) {}
+
     public function index(Request $request): JsonResponse
     {
         $request->validate([
@@ -71,6 +74,9 @@ class PageController extends Controller
             'date_publication' => $statut === 'publie' ? now() : null,
             'emplacement_menu' => $d['emplacement_menu'] ?? null,
         ]);
+        if ($statut === 'publie') {
+            $this->notifier($u, $c);
+        }
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true), 201);
     }
@@ -106,6 +112,7 @@ class PageController extends Controller
             return response()->json(['message' => 'Cette page est déjà publiée.'], 422);
         }
         $c->update(['statut_contenu' => 'publie', 'date_publication' => $c->date_publication ?? now()]);
+        $this->notifier($request->user(), $c);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
@@ -117,6 +124,7 @@ class PageController extends Controller
             return response()->json(['message' => 'Seule une page publiée peut être archivée.'], 422);
         }
         $c->update(['statut_contenu' => 'archive']);
+        $this->notifications->retirer('page', $c->id);
 
         return response()->json($this->formater($c->load('auteur:id,nom,prenom'), true));
     }
@@ -126,9 +134,18 @@ class PageController extends Controller
         $c = $this->gerer($request, $id);
         $chemins = Image::where('contenu_id', $c->id)->pluck('fichier')->all();
         $c->delete();
+        $this->notifications->retirer('page', $c->id);
         Storage::disk(\App\Services\FichiersProfil::DISQUE)->delete($chemins);
 
         return response()->json(['message' => 'Page supprimée.']);
+    }
+
+    private function notifier(Utilisateur $u, Contenu $c): void
+    {
+        $this->notifications->publier(
+            $u, 'publie', 'page', $c->id, $c->titre,
+            $c->visibilite === 'departement' ? $c->departement_id : null,
+        );
     }
 
     private function peutGerer(Utilisateur $u): bool

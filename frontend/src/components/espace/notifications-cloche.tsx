@@ -32,6 +32,8 @@ const PHRASES: Record<string, string> = {
   "publie:note_service": "a publié la note de service",
   "cree:evenement": "a créé l'événement",
   "depose:document": "a déposé le document",
+  "publie:page": "a publié la page",
+  "publie:faq": "a ajouté à la FAQ",
 };
 
 const CONTENUS = ["actualite", "annonce", "article", "note_service"];
@@ -41,6 +43,8 @@ function adresse(n: Notif): string {
   if (CONTENUS.includes(n.objet_type)) return `/espace/accueil?ouvrir=${n.objet_type}-${n.objet_id}`;
   if (n.objet_type === "evenement") return `/espace/calendrier?ouvrir=${n.objet_id}`;
   if (n.objet_type === "document") return "/espace/consulter-documents";
+  if (n.objet_type === "page") return `/espace/consulter-pages?ouvrir=${n.objet_id}`;
+  if (n.objet_type === "faq") return `/espace/consulter-faq?ouvrir=${n.objet_id}`;
   return "/espace";
 }
 

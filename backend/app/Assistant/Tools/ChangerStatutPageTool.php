@@ -87,8 +87,13 @@ class ChangerStatutPageTool implements ToolInterface
 
         if ($p['action'] === 'publier') {
             $page->update(['statut_contenu' => 'publie', 'date_publication' => $page->date_publication ?? now()]);
+            app(\App\Services\NotificationService::class)->publier(
+                $utilisateur, 'publie', 'page', $page->id, $page->titre,
+                $page->visibilite === 'departement' ? $page->departement_id : null,
+            );
         } else {
             $page->update(['statut_contenu' => 'archive']);
+            app(\App\Services\NotificationService::class)->retirer('page', $page->id);
         }
 
         return [

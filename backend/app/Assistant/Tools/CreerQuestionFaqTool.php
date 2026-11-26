@@ -73,6 +73,7 @@ class CreerQuestionFaqTool implements ToolInterface
         $p = $this->validate($utilisateur, $params);
 
         $question = QuestionFaq::create($p + ['entreprise_id' => $utilisateur->entreprise_id, 'auteur_id' => $utilisateur->id]);
+        app(\App\Services\NotificationService::class)->publier($utilisateur, 'publie', 'faq', $question->id, $question->question);
 
         return [
             'message' => 'La question a été ajoutée à la FAQ.',

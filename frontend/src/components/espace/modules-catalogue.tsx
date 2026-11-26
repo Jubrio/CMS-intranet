@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Blocks, Building2, KeyRound, Lock, Pencil, Plus, Power, Trash2, X, type LucideIcon } from "lucide-react";
+import { Blocks, Building2, KeyRound, Lock, Pencil, Power, Trash2, X, type LucideIcon } from "lucide-react";
 import { api, ApiError, messageErreur } from "@/lib/api";
 import { estSuperAdmin } from "@/lib/espace";
 import { iconeModule } from "@/lib/module-icons";
@@ -422,7 +422,6 @@ export function ModulesCatalogue() {
   const { profil } = useEspace();
   const autorise = estSuperAdmin(profil);
   const [selection, setSelection] = useState<string | null>(null);
-  const [creation, setCreation] = useState(false);
   const [version, setVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -451,14 +450,6 @@ export function ModulesCatalogue() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-2xl font-bold">Catalogue de modules</h1>
-        <button
-          type="button"
-          onClick={() => setCreation(true)}
-          className="v-gradient-btn inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold"
-        >
-          <Plus size={16} aria-hidden />
-          Ajouter un module
-        </button>
       </div>
 
       {notice && (
@@ -531,18 +522,6 @@ export function ModulesCatalogue() {
             setNotice(texte);
             setVersion((v) => v + 1);
             if (retire) setSelection(null);
-          }}
-        />
-      )}
-
-      {creation && (
-        <ModuleCatalogueFormulaire
-          module={null}
-          onFermer={() => setCreation(false)}
-          onEnregistre={(texte) => {
-            setCreation(false);
-            setNotice(texte);
-            setVersion((v) => v + 1);
           }}
         />
       )}

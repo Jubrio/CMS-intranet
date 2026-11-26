@@ -23,6 +23,8 @@ class JournalOperations
             'cible_id' => $cibleId,
             'cible_libelle' => $cibleLibelle,
             'details' => $details ?: null,
+            // Horodatage fixé en UTC par l'application, pas par le fuseau du serveur de base de données.
+            'created_at' => now('UTC'),
         ]);
     }
 }

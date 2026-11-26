@@ -11,7 +11,7 @@ class JournalOperation extends Model
     protected $table = 'journal_operations';
 
     protected $fillable = [
-        'utilisateur_id', 'utilisateur_libelle', 'action', 'cible_type', 'cible_id', 'cible_libelle', 'details',
+        'utilisateur_id', 'utilisateur_libelle', 'action', 'cible_type', 'cible_id', 'cible_libelle', 'details', 'created_at',
     ];
 
     protected $casts = ['details' => 'array', 'created_at' => 'datetime'];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, LayoutTemplate, Search, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,10 @@ export function PagesConsultation() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [ouverte, setOuverte] = useState<{ id: number; titre: string } | null>(null);
+  const idCible = useSearchParams().get("ouvrir");
+  const cible = idCible && /^\d+$/.test(idCible) ? { id: Number(idCible), titre: "" } : null;
+  const [ignoree, setIgnoree] = useState<number | null>(null);
+  const affichee = ouverte ?? (cible && cible.id !== ignoree ? cible : null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -151,7 +156,11 @@ export function PagesConsultation() {
     return [...m.entries()];
   }, [res]);
 
-  const fermer = useCallback(() => setOuverte(null), []);
+  const idCibleNum = cible?.id ?? null;
+  const fermer = useCallback(() => {
+    setOuverte(null);
+    setIgnoree(idCibleNum);
+  }, [idCibleNum]);
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
@@ -267,7 +276,7 @@ export function PagesConsultation() {
         </>
       )}
 
-      {ouverte && <LecteurPage key={ouverte.id} page={ouverte} onFermer={fermer} />}
+      {affichee && <LecteurPage key={affichee.id} page={affichee} onFermer={fermer} />}
     </div>
   );
 }

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EnregistrerQuestionRequest;
 use App\Models\QuestionFaq;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class QuestionFaqController extends Controller
 {
+    public function __construct(private NotificationService $notifications) {}
+
     public function index(Request $request): JsonResponse
     {
         $request->validate(['q' => 'nullable|string|max:100', 'categorie' => 'nullable|string|max:50']);
@@ -50,6 +53,7 @@ class QuestionFaqController extends Controller
             'entreprise_id' => $u->entreprise_id,
             'auteur_id' => $u->id,
         ]);
+        $this->notifications->publier($u, 'publie', 'faq', $question->id, $question->question);
 
         return response()->json($this->formater($question->load('auteur:id,nom,prenom')), 201);
     }
@@ -69,6 +73,7 @@ class QuestionFaqController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->trouver($request, $id)->delete();
+        $this->notifications->retirer('faq', $id);
 
         return response()->json(['message' => 'Question supprimée.']);
     }

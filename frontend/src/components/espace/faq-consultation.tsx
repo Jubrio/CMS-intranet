@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,13 @@ export function FaqConsultation() {
   const [categorieChoisie, setCategorieChoisie] = useState("");
   const [page, setPage] = useState(1);
   const [ouvertes, setOuvertes] = useState<Set<number>>(new Set());
+  const idCible = useSearchParams().get("ouvrir");
+  const idCibleNum = idCible && /^\d+$/.test(idCible) ? Number(idCible) : null;
+  const chargerCible = useCallback(
+    (jeton: string) => api<QuestionFaq>(`/faq/${idCibleNum}`, { token: jeton }),
+    [idCibleNum],
+  );
+  const cible = useDonnees(idCibleNum !== null, chargerCible);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -72,6 +80,23 @@ export function FaqConsultation() {
         <h1 className="font-display text-2xl font-bold">FAQ</h1>
         <p className="mt-1 text-sm text-site-muted">Les réponses aux questions fréquentes de votre entreprise.</p>
       </header>
+
+      {cible.donnees && (
+        <section
+          ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+          className="rounded-2xl border border-brand-violet/60 bg-site-surface p-5 shadow-sm"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-violet">Nouvelle question</p>
+          <h2 className="mt-1 text-sm font-semibold">{cible.donnees.question}</h2>
+          <span className="mt-1 inline-flex rounded-full bg-brand-blue/15 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">
+            {cible.donnees.categorie}
+          </span>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">{cible.donnees.reponse}</p>
+        </section>
+      )}
+      {idCibleNum !== null && cible.erreur && (
+        <p className="text-sm text-site-muted">Cette question a peut-être été retirée.</p>
+      )}
 
       <section className="rounded-2xl border border-site-line bg-site-surface shadow-sm">
         <div className="flex flex-wrap items-center gap-3 border-b border-site-line p-4">
